@@ -1,0 +1,156 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('SysVersionController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+
+            var id = '@ViewData["id"]';
+            $scope.notice = { EnableFlag: false };
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.notice = response;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.notice;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'SysVersion/Index';
+                            });
+                        }
+                    }).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysVersion/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysVersion/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="SysVersionController" name="editForm" novalidate>
+        <table>
+            @*<tr>
+                    <th>当前状态：</th>
+                    <td>
+                        {{(notice.NoticeId!=null && notice.NoticeId.toString().length>0)?"编辑":"新增"}}
+                    </td>
+                </tr>*@
+            @*<tr>
+                    <th>id：</th>
+                    <td>{{notice.NoticeId}}</td>
+                </tr>*@
+            <tr>
+                <th>版本名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Version" ng-model="notice.Version" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Version.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Version.$error.required">请输入版本名称</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>更新时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="UpdateTime" date-Picker required name="UpdateTime" ng-model="notice.UpdateTime" class="wdatePicker cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.UpdateTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.UpdateTime.$error.required">请输入更新时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>版本描述：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="VerDsc" ng-model="notice.VerDsc" required></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.VerDsc.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.VerDsc.$error.required">请输入版本描述</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysVersion/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                    @*<input type="submit" ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;" ng-disabled="editForm.$invalid" value="保存" />
+                        <input type="button" class="cell-btn-gray" value="返回" style="width:70px;" onclick="window.location.href='/SysNotice/Index'" />*@
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

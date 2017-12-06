@@ -1,0 +1,145 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        .public-table-main table tr th {
+            font-weight: normal;
+            text-align: left;
+            width: 15%;
+            padding: 5px 0px;
+            border: 1px solid #eaeaea;
+            border-width: 0px 1px 1px 0px;
+            background: #F4F4F4;
+        }
+
+        .public-table-main table tr td {
+            font-weight: normal;
+            text-align: left;
+            width: 85%;
+            border: 1px solid #eaeaea;
+            border-width: 0px 1px 1px 0px;
+        }
+    </style>
+
+}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $timeout, BusinessService, ngDialog) {
+            $scope.curObj = {
+
+            };
+            BusinessService.getDataByID().success(function (response) {
+                $scope.curObj = response;                
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            $scope.save = function () {
+                var postData = $scope.curObj;
+                BusinessService.save(postData).success(function (response) {
+                    if (response.IsSuccess) {
+                        //alert("保存成功");
+                        box.alert("保存成功", { icon: 'success' }, function () {
+                            window.location.href = CurPath + 'BirthControlConfig/Edit';
+                        });
+                    }
+                    else {
+                        box.alert(response.Message, { icon: 'error' });
+                    }
+                }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlConfig/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlConfig/GetDataByID' 
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-table-main">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th colspan="2">在以下时间段内接收待办</th>
+            </tr>
+                   
+            <tr>
+                <th>推送开始时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ConfirmStartdate" name="ConfirmStartdate" datefmt="yyyy-MM-dd" style="width:80px;" date-Picker ng-model="curObj.ConfirmStartdate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <div><strong class="must-options">*</strong></div>
+                    </div>
+                </td>
+            </tr>           
+            <tr>
+                <th>推送结束时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ConfirmEnddate" name="ConfirmEnddate" style="width:80px;" datefmt="yyyy-MM-dd"   date-Picker ng-model="curObj.ConfirmEnddate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <div><strong class="must-options">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th colspan="2">满足以下年龄(或以上)的员工不需要接收待办</th>
+            </tr>
+            <tr>
+                <th>男员工：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ManAge" ng-model="curObj.ManAge" style="width:80px;"  class="cell-input" />
+                        <div><strong class="must-options">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>女员工：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="WomenAge" ng-model="curObj.WomenAge" style="width:80px;"  class="cell-input" />
+                        <div><strong class="must-options">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align:center">
+                    <a ng-click="save()" class="cell-btn-blue" id="ForEdit_saveOption" style="width:70px; margin-right:20px;">保存</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->
+

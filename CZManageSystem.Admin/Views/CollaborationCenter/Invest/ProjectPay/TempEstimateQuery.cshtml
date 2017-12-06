@@ -1,0 +1,370 @@
+﻿
+@{
+    ViewBag.Title = "暂估查询";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('ProjectPayController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+            };
+            $scope.YearList = [];
+            $scope.MonthList = [];
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items.ModelList;
+                    $scope.total = response.items.Total;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            BusinessService.GetDropList().success(function (response) {
+                $scope.YearList = response.YearList;
+                $scope.MonthList = response.MonthList;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.editData = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                window.location.href = CurPath + 'ProjectPay/TempEstimateEdit?Id=' + choseArr[0];
+            }
+
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'ProjectPay/EstimateDetail?ID=' + obj.ID;
+                src += '&type=look';
+                window.location.href = src;
+            }
+            //修改按钮
+            $scope.editData = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                window.location.href = CurPath + 'ProjectPay/TempEstimateEdit?type=edit&ID=' + choseArr[0];
+            }
+            //---------------
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'ProjectPay/GetEstimateListData', postData);
+            };
+            serive.GetDropList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ProjectPay/GetDropList'
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ProjectPayController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>年度：</td>
+                <td>
+                    <div class="selectdrapdown">
+                        <select class="cell-input" ng-model="queryBuilder.Year" style="width:80px;">
+                            <option ng-repeat="x in YearList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                        </select>
+                        <span style="margin:0px 5px;">月份</span>
+                        <select class="cell-input" ng-model="queryBuilder.Month" style="width:80px;">
+                            <option ng-repeat="x in MonthList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    暂估部门：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Dpfullname" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    项目编号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectID" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+                <td>
+                    项目名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+            </tr>
+            <tr>
+                <td>
+                    合同编号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ContractID" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+                <td>
+                    合同名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ContractName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                                    
+            </tr>
+            <tr>
+                <td>
+                    供应商：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Supply" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    所属专业：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Study" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    科目：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Course" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+
+                <td>
+                    负责人：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ManagerName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+
+                <td>合同项目金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.SignTotal_start" class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.SignTotal_end" class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+
+                <td>实际合同金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.PayTotal_start" class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.PayTotal_end" class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>上月形象进度(%)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.BackRate_start" class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.BackRate_end" class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+
+                <td>本月形象进度(%)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.Rate_start" class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.Rate_end" class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>暂估金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.NotPay_start" class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.NotPay_end" class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+
+                <td>已付款金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.Pay_start" required class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.Pay_end" required class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>合同税金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.Tax_start" class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.Tax_end" class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>年份</th>
+                <th>月份</th>
+                <th>项目编号</th>
+                <th>项目名称</th>
+                <th>合同编号</th>
+                <th>合同名称</th>
+                <th>合同金额(元)</th>
+                <th>实际合同金额(元)</th>
+                <th>合同税金(元)</th>
+                <th>形象进度(%)</th>
+                <th>已付款金额</th>
+                <th>暂估金额</th>
+            </tr>
+            <tr ng-repeat="temp in ListPageData">               
+                <td ng-bind="temp.Year"></td>
+                <td ng-bind="temp.Month"></td>
+                <td style="color:blue;" ng-bind="temp.ProjectID" ng-click="clickTitle(temp)"></td>
+                <td ng-bind="temp.ProjectName"></td>
+                <td ng-bind="temp.ContractID"></td>
+                <td ng-bind="temp.ContractName"></td>
+                <td ng-bind="temp.SignTotal"></td>
+                <td ng-bind="temp.PayTotal"></td>
+                <td ng-bind="temp.Tax"></td>
+                <td ng-bind="temp.Rate"></td>
+                <td ng-bind="temp.Pay"></td>
+                <td ng-bind="temp.NotPay"></td>
+            </tr>
+            <tr>
+                <th colspan="6">合计：</th>
+                <td>{{total.SignTotalCount}}</td>
+                <td>{{total.PayTotalCount}}</td>
+                <td>{{total.TaxCount}}</td>
+                <td></td>
+                <td>{{total.PayCount}}</td>
+                <td>{{total.NotPayCount}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../ProjectPay/InvestEstimateDownload?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+

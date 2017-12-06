@@ -1,0 +1,287 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        $(function () {
+            var IsAdmin = '@ViewData["IsAdmin"]';
+            //alert(IsComfirm);
+            if (IsAdmin == "False") {
+                $('#ForImportOption').remove();
+            }
+
+        });
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('BirthControlRosterController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+                RealName: "",
+                EmployeeId: "",
+                DpId: [],
+                Status: "",
+                InfoStatus: ""
+            };
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                queryBuilder: $scope.queryBuilder
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.DeptId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.DpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.queryBuilder.DpName = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.Edit = function () {
+                if (choseArr[0] == "" || choseArr.length != 1) {//没有选择一个的时候提示
+                    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                    return;
+                };
+                window.location.href = CurPath + 'BirthControlRoster/Edit?userid=' + choseArr[0];
+
+            }
+
+            $scope.query = function () {
+                GetListData();
+            }
+            //导入数据
+            $scope.fileDialog = function () {
+                var _type = 'BirthControlRoster'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入数据',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        box.load("loadding");
+                        //获取会议室资料信息
+                        $scope.query();
+                        box.ready("loadding");
+                    }
+                });
+
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'BirthControlRoster/GetVWBirthcontrolListData', postData);
+            };
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+
+
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="BirthControlRosterController">
+    <!--content--->
+    <div class="search-mod" style="height:30px;">
+        <table>
+            <tr>
+                <td>员工姓名：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.RealName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    部门：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="DeptId" ng-model="queryBuilder.DpId" ng- class="cell-input" />
+                        <input type="text" name="DeptName" ng-model="queryBuilder.DpName" required class="cell-input" ng-click="editMember('dept')" />
+                        @* <input type="text" ng-model="queryBuilder.DpName" class="cell-input" style="width:120px;" />*@
+                    </div>
+                </td>
+                <td>
+                    编辑状态：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.InfoStatus" style="width:70px;">
+                                <option value="">全部</option>
+                                <option value="已编辑">已编辑</option>
+                                <option value="未编辑">未编辑</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>            
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>员工姓名</th>
+                <th>女方姓名</th>
+                <th>出生日期</th>
+                <th>女方工作单位</th>
+                <th>男方姓名</th>
+                <th>男方工作单位</th>
+                <th>编辑状态</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.UserId}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.UserId)" /></td>
+                <td ng-bind="emp.RealName"></td>
+                <td ng-bind="emp.FemaleName"></td>
+                <td ng-bind="emp.FemaleBirthday|date:'yyyy-MM-dd'"></td>
+                <td ng-bind="emp.FemaleWorkingPlace"></td>
+                <td ng-bind="emp.MaleName"></td>
+                <td ng-bind="emp.MaleWorkingPlace"></td>
+                <td ng-bind="emp.InfoStatus"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="Edit()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a ng-click="fileDialog()" id="ForImportOption"  class="btn-import"><i></i>导入</a></li>
+                <li><a href="../BirthControlRoster/Export?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>   
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+

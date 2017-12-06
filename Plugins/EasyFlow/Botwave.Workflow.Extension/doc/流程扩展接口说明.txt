@@ -1,0 +1,69 @@
+﻿	
+	流程扩展接口说明
+
+1. 扩展接口命名空间主要是：
+	Botwave.Workflow.Extension.Service
+	Botwave.Workflow.Extension.Service.Plugins
+	
+	其中部分接口涉及到以数据模型方式获取或设置数据，数据模型的命名空间为：
+	Botwave.Workflow.Extension.Domain
+	
+2.	所有数据操作中，有部分依赖.依赖的数据表与视图为：
+	bw_Users 用户信息.
+	bw_Resources 权限资源.
+	bw_Authorizations 用户授权.	
+	bw_Depts 用户组织结构.
+	vw_bw_UsersInRoles_Enabled 可用的用户与角色关系视图.
+	
+	在使用组件开发时，可用建立同样的用户管理数据结构，或者重新设置 SqlMap 的数据操作语句。
+	
+3. Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler 
+	为手动绘制的流程图配置处理类。
+	手动绘制流程图管理的命名空间为：Botwave.Workflow.Extension.WorkflowMap。
+	
+4. Botwave.Workflow.Extension.Service.Plugins 为实现一些特殊功能对流程引擎的核心部分进行扩展.
+
+5. Botwave.Workflow.Extension.Service 就是外部接口的方法等.
+	新项目使用根据使用情况进行重实现接口。各接口说明如下：
+	(1)  IWorkflowSearcher 为流程搜索服务接口，其有默认实现类 DefaultWorkflowSearcher.
+	(2)  IWorkflowUserService 用户服务接口，包含对用户信息的获取的一些数据方法，有默认实现类 DefaultWorkflowUserService。
+	(3)  IWorkflowResourceService 用户权限资源服务接口，主要用于流程部署时的权限资源更新，有默认实现类 DefaultWorkflowResourceService。
+	(4)  IWorkflowNotifyService 流程提醒处理服务接口，用于发送消息通知给流程待办人催办，有空 EmptyWorkflowNotifyService；
+	(5)  IWorkflowFieldService 流程表单字段服务接口，用于对流程处理的字段控制，有空实现类 EmptyWorkflowFieldService。
+	(6)  IWorkflowFormService 流程表单服务接口，用于对流程表单控制，有空实现类 EmptyWorkflowFormService。
+	(7)  IWorkflowFileService 文件上传的服务接口，主要用于流程评论附件以及流程附件的上传，有空实现类 EmptyWorkflowFileService。
+	(8)  IWorkflowAttachmentService 流程附件服务接口，主要用于对附件的数据操作，有空实现类 EmptyWorkflowAttachmentService。
+		  主要结合 IWorkflowFileService 接口一起使用。
+		  	
+		 为更好实现流程组件，请尽量为 IWorkflowAttachmentService、IWorkflowFileService、
+	IWorkflowFormService、IWorkflowNotifyService 提供实现类.
+	
+6. Botwave.Workflow.Extension.Service.Support 就是外部接口的实现类命名空间.
+	该命名空间下的类是 Botwave.Workflow.Extension.Service 下的外部接口
+	相应的默认实现（Default）或者空实现（Empty）;	
+	-----------------------------------------------------------------------------	
+	Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler 说明：
+	(1) botwave.workflowMap :
+		 selectedColor:被选中流程活动的背景颜色;
+		 alpha:背景颜色的透明度.
+
+	(2) activity: 流程活动(步骤).
+        x: 流程活动(步骤)框的起始位置 X 坐标;
+        y: 流程活动(步骤)框的起始位置 Y 坐标;
+        width: 流程活动(步骤)框的宽度;
+        height: 流程活动(步骤)框的高度.
+
+	(3) 格式示例：
+	  <botwave.workflowMap selectedColor="blue" alpha="100" cachePath="~/App_Data/Protected/workflowMaps">
+		 <workflow name="业务需求开发" path="~/contrib/workflow/res/workflowMaps/AA.jpg">
+			<activity name="提单" x="225" y="1" width="114" height="39"></activity>
+			<activity name="提单" x="225" y="1" width="114" height="39"></activity>
+		</workflow>
+		 <workflow name="业务需求开发" path="~/contrib/workflow/res/workflowMaps/AA.jpg">
+			<activity name="提单" x="225" y="1" width="114" height="39"></activity>
+			<activity name="提单" x="225" y="1" width="114" height="39"></activity>
+		</workflow>
+	  </botwave.workflowMap>		  
+	 ------------------------------------------------------------
+	 新增流程表单实例 Botwave.Workflow.Extension.Service.DefaultWorkflowFormService 。
+	 	

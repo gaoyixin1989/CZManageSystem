@@ -1,0 +1,154 @@
+﻿
+@{
+    ViewBag.Title = "Consumable_SporadicView";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('Consuming', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('ConsumingController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.apply = {};
+            var Id = '@ViewData["Id"]';
+            $scope.apply = {};
+            if (Id != null && Id.toString().length > 0) {
+                BusinessService.getDataByID(Id).success(function (response) {
+                    $scope.apply = response.items[0];
+                    //获取耗材详情
+                    BusinessService.getDataByApplyID(Id).success(function (data) {
+                        box.load("ConsumableGetListData");
+                        box.ready("ConsumableGetListData");
+                        $scope.ConsumableData = data.items;
+                        $.each($scope.ConsumableData, function (i, item) {
+                            $scope.Ids.push(item.ID);
+                        })
+                    }).error(function (err) {
+                        box.ready("ConsumableGetListData");
+                        box.alert("网络出错！", { icon: 'error' });
+                    });
+                    //---------------------------
+
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+            //-------------------------------------
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByApplyID = function (Id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/Consumable_SporadicGetDetailByApplyID/' + Id
+
+                });
+            };
+            serive.getDataByID = function (Id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/Consumable_SporadicGetByID?Id=' + Id
+
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 100%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+    }
+
+        .WF_Table tr th {
+            background: white;
+            padding: 7px;
+            font-weight: bold;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            text-align: center;
+        }
+
+        .WF_Table tr td {
+            padding: 5px;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            width: 35%;
+        }
+
+        .WF_Table tr th {
+            background: #F4F4F4;
+            width: 15%;
+        }
+</style>
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="Consuming" ng-controller="ConsumingController" name="editForm" novalidate>
+        <table class="WF_Table">
+            <tr>
+                <th>申请人：</th>
+                <td>{{apply.ApplyName}}</td>
+                <th>所在部门：</th>
+                <td>{{apply.DpName}} </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td> {{apply.Mobile}}  </td>
+                <th>申请日期：</th>
+                <td>
+                    {{apply.ApplyTime}}
+                </td>
+            </tr>
+            <tr>
+                <th>标题：</th>
+                <td>
+                    {{apply.Title}}
+                </td>
+                <th>流程单号：</th>
+                <td>
+                    {{apply.Series}}
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    {{apply.Content}}
+                </td>
+            </tr>
+        </table>
+        <div class="public-table-main">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <th>零星明细</th>
+                    <th>数量</th>
+                    <th>总额</th>
+                </tr>
+                <tr ng-repeat="emp in ConsumableData">
+                    <td ng-bind="emp.Relation"></td>
+                    <td ng-bind="emp.ApplyCount"></td>
+                    <td ng-bind="emp.Amount"></td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+

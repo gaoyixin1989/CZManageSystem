@@ -1,0 +1,462 @@
+﻿
+@{
+    ViewBag.Title = "投资项目列表";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'ngDialog', 'datePicker', 'number']);
+        //控制器
+        app.controller('PageController', ['$scope', "$filter", 'ngDialog', 'BusinessService', function ($scope, $filter, ngDialog, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    $scope.total = response.total;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            $scope.saveData = function () {
+                if (choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                var tempDatas = $filter('filter')($scope.ListPageData, function (obj) {
+                    return choseArr.indexOf(obj.ID) > -1;
+                });
+
+                var dd = $filter('filter')(tempDatas, function (obj) {
+                    return obj.NotPay != null && obj.NotPay < 0;
+                });
+                if (dd.length > 0)
+                {
+                    box.alert("选中数据中暂估金额不能小于0！");
+                    return;
+                }
+
+                BusinessService.save(tempDatas).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("保存成功！" + (response.Message.length > 0 ? "<br/>" : "") + response.Message, { icon: 'success' }, function () {
+                            $scope.query();
+                        });
+                    }
+                    else {
+                        box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' })
+                    }
+                }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+
+            }
+
+            //修改按钮
+            $scope.editData = function (id) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请至少选中一条数据再操作！");
+                        return;
+                    };
+                    url = CurPath + 'AgoEstimate/Edit?ID=' + choseArr[0];
+                }
+                else {
+                    url = CurPath + 'AgoEstimate/Edit?ID=' + id;
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+
+
+            //删除数据
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+
+            //导入按钮
+            $scope.fileDialog = function (type) {
+                var _type = ''; //导入的类型
+                var title = '';
+                switch (type) {
+                    case 'data': {
+                        _type = 'InvestAgoEstimate';
+                        title = '历史项目暂估导入';
+                    } break;
+                    default: { return; } break;
+                }
+
+                var dialog = ngDialog.openConfirm({
+                    title: title,
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //获取会议室资料信息
+                        GetListData();
+                    }
+                });
+
+            };
+
+            $scope.ResetNotPay = function (obj) {
+                if (isNaN(obj.PayTotal) || isNaN(obj.Rate) || isNaN(obj.Pay))
+                    obj.NotPay = null;
+                else {
+                    obj.NotPay = (obj.PayTotal * obj.Rate / 100 - obj.Pay).toFixed(2);
+                }
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'AgoEstimate/GetListData', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/Delete',
+                    data: { ids: ids }
+                });
+            };
+            //保存合同信息
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/Save',
+                    data: { dataList: postData, opType:'批量修改' }
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="PageController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    暂估部门：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Dept_Text" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+                <td>
+                    暂估金额(元)：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.NotPay_start" required class="cell-input" style="width:60px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.NotPay_end" required class="cell-input" style="width:60px;" />
+                    </div>
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    项目编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectID" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+                <td>
+                    项目名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectName" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    合同编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ContractID" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+                <td>
+                    合同名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ContractName" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    合同金额(元)：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.SignTotal_start" required class="cell-input" style="width:60px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.SignTotal_end" required class="cell-input" style="width:60px;" />
+                    </div>
+                </td>
+                <td>
+                    实际合同金额(元)：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.PayTotal_start" required class="cell-input" style="width:60px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.PayTotal_end" required class="cell-input" style="width:60px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    供应商：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Supply" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+                <td>
+                    所属专业：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Study" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    科目：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Course" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+                <td>
+                    负责人：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ManagerID_Text" class="cell-input" style="width:165px;" />
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    形象进度(%)：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.Rate_start" required class="cell-input" style="width:60px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.Rate_end" required class="cell-input" style="width:60px;" />
+                    </div>
+                </td>
+                <td>
+                    已付款金额(元)：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.Pay_start" required class="cell-input" style="width:60px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.Pay_end" required class="cell-input" style="width:60px;" />
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>项目名称</th>
+                <th>项目编号</th>
+                <th>合同名称</th>
+                <th>合同编号</th>
+                <th>合同金额(元)</th>
+                <th>实际合同金额(元)</th>
+                <th>形象进度(%)</th>
+                <th>已付款金额(元)</th>
+                <th>暂估金额(元)</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                <td ng-bind="emp.ProjectName"></td>
+                <td><div class="titleCol" ng-click="editData(emp.ID)">{{emp.ProjectID}}</div></td>
+                <td ng-bind="emp.ContractName"></td>
+                <td ng-bind="emp.ContractID"></td>
+                <td ng-bind="emp.SignTotal"></td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" ng-model="emp.PayTotal" class="cell-input" style="width:70px;" ng-change="ResetNotPay(emp)" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:10px;">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" ng-model="emp.Rate" class="cell-input" style="width:70px;" ng-change="ResetNotPay(emp)" /><span>%</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" ng-model="emp.Pay" class="cell-input" style="width:70px;" ng-change="ResetNotPay(emp)" />
+                    </div>
+                </td>
+                <td ng-bind="emp.NotPay"></td>
+            </tr>
+            <tr>
+                <th colspan="2">合计：</th>
+                <td colspan="3"></td>
+                <td ng-bind="total.SignTotal"></td>
+                <td ng-bind="total.PayTotal"></td>
+                <td></td>
+                <td ng-bind="total.Pay"></td>
+                <td ng-bind="total.NotPay"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="javascript:void(0);" ng-click="saveData()" class="btn-edit"><i></i>保存</a></li>
+                <li><a href="javascript:void(0);" ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                <li><a ng-click="fileDialog('data')" class="btn-import"><i></i>导入</a></li>
+                <li><a href="../AgoEstimate/Download_InvestAgoEstimate?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+

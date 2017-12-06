@@ -1,0 +1,449 @@
+﻿@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+
+    <link href="~/Content/css/tree-control.css" rel="stylesheet" />
+    <link href="~/Content/css/tree-control-attribute.css" rel="stylesheet" />
+    <link href="~/Content/css/Drop-Down.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+    <!--[if lte IE 8]>
+        <script>
+            document.createElement('treecontrol');
+        </script>
+    <![endif]-->
+
+    <script type="text/javascript">
+
+        var idList = [];
+        function GetIdList(obj) {
+            idList.push(obj.DpId)
+            if (obj.children != undefined)
+                for (var i = 0; i < obj.children.length; i++) {
+                    this.GetIdList(obj.children[i]);
+                }
+        }
+        function GetData() {
+            box.load("GetAllSysDeptment");
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10
+            };
+            $.ajax({
+                url: CurPath + '/SysDeptment/GetAllSysDeptment',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("GetAllSysDeptment");
+                    list = data.items;
+                },
+                error: function () {
+                    box.ready("GetAllSysDeptment");
+                }
+            });
+        }
+        var app = angular.module('ListPage', ['tm.pagination', 'treeControl']);
+        //控制器
+        app.controller('UserController', ['$scope','$rootScope', "$filter", 'BusinessService', function ($scope,$rootScope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                UserName: "",
+                RealName: "",
+                Mobile: "",
+                Email: ""
+                //JoinDateStart: "",
+                //JoinDateEnd: ""
+            };
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+
+
+            var tree;
+
+            GetData();
+
+            var rawTreeData = list;
+
+            var deptment = { Name: '', ParentDpId: [], DpFullName: '' };
+            var myTreeData = getTree(rawTreeData, 'DpId', 'ParentDpId');
+            $scope.dataForTheTree = [];
+            //$scope.tree_data = myTreeData;
+            $scope.my_tree = tree = {};
+            $scope.dataForTheTree = myTreeData;
+            $scope.tree_data = function (sel, parent) {
+                $scope.selectedNode = sel;
+                idList = [];
+                GetIdList(sel);
+                $scope.queryBuilder.DpId = idList;
+                GetAllSysUser();
+
+            };
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#menuTree").toggle();
+            }
+            $scope.my_tree_handler = function (branch) {
+            }
+
+            function getTree(data, primaryIdName, parentIdName) {
+                if (!data || data.length == 0 || !primaryIdName || !parentIdName)
+                    return [];
+
+                var tree = [],
+                    rootIds = [],
+                    item = data[0],
+                    primaryKey = item[primaryIdName],
+                    treeObjs = {},
+                    parentId,
+                    parent,
+                    len = data.length,
+                    i = 0;
+
+                angular.forEach(data, function (curObj) {
+                    treeObjs[curObj[primaryIdName]] = curObj;
+                });
+
+                while (i < len) {
+                    item = data[i++];
+                    primaryKey = item[primaryIdName];
+                    //treeObjs[primaryKey] = item;
+                    parentId = item[parentIdName];
+                    parent = treeObjs[parentId];
+                    if (!!parent) {
+                        if (parent.children) {
+                            parent.children.push(item);
+                        } else {
+                            parent.children = [item];
+                        }
+                    } else {
+                        rootIds.push(primaryKey);
+                    }
+                }
+
+                for (var i = 0; i < rootIds.length; i++) {
+                    tree.push(treeObjs[rootIds[i]]);
+                };
+                return tree;
+            }
+            //获取列表
+            var GetAllSysUser = function () {
+                box.load("GetAllSysUser");
+                $scope.master = false;
+
+                //获取最近一次查询条件
+                choseArr = [];//清空选择数组
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null)
+                {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage=postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage=postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetAllSysUser"); 
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.persons = response.items;
+                }).error(function (err) {
+                    box.ready("GetAllSysUser");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetAllSysUser);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.persons, function (obj) {
+                        choseArr.push(obj.UserId);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.persons.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.editData = function (id) {
+                var url = "";
+                if(id==""||id==undefined){ //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请至少选中一条数据再操作！");
+                        return;
+                    };
+                     url= CurPath + 'SysUser/Edit?id=' + choseArr[0];
+                }
+                else {
+                    url = CurPath + 'SysUser/Edit?id=' + id;
+                }
+                 //保存最近一次的查询条件
+                if (parent.pageParamList != undefined){
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+            $scope.assigningRoles = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined){
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + '/SysUser/AssigningRoles?id=' + choseArr[0];
+            };
+            $scope.login = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                BusinessService.login(choseArr[0]).success(function (response) {
+                    if (response.status == 0) {
+                            parent.location.href = CurPath + 'Home/Index';
+                    }
+                    else {
+                        box.alert(response.message, { icon: 'error' });
+                    }
+
+                });
+            };
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！")
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            box.alert(response.message);
+                            GetAllSysUser();
+                        });
+                    }
+                });
+
+            };
+            $scope.query = function () {
+                GetAllSysUser();
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + '/SysUser/GetAllUsers', postData);
+            };
+            //页面跳转请求
+            serive.toUpdate = function (id) {
+                return $http({
+                    method: 'GET',
+                    url: CurPath + '/SysUser/Edit',
+                    data: id
+                });
+            };
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + '/SysUser/Delete',
+                    data: ids
+                });
+            };
+            serive.login=function(id)
+            {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + '/SysUser/Login',
+                    data: { "id": id }
+                });
+            }
+            return serive;
+            //return {
+            //    list: function (postData) {
+            //        return list(postData);
+            //    }
+            //}
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+    </script>
+    <style>
+        .cell-input{width:80px;}
+    </style>
+}
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="ListPage" ng-controller="UserController">
+    <!--content--->
+    <div class="page-header">
+        <div class="search-mod">
+            <table>
+                <tr>
+                    <td>
+                        用户名：
+                    </td>
+
+                    <td>
+                        <div class="ui-input">
+                            <span></span>
+                            <input type="text" ng-model="queryBuilder.UserName" class="cell-input"  />
+                        </div>
+                    </td>
+                    <td>
+                        姓名：
+                    </td>
+
+                    <td>
+                        <div class="ui-input">
+                            <span></span>
+                            <input type="text" ng-model="queryBuilder.RealName" class="cell-input"  />
+                        </div>
+                    </td>
+                    <td>
+                        手机：
+                    </td>
+
+                    <td>
+                        <div class="ui-input">
+                            <span></span>
+                            <input type="text" ng-model="queryBuilder.Mobile" class="cell-input"  />
+                        </div>
+                    </td>
+                    <td>
+                        Email：
+                    </td>
+
+                    <td>
+                        <div class="ui-input">
+                            <span></span>
+                            <input type="text" ng-model="queryBuilder.Email" class="cell-input"  />
+                        </div>
+                    </td>
+                    <td>
+                        <div class="ui-input">
+                            <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="public-table-main" style="position: relative; min-height:302px;">
+        <div class="page-main-left">
+            <treecontrol id="menuTree" class="tree-light" style="position:relative;"
+                         tree-model="dataForTheTree"
+                         options="treeOptions"
+                         on-selection="tree_data(node,$parentNode)">
+                {{node.DpName}}
+            </treecontrol>
+        </div>
+        <div class="page-main-right">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                    <th>用户名</th>
+                    <th>姓名</th>
+                    <th>员工编号</th>
+                    <th>部门</th>
+                    <th>科室</th>
+                    <th>手机</th>
+                    <th>Email</th>
+                    <th>创建日期</th>
+                    <th style="display:none;">操作</th>
+                </tr>
+
+                <tr ng-repeat="emp in persons">
+                    <td><input type="checkbox" id="{{emp.UserId}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.UserId)" /></td>
+                    <td ><a ng-bind="emp.UserName" ng-click="editData(emp.UserId)" ></a></td>
+                    <td ng-bind="emp.RealName"></td>
+                    <td ng-bind="emp.EmployeeId"></td>
+                    <td ng-bind="emp.DpName"></td>
+                    <td ng-bind="emp.DpMName"></td>
+                    <td ng-bind="emp.Mobile"></td>
+                    <td ng-bind="emp.Email"></td>
+                    <td ng-bind="emp.CreatedTime"> </td>@*|date:'yyyy-MM-dd HH:mm:ss.sss'*@
+                    <td style="display:none;">
+                        <div class="operation-btn">
+                            <a ng-href="../SysUser/Edit?id={{emp.UserId}}">修改</a>
+                            <a ng-href="../SysUser/AssigningRoles?id={{emp.UserId}}">角色</a>
+                        </div>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+
+
+
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../SysUser/Edit" class="btn-add"><i></i>添加</a></li>
+                <li><a href="javascript:void(0);" ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>                @*<li><a href="javascript:void(0);" class="btn-ok"><i></i>提交</a></li>*@
+                <li><a href="javascript:void(0);" class="btn-set" ng-click="assigningRoles()"><i></i>角色</a></li>
+                <li><a href="javascript:void(0);" class="btn-ok" ng-click="login()"><i></i>登录</a></li>
+</ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+
+    </div>
+</div>

@@ -1,0 +1,317 @@
+﻿
+@{
+    ViewBag.Title = "排班管理列表信息";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        var curDate = '@ViewData["curDate"]';
+        var app = angular.module('ListPage', ['tm.pagination']);
+        //控制器
+        app.controller('PageController', ['$scope', "$filter", 'BusinessService', '$timeout', function ($scope, $filter, BusinessService, $timeout) {
+            $scope.queryBuilder = {
+                Year: "",
+                Month: "",
+                State: ""
+            };
+
+            //获取字典“年”
+            BusinessService.getDictListByName('年').success(function (response) {
+                $scope.dictYear = response.items;
+                $scope.dictYear.unshift({ name: "", value: "", text: "-请选择-" });
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+            //获取字典“月份”
+            BusinessService.getDictListByName('月份').success(function (response) {
+                $scope.dictMonth = response.items;
+                $scope.dictMonth.unshift({ name: "", value: "", text: "-请选择-" });
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            $scope.resetComData = function () {
+                if ($scope.dictYear == undefined || $scope.dictMonth==undefined) {
+                    $timeout(function () {
+                        $scope.resetComData();
+                    }, 100);
+                }
+                else {
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+            }
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder,
+                        isSearch: false
+                    }
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.resetComData();
+                    //$scope.queryBuilder = postData.queryBuilder;
+                }
+
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            $scope.addData = function () {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'Shift/ZhiBanEdit?type=edit';
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'Shift/ZhiBanEdit?Id=' + obj.Id;
+                src += '&type=look';
+                window.location.href = src;
+            }
+            //修改按钮
+            $scope.editData = function (obj) {
+                var url = "";
+                if (obj == "" || obj == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请至少选中一条数据再操作！");
+                        return;
+                    };
+                    url = CurPath + 'Shift/ZhiBanEdit?type=edit&Id=' + choseArr[0];
+
+                    var dd = $filter('filter')($scope.ListPageData, { 'Id': choseArr[0] });
+                    var temp = curDate.substr(0, 4) + curDate.substr(5, 2);
+                    if (dd[0].State == "1" && (temp >= dd[0].Year + dd[0].Month)) {
+                        box.alert("已经提交的当前月及之前的数据不能编辑！");
+                        return;
+                    }
+                }
+                else {
+                    url = CurPath + 'Shift/ZhiBanEdit?Id=' + obj.Id;
+                    if (obj.State == 0) {
+                        url += '&type=edit';
+                    }
+                    else {
+                        url += '&type=look';
+                    }
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                                box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Shift/GetListData_ZhiBan', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/Delete_ZhiBan',
+                    data: { IDs: ids }
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="PageController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    年度：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.Year" style="width:80px;">
+                                <option ng-repeat="x in dictYear" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    月份：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.Month" style="width:80px;">
+                                <option ng-repeat="x in dictMonth" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+
+                <td>状态：</td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.State" style="width:80px;">
+                                <option value="">全部</option>
+                                <option value="0">未提交</option>
+                                <option value="1">已提交</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>标题</th>
+                <th>部门</th>
+                <th>年度</th>
+                <th>月份</th>
+                <th>状态</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.Id}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.Id)" /></td>
+                <td><a ng-click="editData(emp)">{{emp.Title}}</a></td>
+                <td>{{emp.DeptId_DpFullName}}</td>
+                <td>{{emp.Year}}</td>
+                <td>{{emp.Month}}</td>
+                <td>{{emp.State=="1"?"已提交":"未提交"}}</td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="addData()" class="btn-add"><i></i>添加</a></li>
+                <li><a href="javascript:void(0);" ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+

@@ -1,0 +1,185 @@
+﻿@{
+    ViewBag.Title = "投票明细统计";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination']);
+        //控制器
+        app.controller('Controller', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.ApplyTitle = null;
+            var ThemeID = '@ViewData["ThemeID"]';
+            if (ThemeID != null && ThemeID != 0 && ThemeID.toString().length > 0) {
+                document.getElementById("ulid").style.display = 'block';
+                document.getElementById("searchDiv").style.display = 'none';
+            }
+            $scope.isGet = true;
+            //获取列表
+            var GetDetailList = function () {
+                box.load("GetDetailList");
+
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    ThemeID: ThemeID,// $scope.ThemeID,
+                    ApplyTitle: $scope.ApplyTitle
+                }
+                console.info(postData);
+                BusinessService.list(postData).success(function (response) {
+                    console.info(response.items);
+                    box.ready("GetDetailList");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    if (ThemeID != null && ThemeID != 0 && ThemeID.toString().length > 0 && $scope.isGet && $scope.ListPageData.length<=0) {
+                        $scope.isGet = false;
+                        box.confirm("当前主题还没有答案明细！", function (data) {
+                            if (data) {
+                                window.history.back();
+                            }  
+                        }, {
+                            title: '信息提示' 
+                        }) 
+                    }
+                }).error(function (err) {
+                    box.ready("GetDetailList");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetDetailList);
+
+            $scope.query = function () {
+                GetDetailList();
+            }
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Vote/GetDetailList', postData);
+            };
+
+
+
+
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table id="searchDiv" style="display:block">
+            <tr>
+                <td>
+                    主题名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="ApplyTitle" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                @*<th style="width:20px;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>*@
+                <th>主题名称</th>
+                <th>主题类型</th>
+                <th>发起人</th>
+                <th>匿名</th>
+                <th>题目ID</th>
+                <th>题目</th>
+                <th>作答人ID</th>
+                <th>作答人姓名</th>
+                <th>答案</th>
+                <th>其它答案</th>
+            </tr>
+
+
+            <tr ng-repeat="emp in ListPageData">
+                @*<td><input type="checkbox" id="{{emp.ApplyID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ApplyID)" /></td>*@
+                <td>
+                    <div style="margin:auto; padding-right:5px; width:130px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                        {{emp.ApplyTitle}}
+                    </div>
+                </td>
+                <td ng-bind="emp.ThemeType"></td>
+                <td ng-bind="emp.Creator"></td>
+                <td>否</td>
+                <td ng-bind="emp.QuestionID"></td>
+                <td>
+
+                    <div style="margin:auto; padding-right:5px; width:130px;" class="divOverflow" ng-mouseenter="showTitle($event)" ng-bind="emp.QuestionTitle">
+                    </div>
+                </td>
+                <td>
+                    <div style="margin:auto; padding-right:5px; width:85px;" class="divOverflow" ng-mouseenter="showTitle($event)" ng-bind="emp.UserName">
+
+                    </div>
+                </td>
+                <td ng-bind="emp.RealName"></td>
+                <td>
+                    <div style="margin:auto; padding-right:5px; width:85px;" class="divOverflow" ng-mouseenter="showTitle($event)" ng-bind="emp.AnserContent">
+                    </div>
+                </td>
+                <td>
+                    <div style="margin:auto; padding-right:5px; width:85px;" class="divOverflow" ng-mouseenter="showTitle($event)" ng-bind="emp.OtherContent">
+                    </div>
+                </td>
+
+            </tr>
+
+
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul id="ulid" style="display:none">
+                <li><a href="JavaScript:history.back(-1)" class="btn-back"><i></i>返回</a></li>
+            </ul>
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>

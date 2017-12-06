@@ -1,0 +1,39 @@
+﻿
+流程表单说明
+
+FAQ :
+1.	如何实现流程表单?
+	答：需要实现 Botwave.Workflow.Extension.Service.IWorkflowFormService 表单服务接口.
+		具体实现对象有：Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService，
+		这是默认的流程表单服务。
+	
+		实现流程表单，需要引用程序集 Botwave.DynamicForm。
+	
+		由于 DyanmicForm(动态表单) 与 Workflow(流程) 属于两个不同的 Spring 域，因此需要在
+	Workflow(流程) 的对象文件(objects.config) 文件中设置表单方面的服务，如下图：
+	
+  <object id="workflowFormService"
+           type="Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService, Botwave.Workflow.Extension">
+    <property name="formDefinitionService" ref="formDefinitionService"/>
+    <property name="formInstanceService" ref="formInstanceService"/>
+    <property name="formItemDataBinder" ref="formItemDataBinder"/>
+  </object>
+
+  <object id="formDefinitionService"
+           type="Botwave.DynamicForm.IBatisNet.FormDefinitionService, Botwave.DynamicForm.IBatisNet" />
+
+  <object id="formInstanceService"
+           type="Botwave.DynamicForm.IBatisNet.FormInstanceService, Botwave.DynamicForm.IBatisNet">
+    <property name="formDefinitionService" ref="formDefinitionService"/>
+    <property name="uploadFileHandler" ref="emptyUploadFileHandler"/>
+  </object>
+  
+  <object id="FormItemDataBinder"
+      type="Botwave.DynamicForm.Binders.DefaultFormItemDataBinder, Botwave.DynamicForm" >
+    <property name="formInstanceService" ref="formInstanceService"/>
+  </object>
+  
+  <object id="emptyUploadFileHandler"
+           type="Botwave.DynamicForm.Plugin.EmptyUploadFileHandler, Botwave.DynamicForm" />
+  
+	

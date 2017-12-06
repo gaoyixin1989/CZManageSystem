@@ -1,0 +1,256 @@
+﻿
+@{
+    ViewBag.Title = "OGSMGroupYearStatic";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        var curDate = new Date();
+        //控制器
+        app.controller('OGSMInfoController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+
+            $scope.queryBuilder = {
+                Group_Name: "",
+                PAY_MON_Start: '@ViewData["PAY_MON_Start"]',
+                PAY_MON_End: '@ViewData["PAY_MON_End"]',
+                PowerType: ""
+
+            };
+            //获取列表
+            var GetListDataByCondition = function () {
+                box.load("GetListDataByCondition");
+                //var postData = {
+                //    pageIndex: $scope.paginationConf.currentPage,
+                //    pageSize: $scope.paginationConf.itemsPerPage,
+                //    queryBuilder: $scope.queryBuilder
+                //    //Group_Name: $scope.queryBuilder.Group_Name,
+                //    //PAY_MON_Start: $scope.queryBuilder.PAY_MON_Start,
+                //    //PAY_MON_End: $scope.queryBuilder.PAY_MON_End,
+                //    //PowerType: $scope.queryBuilder.PowerType
+                //}
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListDataByCondition");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListDataByCondition");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            //获取户号作为下拉框字典
+            //BusinessService.getBaseStationAsDict().success(function (response) {
+            //    $scope.dictBaseStations = response;
+            //}).error(function (err) {
+            //    box.alert("网络出错！", { icon: 'error' });
+            //}).then(function () { });
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListDataByCondition);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.LinkId);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.editData = function (Group_Name, PAY_MON) {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + "OGSM/OGSMInfoIndex?Group_Name=" + Group_Name + "&PAY_MON_Start=" + PAY_MON + "01&PAY_MON_End=" + PAY_MON + "12&type=JUMP";
+            };
+
+            $scope.query = function () {
+                GetListDataByCondition();
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OGSM/GetOGSMGroupYearStatic', postData);
+            };
+            //serive.getBaseStationAsDict = function () {
+            //    return $http({
+            //        method: 'POST',
+            //        url: CurPath + 'OGSM/getBaseStationAsDict'
+            //    });
+            //};
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="OGSMInfoController">
+    <!--content--->
+    <div class="search-mod" style="height:30px;">
+        <table>
+            <tr>
+                <td>
+                    归属分公司：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.Group_Name" style="width:70px;">
+                                <option value="">全部</option>
+                                <option value="市区">市区</option>
+                                <option value="潮安">潮安</option>
+                                <option value="饶平">饶平</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    用电类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.PowerType" style="width:70px;">
+                                <option value="">全部</option>
+                                <option value="公电">公电</option>
+                                <option value="私电">私电</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align:center">
+                    年份：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.PAY_MON_Start" date-Picker datefmt="yyyy" class="cell-input cell-input-data" readonly style="width:80px;" /><i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" ng-model="queryBuilder.PAY_MON_End" date-Picker datefmt="yyyy" class="cell-input cell-input-data" readonly style="width:80px;" /><i class="icon-data"></i>
+                    </div>
+                </td>                
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                        @*<a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>*@
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>年份</th>
+                <th>归属分公司</th>
+                <th>总电度数</th>
+                <th>总电费额（元）</th>
+                <th>各基站平均电费额（元）</th>
+
+                <th>移动分摊电费</th>
+                <th>联通分摊电费</th>
+                <th>电信分摊电费</th>
+
+                <th>移动产权电费</th>
+                <th>铁塔产权电费</th>
+                <th>第三方产权电费</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="emp.Year"></td>
+                @*<td ng-bind="emp.Group_Name"></td>*@
+                <td><a ng-bind="emp.Group_Name" ng-click="editData(emp.Group_Name,emp.Year)"></a></td>
+                @*<td><a ng-href="/OGSM/OGSMInfoIndex?Group_Name={{emp.Group_Name}}&type=JUMP&PAY_MON_Start={{emp.Year}}01&PAY_MON_End={{emp.Year}}12">{{emp.Group_Name}}</a></td>*@
+                <td ng-bind="emp.CHG_CNT.toFixed(2)"></td>
+                <td ng-bind="emp.Amount.toFixed(2)"></td>
+                <td ng-bind="emp.AvgAmount.toFixed(2)"></td>
+
+                <td ng-bind="emp.CMShare.toFixed(2)"></td>
+                <td ng-bind="emp.CUShare.toFixed(2)"></td>
+                <td ng-bind="emp.CTShare.toFixed(2)"></td>
+
+                <td ng-bind="emp.CMPropertyRightMoney.toFixed(2)"></td>
+                <td ng-bind="emp.CUPropertyRightMoney.toFixed(2)"></td>
+                <td ng-bind="emp.CTPropertyRightMoney.toFixed(2)"></td>
+
+
+            </tr>
+        </table>
+    </div>
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../OGSM/OGSMGroupYearStaticExport?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+        </div> 
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

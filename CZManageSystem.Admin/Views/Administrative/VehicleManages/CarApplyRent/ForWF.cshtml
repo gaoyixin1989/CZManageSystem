@@ -1,0 +1,201 @@
+﻿
+@{
+    ViewBag.Title = "租车申请详情";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService,$filter) {
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+            var id = '@ViewData["id"]';
+            $scope.curObj = {};
+            if (id != null && id.toString().length > 0 && id != 0) {
+                box.load("load");
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response.Items;
+                    $scope.CorpList = response.CorpList;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("load");
+            }
+            $scope.getCorpName = function (id) {
+                var list = $filter('filter')($scope.CorpList, function (obj) {
+                    return id.split(",").indexOf(obj.DDValue) > -1;
+                });
+                if (typeof (list) != "undefined" && list.length > 0)
+                    return list[0].DDText;
+                return "";
+            }
+            //-------------------------------------
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarApplyRent/GetDataByID?id=' + id
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 100%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+    }
+
+        .WF_Table tr th {
+            background: white;
+            padding: 7px;
+            font-weight: bold;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            text-align: center;
+        }
+
+        .WF_Table tr td {
+            padding: 5px;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            width: 35%;
+        }
+
+        .WF_Table tr th {
+            background: #F4F4F4;
+            width: 15%;
+        }
+</style>
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table class="WF_Table">
+            <tr>
+                <th>申请人：</th>
+                <td>{{curObj.ApplyCant}}</td>
+                <th>所在部门：</th>
+                <td>{{curObj.DeptName}} </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td> {{curObj.Mobile}}  </td>
+                <th>申请日期：</th>
+                <td>
+                    {{curObj.CreateTime}}
+                </td>
+            </tr>
+            <tr>
+
+                <th>标题：</th>
+                <td colspan="3">
+                    {{curObj.ApplyTitle}}
+                </td>
+
+            </tr>
+            <tr>
+                <th>所属单位：</th>
+                <td ng-bind="getCorpName(curObj.CorpId.toString())">
+                </td>
+                <th>用车人：</th>
+                <td>
+                    {{curObj.Driver}}
+                </td>
+            </tr>
+            <tr>
+                <th>吨位/人数：</th>
+                <td>
+                    {{curObj.CarTonnage}}
+                </td>
+                <th>总人数：</th>
+                <td>
+                    {{curObj.PersonCount}}
+                </td>
+            </tr>
+            <tr>
+
+                <th>用车时间段：</th>
+                <td>
+                    {{curObj.StartTime}}
+                </td>
+                <th>至：</th>
+                <td>
+                    {{curObj.EndTime}}
+                </td>
+            </tr>
+            <tr>
+
+                <th>路途类别：</th>
+                <td>
+                    {{curObj.Road}}
+                </td>
+                <th>车辆用途：</th>
+                <td>
+                    {{curObj.UseType}}
+                </td>
+            </tr>
+            <tr>
+                <th>租车类型：</th>
+                <td ng-bind="curObj.Htype"></td>
+                <th>目的地1：</th>
+                <td>
+                    {{curObj.Destination1}}
+                </td>
+            </tr>
+            <tr>             
+                <th>目的地2：</th>
+                <td>
+                    {{curObj.Destination2}}
+                </td>
+                <th>目的地3：</th>
+                <td>{{curObj.Destination3}} </td>
+             
+            </tr>
+            <tr>
+                <th>目的地4：</th>
+                <td>{{curObj.Destination4}} </td>
+                <th>目的地5：</th>
+                <td>{{curObj.Destination5}} </td>
+
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td colspan="3">
+                    {{curObj.Remark}}
+                </td>
+
+            </tr>
+        </table>
+        <div id="isBack" style="text-align:center;">
+            <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+            @* <a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+        </div>
+    </form>
+</div>

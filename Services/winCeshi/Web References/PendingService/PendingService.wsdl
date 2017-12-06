@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="QueryTask">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="systemID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="taskType" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="fromDate" type="s:dateTime" />
+            <s:element minOccurs="1" maxOccurs="1" name="endDate" type="s:dateTime" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryTaskResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryTaskResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddTaskToDo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="systemID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="relationID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="toEmployeeID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddTaskToDoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddTaskToDoResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="toDoID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddTaskToRead">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="systemID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="relationID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="toEmployeeID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="content" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddTaskToReadResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddTaskToReadResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="toReadID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToDo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="toDoID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToDoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CommitTaskToDoResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToDoEx">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="systemID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="relationID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToDoExResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CommitTaskToDoExResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToRead">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="toReadID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToReadResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CommitTaskToReadResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToReadEx">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="systemID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="relationID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CommitTaskToReadExResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CommitTaskToReadExResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToDo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="toDoID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToDoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="DeleteTaskToDoResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToDoEx">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="systemID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="relationID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToDoExResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="DeleteTaskToDoExResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToRead">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="toReadID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToReadResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="DeleteTaskToReadResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToReadEx">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="systemID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="relationID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeleteTaskToReadExResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="DeleteTaskToReadExResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="msgError" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="QueryTaskSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryTask" />
+  </wsdl:message>
+  <wsdl:message name="QueryTaskSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryTaskResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddTaskToDoSoapIn">
+    <wsdl:part name="parameters" element="tns:AddTaskToDo" />
+  </wsdl:message>
+  <wsdl:message name="AddTaskToDoSoapOut">
+    <wsdl:part name="parameters" element="tns:AddTaskToDoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddTaskToReadSoapIn">
+    <wsdl:part name="parameters" element="tns:AddTaskToRead" />
+  </wsdl:message>
+  <wsdl:message name="AddTaskToReadSoapOut">
+    <wsdl:part name="parameters" element="tns:AddTaskToReadResponse" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToDoSoapIn">
+    <wsdl:part name="parameters" element="tns:CommitTaskToDo" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToDoSoapOut">
+    <wsdl:part name="parameters" element="tns:CommitTaskToDoResponse" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToDoExSoapIn">
+    <wsdl:part name="parameters" element="tns:CommitTaskToDoEx" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToDoExSoapOut">
+    <wsdl:part name="parameters" element="tns:CommitTaskToDoExResponse" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToReadSoapIn">
+    <wsdl:part name="parameters" element="tns:CommitTaskToRead" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToReadSoapOut">
+    <wsdl:part name="parameters" element="tns:CommitTaskToReadResponse" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToReadExSoapIn">
+    <wsdl:part name="parameters" element="tns:CommitTaskToReadEx" />
+  </wsdl:message>
+  <wsdl:message name="CommitTaskToReadExSoapOut">
+    <wsdl:part name="parameters" element="tns:CommitTaskToReadExResponse" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToDoSoapIn">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToDo" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToDoSoapOut">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToDoResponse" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToDoExSoapIn">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToDoEx" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToDoExSoapOut">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToDoExResponse" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToReadSoapIn">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToRead" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToReadSoapOut">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToReadResponse" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToReadExSoapIn">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToReadEx" />
+  </wsdl:message>
+  <wsdl:message name="DeleteTaskToReadExSoapOut">
+    <wsdl:part name="parameters" element="tns:DeleteTaskToReadExResponse" />
+  </wsdl:message>
+  <wsdl:portType name="PendingServiceSoap">
+    <wsdl:operation name="QueryTask">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">1、获取某个人在某个系统里的待办任务列表，系统为空表示所有的待办任务</wsdl:documentation>
+      <wsdl:input message="tns:QueryTaskSoapIn" />
+      <wsdl:output message="tns:QueryTaskSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddTaskToDo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">2、增加待办工作到IAP</wsdl:documentation>
+      <wsdl:input message="tns:AddTaskToDoSoapIn" />
+      <wsdl:output message="tns:AddTaskToDoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddTaskToRead">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">3、增加待阅信息工作到IAP</wsdl:documentation>
+      <wsdl:input message="tns:AddTaskToReadSoapIn" />
+      <wsdl:output message="tns:AddTaskToReadSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToDo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">4、提交指定的待办工作，将待办工作转变为已办工作</wsdl:documentation>
+      <wsdl:input message="tns:CommitTaskToDoSoapIn" />
+      <wsdl:output message="tns:CommitTaskToDoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToDoEx">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">5、提交指定的待办工作，将待办工作转变为已办工作</wsdl:documentation>
+      <wsdl:input message="tns:CommitTaskToDoExSoapIn" />
+      <wsdl:output message="tns:CommitTaskToDoExSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToRead">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">6、提交指定的待阅信息，将待阅信息转变为已阅信息</wsdl:documentation>
+      <wsdl:input message="tns:CommitTaskToReadSoapIn" />
+      <wsdl:output message="tns:CommitTaskToReadSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToReadEx">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">7、提交指定的待阅信息，将待阅信息转变为已阅信息</wsdl:documentation>
+      <wsdl:input message="tns:CommitTaskToReadExSoapIn" />
+      <wsdl:output message="tns:CommitTaskToReadExSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToDo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">8、删除指定的待办工作或已办工作</wsdl:documentation>
+      <wsdl:input message="tns:DeleteTaskToDoSoapIn" />
+      <wsdl:output message="tns:DeleteTaskToDoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToDoEx">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">9、删除指定的待办工作或已办工作</wsdl:documentation>
+      <wsdl:input message="tns:DeleteTaskToDoExSoapIn" />
+      <wsdl:output message="tns:DeleteTaskToDoExSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToRead">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">10、删除指定的待阅信息或已阅信息</wsdl:documentation>
+      <wsdl:input message="tns:DeleteTaskToReadSoapIn" />
+      <wsdl:output message="tns:DeleteTaskToReadSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToReadEx">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">11、删除指定的待阅信息或已阅信息</wsdl:documentation>
+      <wsdl:input message="tns:DeleteTaskToReadExSoapIn" />
+      <wsdl:output message="tns:DeleteTaskToReadExSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="PendingServiceSoap" type="tns:PendingServiceSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="QueryTask">
+      <soap:operation soapAction="http://tempuri.org/QueryTask" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddTaskToDo">
+      <soap:operation soapAction="http://tempuri.org/AddTaskToDo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddTaskToRead">
+      <soap:operation soapAction="http://tempuri.org/AddTaskToRead" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToDo">
+      <soap:operation soapAction="http://tempuri.org/CommitTaskToDo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToDoEx">
+      <soap:operation soapAction="http://tempuri.org/CommitTaskToDoEx" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToRead">
+      <soap:operation soapAction="http://tempuri.org/CommitTaskToRead" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToReadEx">
+      <soap:operation soapAction="http://tempuri.org/CommitTaskToReadEx" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToDo">
+      <soap:operation soapAction="http://tempuri.org/DeleteTaskToDo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToDoEx">
+      <soap:operation soapAction="http://tempuri.org/DeleteTaskToDoEx" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToRead">
+      <soap:operation soapAction="http://tempuri.org/DeleteTaskToRead" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToReadEx">
+      <soap:operation soapAction="http://tempuri.org/DeleteTaskToReadEx" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="PendingServiceSoap12" type="tns:PendingServiceSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="QueryTask">
+      <soap12:operation soapAction="http://tempuri.org/QueryTask" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddTaskToDo">
+      <soap12:operation soapAction="http://tempuri.org/AddTaskToDo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddTaskToRead">
+      <soap12:operation soapAction="http://tempuri.org/AddTaskToRead" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToDo">
+      <soap12:operation soapAction="http://tempuri.org/CommitTaskToDo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToDoEx">
+      <soap12:operation soapAction="http://tempuri.org/CommitTaskToDoEx" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToRead">
+      <soap12:operation soapAction="http://tempuri.org/CommitTaskToRead" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CommitTaskToReadEx">
+      <soap12:operation soapAction="http://tempuri.org/CommitTaskToReadEx" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToDo">
+      <soap12:operation soapAction="http://tempuri.org/DeleteTaskToDo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToDoEx">
+      <soap12:operation soapAction="http://tempuri.org/DeleteTaskToDoEx" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToRead">
+      <soap12:operation soapAction="http://tempuri.org/DeleteTaskToRead" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteTaskToReadEx">
+      <soap12:operation soapAction="http://tempuri.org/DeleteTaskToReadEx" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="PendingService">
+    <wsdl:port name="PendingServiceSoap" binding="tns:PendingServiceSoap">
+      <soap:address location="http://localhost:9001/PendingService.asmx" />
+    </wsdl:port>
+    <wsdl:port name="PendingServiceSoap12" binding="tns:PendingServiceSoap12">
+      <soap12:address location="http://localhost:9001/PendingService.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

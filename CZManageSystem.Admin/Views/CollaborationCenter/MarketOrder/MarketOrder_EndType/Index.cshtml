@@ -1,0 +1,262 @@
+﻿
+@{
+    ViewBag.Title = "终端机型维护";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+<script src="~/Content/app/number.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'number']);
+        //控制器
+        app.controller('ListController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder,
+                        Order: $scope.queryBuilder.Order,
+                        EndType: $scope.queryBuilder.EndType
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            $scope.addData = function () {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'MarketOrder_EndType/Edit';
+            }
+
+
+            //编辑数据
+            $scope.editData = function (id) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请至少选中一条数据再操作！");
+                        return;
+                    };
+                    url = CurPath + 'MarketOrder_EndType/Edit?ID=' + choseArr[0];
+                }
+                else {
+                    url = CurPath + 'MarketOrder_EndType/Edit?ID=' + id;
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+
+
+            //删除数据
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！")
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        });
+                    }
+                });
+            };
+
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'MarketOrder_EndType/GetListData', postData);
+            };
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_EndType/Delete',
+                    data: ids
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ListController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    序号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Order" number precision="0" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    机型名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EndType" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>序号</th>
+                <th>机型名称</th>
+                <th>所属方案</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+               <td ng-bind="emp.Order"></td>
+                <td><div ng-click="editData(emp.ID)" class="titleCol">{{emp.EndType}}</div></td>
+                <td><div class="divOverflow"  ng-mouseenter="showTitle($event)" style="text-align:left; width:300px;">{{emp.MarketText}}</div></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="addData()" href="javascript:void(0);" class="btn-add"><i></i>添加</a></li>
+                <li><a  ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+            </ul>
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+

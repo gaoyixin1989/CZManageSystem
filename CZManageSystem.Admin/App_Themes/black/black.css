@@ -1,0 +1,463 @@
+﻿@import url('../common/layout.css');
+@import url('../common/global.css');
+@import url('../common/font.css');
+@import url('../common/groupcolor.css');
+/*字体颜色*/
+.green{
+	color:#9bb605;
+}
+.footer {
+	color:#7f8283;
+}
+.topNav .linkList .yellow{
+	color:#da0907; font-weight:bold;
+}
+.topNav .linkList .yellow span{
+	color:#da0907;
+}
+.tblClass th{
+	background:url('img/bgTblTitle.gif') no-repeat right bottom !important;
+}
+.loginHead h1{
+	color:#f2f2f2;
+}
+
+.pageClass .active{ float: left; border: none; width: 20px; height: 20px; line-height: 20px; margin-right: 4px; font-weight: bold;}
+.pageClass .active a{
+	background:#fff;
+	color:#e71b0d;
+	font-weight: bold;
+}
+
+.msgPageClass .active{ float: left; border: none; width: 20px; height: 20px; line-height: 20px; margin-right: 4px; font-weight: bold; }
+
+/**/
+html { scrollbar-face-color:#C0C0C0; scrollbar-highlight-color:#FFF; scrollbar-shadow-color:#CCC; scrollbar-3dlight-color:#999; scrollbar-arrow-color:#F30000; scrollbar-track-color:#EEE; scrollbar-darkshadow-color:#999; scrollbar-case-color:#999; }
+body{
+	background:#D3D3D3 url('img/bgBody.gif') repeat-x;
+}
+#vborder {
+	background-position:0px -120px;
+}
+#bottomBody{
+	background:url('img/bgBody.gif') repeat-x; background-position:0px -630px; padding:0 9px;
+}
+.topheader_wrapper {
+	background:url('img/bgTopHeader.gif') no-repeat right top;
+}
+.topHeader{
+	background:url('img/bgTopHeader_1.gif') no-repeat left top;
+}
+.container1 {
+	background:url('img/bgContainer3.gif') repeat-y;
+}
+.container2 {
+	background:url('img/bgContainer1.gif') no-repeat;
+}
+.mainbox{	
+	background:url('img/bgContainer.gif') repeat-x;
+}
+.footer_wrapper {
+	background:url('img/bgContainer2.gif') no-repeat right bottom;
+}
+.footer{
+	background:url('img/bgContainer2_1.gif') no-repeat left bottom;
+}
+.topNav {
+	background:url('img/bgTopNav.gif') no-repeat;
+}
+.topNav .linkList li{
+	background:url('../common/images/lineTopNav.gif') no-repeat 7px 3px;
+}
+.topNav .linkList li.user{
+	background:url('../common/images/iconRight2.gif') no-repeat 0px 4px;
+margin-right:15px;
+}
+#header {
+	background:url('img/bgHeader.gif') no-repeat;
+}
+#header h2 {
+}
+#header .topMenu a{
+	background:url('img/bgMenuList.gif') no-repeat;
+}
+.sidebar{
+	background:url('img/bgSidebarC.gif') no-repeat left bottom;
+}
+.sidebar h3{
+	background:url('img/bgSidebarT.gif') no-repeat left top;
+color:#666;
+}
+.sidebar .menuSidebar{
+	
+}
+.sidebar .leftControl{
+	background:url('img/bgLeftControl.gif')
+}
+.sidebar .leftControl li.showAll{
+	background:url('../common/images/iconUnfoldAll.gif') no-repeat 10px 2px;
+}
+.sidebar .leftControl li.showSetting{
+	background:url('../common/images/iconCustomize.gif') no-repeat 10px 2px;
+}
+.sidebar .menuList li{
+	background:url('img/bgLineLeft.gif') repeat-x left bottom;
+}
+.sidebar .menuList h4{
+	background:url('../common/images/iconRight3.gif') no-repeat 6px 7px;
+color:#666;
+}
+.sidebar .menuList .c h4{
+	background:url('../common/images/iconDown.gif') no-repeat 4px 9px;
+	color:#da0907;
+}
+.sidebar .menuList .menuContent{
+	background:#E7E7E7 url('img/bgMenuTree.gif') no-repeat 4px bottom;
+}
+/*
+.sidebar .menuList .menuContent a{
+	background:url('img/iconTreeItem.gif') no-repeat 7px 1px;
+}
+*/
+ .menuContent a:link, .menuContent a:visited{
+	color:#333; text-decoration:none;
+}
+.menuContent a:hover,.menuContent a:active{
+	color:#333;text-decoration:underline;
+}
+.content2{
+	background:#fefdfc url('img/bgContent2_C.gif') no-repeat left bottom;
+}
+.content2 h3{
+	color:#666;background:transparent url('img/bgContent2_T2r.gif') no-repeat right bottom;
+}
+.content2 h3 span{
+	background:transparent url('img/bgContent2_T2.gif') no-repeat left bottom;
+}
+.content2 .titleContent{
+	background:url('img/bgContent2_T.gif') repeat-x top;
+}
+
+.content3{
+	background:white url('img/bgContentC.gif') no-repeat left bottom;
+}
+.content3 h3.newList{
+	background:url('img/iconNews.gif') no-repeat 10px 6px;
+color:#666;
+}
+.content3 .titleContent{
+	background:url('img/bgContentT.gif') no-repeat;
+}
+.tblClass{
+	width:100%;color:#333;
+}
+.tblClass th{
+	height:26px;line-height:20px;background:url('img/bgTblTitle.gif') no-repeat right top;
+text-indent:4px;color:#fff;
+}
+.tblClass th a{
+	background:url('../common/images/iconSort.gif') no-repeat right 0px;
+padding-right:10px;color:#333;
+}
+.tblClass th a:link,.tblClass th a:visited,.tblClass th a:hover,.tblClass th a:active{
+	text-decoration:none;color:#fff;
+}
+.tblClass th.noLine{
+	background-position:left top;text-indent:0;
+}
+.tblClass td{
+	height:28px;line-height:28px;padding:0 1px;
+}
+.tblClass td.yellow{
+	color:#da0907;font-weight:bold;
+}
+.tblClass td.yellow a span{
+	color:#da0907;
+}
+.tblClass td a span{
+	
+}
+.tblClass .trClass{
+	background:#F4F4F4;
+}
+
+.sidebarRight{
+	
+}
+.sidebarRight .corner1{
+	background:url('img/bgSidebarR_T.gif') no-repeat;
+}
+.sidebarRight .corner2{
+	background:url('img/bgSidebarR_C.gif') no-repeat left bottom;
+}
+.sidebarRight h3{
+	color:#666; background-color:transparent;background-position:10px 6px;background-repeat:no-repeat;
+}
+.sidebarRight h3.newsReport{
+	background-image:url('img/iconReport.gif');
+}
+.sidebarRight h3.Schedule{
+	background-image:url('img/iconSchedule.gif');
+}
+
+/*topNews*/
+.topNews li{
+	background:url('img/iconArrowOrange.gif') no-repeat 0px 3px;
+}
+.topNews a:link,.topNews a:visited{
+	color:#333;text-decoration:none;
+}
+.topNews a:hover,.topNews a:active{
+	color:#F60;text-decoration:underline;
+}
+.topNews a.more{
+	display:block;margin-left:120px;margin-top:10px; background:url('../common/images/iconRight5.gif') no-repeat 0px 3px;
+text-indent:10px;
+}
+.topNews a.more:link,.topNews a.more:visited,.topNews a.more:hover,.topNews a.more:active{
+	color:#da0907;
+	font-weight:bold;
+	text-decoration:none;
+}
+
+/*日历样式*/
+  #Calendar_Body{margin:5px 0px 5px 0px;font-family:arial;line-height:120%}
+ /*日历样式-顶部*/
+  #Calendar_Body #Calendar_Top{padding:0px 2px 0px 2px;height:18px;text-align:center;font-weight:bold;color:#333;}
+ /*日历样式-顶部按钮-*/
+  #Calendar_Body #Calendar_Top #LeftB{background:url('../common/images/iconLeft.gif') no-repeat 3px 3px;
+width:9px;height:16px;float:left;cursor:pointer;overflow:hidden;
+}
+ /*日历样式-顶部按钮-*/
+  #Calendar_Body #Calendar_Top #RightB{background:url('../common/images/iconRight4.gif') no-repeat 0px 3px;
+width:9px;height:16px;float:right;cursor:pointer;overflow:hidden;
+}
+ /*日历样式-星期*/
+  #Calendar_Body #Calendar_week{text-align:center;height:20px;padding:0px 0px 0px 2%;}
+  ul.Week_UL{display:inline;list-style:none;margin:0px;padding:0px;}
+  ul.Week_UL li{display:inline;height:20px;margin:1px 0px;padding:0px;float:left;color:#003;width:13%;background-color:#eee;border:#f5fcf9 1px solid; line-height:20px;}
+ /*日历样式-日期*/
+  .Calendar_Day {text-align:center;height:20px;padding:0px 0px 0px 2%;color:#6b6b52}
+  .Calendar_Day ul.Day_UL{display:inline;list-style:none;}
+  .Calendar_Day ul.Day_UL li{display:inline;float:left;width:14%;}
+
+ /*日历样式-日期-超链接样*/
+  .DayA a{cursor:default;padding:2px 0px 3px 0px;display:block;font-size:11px;height:13px;}
+  .DayA a:link,.DayA a:visited{color:#00c;}
+  .DayA a:hover{color:#00f;}
+ /*日期选中*/
+  .DayA a.click{cursor:default;background:#F6FCFE;font-weight:bold;}
+  .DayA a.click:link,.DayA a.click:visited{cursor:pointer;font-weight:bold;text-decoration:none;color:#000}
+  .DayA a.click:hover{text-decoration:underline;color:#666;}
+ /*今天*/
+   .DayA a.today{cursor:default;background:none;color:#535353;font-weight:bold;border:1px solid #535353;}
+ /*非本月日*/
+   .DayA a.otherday{cursor:default;color:#ccc;text-decoration:none;/*visibility:hidden*/}
+   .DayA a.otherday:link,.DayA a.otherday:visited{cursor:default;color:#ccc;font-weight:bold;}
+   .DayA a.otherday:hover{cursor:default;color:#999;font-weight:bold;}
+
+ /*本日存在日记*/
+   .DayA a.haveD{cursor:pointer;}
+   .DayA a.haveD:link,.DayA a.haveD:visited{
+	color:#e71b0d;
+}
+   .DayA a.haveD:hover{
+	color:#0088E4;
+}
+ /*今天存在日记*/
+   .DayA a.DayD{cursor:pointer;}
+   .DayA a.DayD:link,.DayA a.DayD:visited{background:#F6FCFE;color:#000;border:1px solid #24A0DE;font-weight:bold;text-decoration:none;}
+   .DayA a.DayD:hover{color:#0088E4;text-decoration:underline;}
+	
+	.todayShow{
+		background:url('../common/images/bgTodayShow.gif') no-repeat;
+}/*日程安排*/
+.CalendarList h4{
+	background:url('../common/images/bgLineCalendar.gif') repeat-x 0px 15px;
+}
+.CalendarList h4 span{
+	background:#F3F8FB;color:#9bb605;
+}
+.CalendarList li{
+	background:url('img/iconArrowGreen.gif') no-repeat 1px 4px;
+}
+
+/*系统提示*/
+.errInfo {
+	background:transparent url('img/bgErrorC.gif') no-repeat left bottom;
+}
+.errInfo h4{
+	background:transparent url('img/bgErrorT.gif') no-repeat;
+}
+.errInfo input.btnReturn{
+	background:transparent url('../common/images/btnReturn.gif') no-repeat;text-indent:3px;
+}
+/*2栏内容区域通屏按钮列表*/
+.btnControl{
+	border-top:1px solid #E3E3E3;border-bottom:1px solid #D0D0D0;background:#f0efef;
+}
+.btnControl input{
+	background:#EFEFEF;padding-left:20px;
+}
+
+/*按钮*/
+.btnControl .btnRight input{
+	border-left:1px solid #CFCFCF;border-right:1px solid #CFCFCF;
+}
+.btnControl .btnFW{
+	background:transparent url('../common/images/iconForward.gif') no-repeat 5px 4px;
+}
+.btnControl .btnNewwin{
+	background:transparent url('../common/images/iconNewwindow.gif') no-repeat 5px 4px;
+}
+.btnControl .btnPrint{
+	background:transparent url('../common/images/iconPrint.gif') no-repeat 5px 4px;
+}
+.btnControl .btnSave{
+	background:transparent url('../common/images/iconSave.gif') no-repeat 5px 4px;
+}
+.btnControl .btnSave2{
+	background:transparent url('../common/images/iconSave.gif') no-repeat 5px 4px;width:130px;
+}
+.btnControl .btnSave3{
+	background:transparent url('../common/images/icon2Nav1.gif') no-repeat 5px 6px;width:90px;
+}
+
+
+/*搜索*/
+.searchBar .searchTitle{
+	background: transparent url('img/bgSearchTitle.gif') repeat-x top;
+}
+.searchBar .searchTitle button{
+	background:#E3E9F7 url('img/iconSidebarUp.gif')
+}
+.searchBar .searchTitle button.c{
+	background:#E3E9F7 url('img/iconSidebarDown.gif')
+}
+.searchBar .searchInfo{
+	background: transparent url('img/bgSearchBody.gif') repeat-x bottom;
+	border:1px solid #EDEDED;
+	border-bottom:0; border-top:0;
+}
+.searchBar .searchInfo .divSubmit{
+	border-top:1px solid #efefef;
+}
+.searchBar .searchInfo .btnSearch{
+
+	background:transparent url('../common/images/btnSearch.gif');
+}
+/*普通折叠样*/
+.dataList .showControl{
+	border-bottom:1px solid #bcbcbc;
+}
+.dataList .showControl h4{
+	color:#da0907;
+}
+.dataList .showControl button{
+	background:#fefdfc url('img/iconSidebarUp2.gif');
+}
+.dataList .showControl button.c{
+	background:#fefdfc url('img/iconSidebarDown2.gif');
+}
+/*页面底部按钮*/
+.pageButtonList{
+	background:transparent url('img/bgPageButtom.gif')
+}
+/*弹出窗口*/
+.newBody .content2 .titleContent{
+	background:#69F url('img/bgNewBodyTitle.gif') repeat-x;
+}
+.newBody .content2 h3{
+	background:transparent url('img/bgContent2_T3.gif') no-repeat left bottom;height:36px;
+}
+.newBody .closeBtnDiv{
+	background:#ECE4D0;border-top:1px solid #D6C79A;
+}
+.newBody .closeBtnDiv input{
+	background:transparent url('../common/images/iconClose.gif') no-repeat 0px 3px;
+}
+/*Login Page Class*/
+.loginClass{
+	background:transparent url('img/bgLoginBody.gif')
+}
+.loginClass .loginHead{
+	background: transparent url('img/bgLoginHead.gif')
+}
+.loginHead span{
+	color:#f2f2f2;
+}
+.userLogo {
+	background: url('../common/images/iconUserLogin.gif') no-repeat 150px 60px;
+}
+.userLogo img{
+	background:transparent url('img/bgUserLogin.gif');
+}
+.formClass label{
+	color:#999;
+}
+.formClass .userInput input{
+	background: transparent url('img/bgloginInput.gif')
+}
+.formClass .btnLogin{
+	background:transparent url('img/btnLogin.gif');color:white;
+}
+/*信息查看*/
+.msgHeader {
+	color:gray;
+}
+.msgHeader input{
+	border:0;background:transparent;font-size:12px;height:16px; cursor:pointer;color:#09C;
+}
+.msgHeader input.c{
+	color:#f60;
+}
+.msgLink{
+	border-top:1px #999 dotted;border-bottom:1px #999 dotted;
+}
+.msgLink a:link,.msgLink a:visited{
+	color:#da0907; text-decoration:none;
+}
+.msgLink a:hover,.msgLink a:active{
+	color:#f60;text-decoration:underline;
+}
+.msgLink .fLeft a{
+	background: url('../common/images/iconRight6.gif') no-repeat 0px 4px;
+}
+.msgLink .fRight a{
+	background: url('../common/images/iconIndex.gif') no-repeat 0px 0px;
+}
+.comment .date{
+	color:#999;
+}
+.comment li{
+	border-bottom:1px #CCC dotted; 
+}
+.comment li.liClass{
+	background:white;
+}
+.comment .name{
+	color:#F60;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

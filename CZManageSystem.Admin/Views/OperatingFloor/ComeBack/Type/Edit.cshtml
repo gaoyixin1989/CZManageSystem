@@ -1,0 +1,266 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var ID = '@ViewData["ID"]';
+            @*$scope.BudgetDept = '@ViewData["BudgetDept"]';*@
+            $scope.curObj = {};
+            $scope.NameList = [];
+            var hasReadly = false;
+            //-----------------------------
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                }).then(function () { hasReadly = true; });;
+            }
+            else {
+                hasReadly = true;
+            }
+            //设置相关的配置信息
+
+            var setConfigureData = function () {
+                $timeout(function () {
+                    if (hasReadly) {
+                        BusinessService.GetNameList().success(function (response) {
+                            $scope.NameList = response.NameList;
+
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        setConfigureData();
+                    }
+                }, 100);
+            }
+            setConfigureData();//设置相关的配置信息
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.curObj.ID = ID;
+                    $scope.curObj.Name = $scope.curObj.NameObj.Name;
+                    $scope.curObj.PID = $scope.curObj.NameObj.PID;
+                    var postData = { curObj: $scope.curObj }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Type/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.curObj.BudgetDpId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.curObj.BudgetDpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.curObj.BudgetDept = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            //----------------------------
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Type/SaveType',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Type/GetByID?ID=' + ID
+
+                });
+            };
+            serive.GetNameList = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Type/GetNameList'
+
+                });
+            };
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>年份：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="Year" name="Year" date-Picker dateFmt="yyyy" ng-model="curObj.Year" class="cell-input cell-input-data">
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Year.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择年度</div>
+                                @*</div>*@
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>部门：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" style="display:none;" name="BudgetDpId" ng-model="curObj.BudgetDpId" ng- class="cell-input" />
+                            <input type="text" name="ApplyDept" ng-model="curObj.BudgetDept" required class="cell-input" ng-click="editMember('dept')" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.BudgetDept.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择部门</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>归口项目：</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <input type="text" style="display:none;" name="PID" ng-model="curObj.PID" ng- class="cell-input" />
+                                <select name="Year" required ng-model="curObj.NameObj" ng-options="a.Name for a in NameList" class="cell-input" style="width:170px;"></select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Name.$invalid&&editForm.failSubmited">
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择归口项目</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>额度：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="Amount" number ng-model="curObj.Amount" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea name="Remark" ng-model="curObj.Remark" ng-maxlength="300"></textarea>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<!--编辑 end--->
+

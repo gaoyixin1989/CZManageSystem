@@ -1,0 +1,74 @@
+﻿/*****************************************************************
+* 报表sql配置
+******************************************************************/
+#div_report
+{
+	width:500px;
+}
+.tbl_reportset 
+{
+	border:1px solid black;
+    border-collapse:collapse;
+    width:100%;
+    text-align:center;
+}
+.tbl_reportset th{
+    border:1px solid #999999; 
+    height:20px; 
+    padding-left:3px;
+    empty-cells:show;
+}
+.tbl_reportset td{
+    border:1px solid #999999; 
+    height:20px; 
+    padding-left:3px;
+    empty-cells:show;
+} 
+ 
+ 
+/****************************************************************
+* 配置文件管理
+******************************************************************/
+/*显示表或视图名的表格*/
+.tbl_report_config     
+{
+	BORDER-COLLAPSE: collapse;
+	border: 1px solid black;
+}
+.tbl_report_config th{
+    border:1px solid #999999; 
+    empty-cells:show;
+}
+.tbl_report_config td{
+    border:1px solid #999999; 
+    empty-cells:show;
+}
+/*显示表或视图字段名的表格*/
+.tbl_report_config table
+{
+	BORDER-COLLAPSE: collapse;
+	border: 1px solid black;
+	width: 100%;
+}
+.tbl_report_config table th{
+    border:1px solid #999999; 
+    empty-cells:show;
+}
+.tbl_report_config table td{
+    border:1px solid #999999; 
+    empty-cells:show;
+}
+.tbl_report_config .tr_show_table
+{
+	
+}
+.tbl_report_config .tr_show_table .td_show_table
+{
+	cursor: pointer;
+	text-decoration: underline;
+}
+/*显示表或视图字段名的表格*/
+.tbl_report_config .tr_show_column
+{
+	display:none;
+}

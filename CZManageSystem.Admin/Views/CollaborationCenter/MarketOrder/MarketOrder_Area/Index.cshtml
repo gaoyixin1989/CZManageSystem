@@ -1,0 +1,162 @@
+﻿
+@{
+    ViewBag.Title = "配送时限维护列表";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'number']);
+        //控制器
+        app.controller('ListController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            $scope.savelist = function () {
+                var postData = $scope.ListPageData;
+                BusinessService.savelist(postData).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("保存成功", { icon: 'success' });
+                    }
+                    else {
+                        box.alert((response.Message == null || response.Message == '') ? '保存失败' : response.Message, { icon: 'error' })
+                    }
+                }
+                ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'MarketOrder_Area/GetListData', postData);
+            };
+            serive.savelist = function (postData) {
+                return $http.post(CurPath + 'MarketOrder_Area/SaveList', postData);
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ListController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="savelist()" class="cell-btn-blue" style="*margin-bottom:8px;">保存</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="display:none;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>邮政所属区域</th>
+                <th>配送时限(单位：小时)</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td style="display:none;"><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                <td ng-bind="emp.DpName"></td>
+                <td><input type="text" style="width:80%;" ng-model="emp.LimitTime" number precision="0" class="cell-input" /></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+

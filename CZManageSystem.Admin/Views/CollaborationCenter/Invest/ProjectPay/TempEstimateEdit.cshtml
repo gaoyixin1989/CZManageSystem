@@ -1,0 +1,276 @@
+﻿
+@{
+    ViewBag.Title = "暂估管理(业务部门）编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var ID = '@ViewData["ID"]';
+            $scope.tempEstimate = {};
+            //-----------------------------
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.tempEstimate = response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+            $scope.GetNoPay = function () {
+                $scope.tempEstimate.NotPay = $scope.tempEstimate.PayTotal * $scope.tempEstimate.Rate / 100 - $scope.tempEstimate.Pay;
+
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.tempEstimate.ID = ID;
+                    var postData = { tempEstimate: $scope.tempEstimate }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'ProjectPay/TempEstimateIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            $scope.showData = function (type) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var strUrl = "";
+                var data = {};
+                var wWidth = 700;
+                var wHeight = 300;
+
+                switch (type) {
+                    case 'Project': {
+                        title = "项目内容";
+                        strUrl = '../Project/ProjectInfoShow';
+                        data = {
+                            ProjectID: $scope.tempEstimate.ProjectID
+                        };
+                    } break;
+                    case 'Contract': {
+                        title = "合同内容";
+                        strUrl = '../InvestContract/ContractInfoShow';
+                        data = {
+                            ProjectID: $scope.tempEstimate.ProjectID,
+                            ContractID: $scope.tempEstimate.ContractID
+                        };
+                    } break;
+                    default: {
+                        box.alert('没有对应的窗口类型！', { icon: 'error' });
+                    } break;
+                }
+
+                box.popup('',
+                                   {
+                                       url: strUrl,
+                                       iframeData: data,
+                                       iframeId: iframeId,
+                                       title: title,
+                                       width: wWidth,//窗口宽度，默认400
+                                       height: wHeight,//窗口高度，默认400
+                                       hasOk: true,
+                                   });
+
+
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ProjectPay/Save_InvestTempEstimate',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ProjectPay/InvestTempEstimateInfoGetByID?ID=' + ID
+
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>项目名称：</th>
+                    <td colspan="3"ng-bind="tempEstimate.ProjectName">
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目编号：</th>
+                    <td colspan="3" >
+                        <a style="color:blue;" ng-click="showData('Project')">{{tempEstimate.ProjectID}}</a>                      
+                    </td>
+                </tr>
+                <tr>
+                    <th>合同名称：</th>
+                    <td colspan="3" ng-bind="tempEstimate.ContractName">
+                    </td>
+                </tr>
+                <tr>
+                    <th>合同编号：</th>
+                    <td><a style="color:blue;" ng-click="showData('Contract')">{{tempEstimate.ContractID}}</a></td>
+                </tr>
+                <tr>
+                    <th>供应商：</th>
+                    <td colspan="3" ng-bind="tempEstimate.Supply">
+                    </td>
+                </tr>
+                <tr>
+                    <th>合同金额：</th>
+                    <td colspan="3" ng-bind="tempEstimate.SignTotal">
+                    </td>
+                </tr>
+                <tr>
+                    <th>合同实际金额：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="PayTotal" number ng-change="GetNoPay()" ng-model="tempEstimate.PayTotal" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PayTotal.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.PayTotal.$error.required">请输入合同实际金额</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>所属专业：</th>
+                    <td colspan="3" ng-bind="tempEstimate.Study">
+                    </td>
+                </tr>
+                <tr>
+                    <th>负责人：</th>
+                    <td colspan="3" ng-bind="tempEstimate.ManagerName">
+                    </td>
+                </tr>
+                <tr>
+                    <th>科目：</th>
+                    <td colspan="3" ng-bind="tempEstimate.Course" >
+                    </td>
+                </tr>
+                <tr>
+                    <th>上月进度(%)：</th>
+                    <td colspan="3" ng-bind="tempEstimate.BackRate" >
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目形象进度(%)：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="Rate" number ng-change="GetNoPay()" ng-model="tempEstimate.Rate" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Rate.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Rate.$error.required">请输入项目形象进度</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>已付款金额(元)：</th>
+                    <td colspan="3" ng-bind="tempEstimate.Pay">  
+                    </td>
+                </tr>
+                <tr>
+                    <th>暂估金额(元)：</th>
+                    <td colspan="3" ng-bind="tempEstimate.NotPay">
+                    </td>
+                </tr>
+                <tr>
+                    <th style="color:red;">温馨提示：</th>
+                    <td > 暂估金额 = 合同实际金额 * 项目形象进度 - 已付款金额 </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </form>
+</div>
+<!--公告编辑 end--->
+

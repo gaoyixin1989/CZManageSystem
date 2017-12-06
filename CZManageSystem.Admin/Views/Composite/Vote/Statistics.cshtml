@@ -1,0 +1,250 @@
+﻿@{
+    ViewBag.Title = "投票";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+
+    <style>
+        .public-form {
+            margin: 40px 0px;
+            padding: 15px;
+            width: auto;
+        }
+
+        .layer {
+            overflow: auto;
+        }
+
+        h3 {
+            margin: 0px !important;
+        }
+
+        .close {
+            opacity: 1 !important;
+        }
+
+        fieldset {
+            padding: 0;
+            margin: 0;
+            border: 0;
+        }
+
+        legend {
+            margin: 10px;
+            display: block;
+            width: auto;
+            padding: 0;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 20px;
+            color: #333333;
+            border: 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        fieldset ul {
+            margin: 10px !important;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/Javascript/comm.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script>
+        //var layerIndex;
+        //layerIndex = $(".layerList").layer({ width: 680, height: 465, title: "答案详情", contents: ".detailsList" });
+    </script>
+    <script>
+
+        var app = angular.module('Statistics', ['ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('StatisticsController', ['$scope', '$rootScope', 'BusinessService', '$filter', 'ngDialog', function ($scope, $rootScope, BusinessService, $filter, ngDialog) {
+
+
+            var VoteAnsers = [];
+            var VoteSelectedAnsers = [];
+            $rootScope.QuestionInfo = { QuestionID: "", QuestionTitle: "", QuestionType: "S", Creator: "", CreatorID: 0, AnswerNum: 0, MaxValue: 0, MinValue: 0, VoteAnsers: VoteAnsers, VoteSelectedAnsers: VoteSelectedAnsers };
+            $scope.Options = ["投票", "问卷调查", "简答题"];
+            var AnserInfoInfo = { AnserContent: "", AnserScore: 1, SortOrder: 0, MaxValue: 0, MinValue: 0 };
+            $scope.Questions = [];
+            $scope.BasicInfo = {
+                //MemberType:1为部门 2为用户 3角色
+                ApplyID: "", ApplyTitle: "", ApplySn: "", Creator: "", CreatorID: "", CreateTime: "",
+                MobilePhone: "", ThemeType: "", ThemeName: "", StartTime: "", EndTime: "", IsNiming: "", Remark: "", MemberName: "", MemberIDs: "", MemberType: 0, TempdeptID: "", DeptName: "", TempdeptName: "", TempuserID: "", TempuserName: "", IsProc: 0
+            };
+            $scope.SelectedAnser = { QuestionID: 0, AnserID: 0, OtherContent: "" };
+
+
+            var id = '@ViewData["id"]';
+            $scope.curObj = {};
+            $scope.users = { arrId: [], arrText: [] };
+            $scope.depts = { arrId: [], arrText: [] };
+            $scope.roles = { arrId: [], arrText: [] };
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.BasicInfo = response.BasicInfo;
+                    $scope.Questions = response.Questions;
+                    $scope.BasicInfo.Creator = "创建者 " + $scope.BasicInfo.Creator;
+                    $scope.BasicInfo.CreateTime = "创建时间：" + $filter('date')($scope.BasicInfo.CreateTime, 'yyyy-MM-dd');
+                    $scope.BasicInfo.StartTime = "开始时间：" + $filter('date')($scope.BasicInfo.StartTime, 'yyyy-MM-dd HH:mm');
+                    $scope.BasicInfo.EndTime = "截止时间：" + $filter('date')($scope.BasicInfo.EndTime, 'yyyy-MM-dd HH:mm');
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            $scope.getTitle = function (index, title) {
+
+                return index + ". " + title + " ";//$scope.Size * ($scope.PageNumber - 1) +
+            };
+            $scope.getAnserScore = function (anserScore) {
+
+                if (anserScore != '' && anserScore != 'undefined' && anserScore != null)
+                    return '(' + anserScore + '分)'
+                return '';
+            };
+            $scope.getParseInt = function (dividend, divisor) {
+                return divisor == 0 ? 0 : (dividend / divisor) * 100;
+            }
+
+
+            //弹出层
+
+            $scope.openDialog = function (item) {
+                // width: 680, height: 465, title: "答案详情"
+                console.info(item);
+                $rootScope.QuestionInfo = item;
+                console.info($rootScope.QuestionInfo);
+                ngDialog.open({
+                    title: '答案详情',
+                    template: 'openDialogId',// 'deptDialogId',//
+                    controller: 'OpenDialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 693,
+                    height: 440,
+                    top: -60
+                });
+            };
+
+
+        }]);
+
+        app.controller('OpenDialogController', ['$scope', '$rootScope', 'BusinessService', '$filter', 'ngDialog', function ($scope, $rootScope, BusinessService, $filter, ngDialog) {
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/GetDataByID',
+                    data: { id: id, type: id }
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+
+
+}
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="Statistics" ng-controller="StatisticsController" name="editForm" novalidate>
+
+        <div class="public-layer">
+            <div class="the-question">
+                <table>
+                    <tr>
+                        <th colspan="4" ng-bind="BasicInfo.ApplyTitle"> </th>
+                    </tr>
+
+                    <tr>
+                        <td ng-bind="BasicInfo.Creator"> </td>
+                        <td ng-bind="BasicInfo.CreateTime"></td>
+                        <td ng-bind="BasicInfo.StartTime"></td>
+                        <td ng-bind="BasicInfo.EndTime"></td>
+
+                    </tr>
+                    @*<tr>
+                            <th colspan="4" ng-bind="BasicInfo.ThemeName"> </th>
+                        </tr>*@
+                </table>
+            </div>
+
+            <div class="voting-list no-padding" ng-repeat="item in Questions track by $index">
+                <span class="voting-question" ng-bind="getTitle($index+1,item.QuestionTitle)"></span>
+                <div class="voting-question-infor voting-question-infor2" ng-show="item.QuestionType!='Q'">
+                    <ul ng-repeat="anser in item.VoteAnsers">
+                        <li ng-bind="'（'+($index+1)+'）. '+anser.AnserContent+getAnserScore(anser.AnserScore)">
+
+                        </li>
+                        <li>
+                            <div class="div-1">
+                                <div class="div-1-1"><b style="width:{{getParseInt(anser.AnsersCount,item.QuestionCount)}}%"></b></div>
+
+                                <div class="div-1-2">
+                                    <div ng-if="anser.AnserScore!=''&&anser.AnserScore!='undefined'&&anser.AnserScore!=null" ng-bind="anser.AnsersCount*anser.AnserScore+'分'"><i></i></div>
+
+                                    <div ng-bind="anser.AnsersCount+'票'"><i></i></div>
+                                </div>
+                                <span class="span-1" ng-bind="item.QuestionCount==0?'0%':(anser.AnsersCount/item.QuestionCount*100).toFixed(2)+'%'"></span>
+                            </div>
+                        </li>
+                    </ul>
+
+                </div>
+
+                <div class="voting-question-infor2" ng-show="item.QuestionType=='Q'">
+                    <ul>
+                        <li>
+                            <a ng-click="openDialog(item)" class="layerList">查看答案详情 </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+
+
+            @*<a href="javascript:void(0);" class="the-btn" style="margin-top:50px; margin-top:20px;">提交投票</a>*@
+
+        </div>
+
+        <script type="text/ng-template" id="openDialogId">
+            <div class="detailsList layer">
+                <fieldset>
+                    <legend ng-bind="QuestionInfo.QuestionTitle" style="color:#0085d1"></legend>
+                    <!-- 加入你的内容 -->
+                    <ul ng-repeat="item in QuestionInfo.VoteSelectedAnsers track by $index">
+                        <li class="voteSelectedAnsers"><span style="color:#0085d1">答题人： </span><span style="color:#0085d1" ng-bind="item.Respondent"></span></li>
+                        <li class="voteSelectedAnsers"><span>答  案： </span><span ng-bind="item.OtherContent"></span></li>
+                    </ul>
+                </fieldset>
+
+            </div>
+        </script>
+        <div class="p-20">
+            <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+        </div>
+
+    </form>
+</div>
+<!--公告编辑 end--->

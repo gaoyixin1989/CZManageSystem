@@ -1,0 +1,159 @@
+﻿
+@{
+    ViewBag.Title = "OutStock";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('StockController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            @*var stock = new Array();
+            var st = '@ViewData["stock"]';
+            var reg = new RegExp("&quot;", "g"); //创建正则RegExp对象  
+            st = st.replace(reg, "'");
+            stock = st;*@
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                    //,stock: stock
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                $scope.queryBuilder.StockType = $("[ng-model='queryBuilder.ApplySn']").val();
+                $scope.queryBuilder.ProjSn = $("[ng-model='queryBuilder.ApplyName']").val();
+                $scope.queryBuilder.StockType = $("[ng-model='queryBuilder.Createdtime_Start']").val();
+                $scope.queryBuilder.StockStatus = $("[ng-model='queryBuilder.Createdtime_End']").val();
+                GetListData();
+            }
+            //---------------------------------
+
+
+            //----------------------------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Stock/Outmatinfo', postData);
+            };
+            return serive;
+        }]);
+
+        //------------------------------------------
+
+    </script>
+}
+
+<div id="ng-app" ng-app="ListPage" ng-controller="StockController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    单号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" placeholder="单号" ng-model="queryBuilder.ApplySn" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    申请人：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" placeholder="申请人" ng-model="queryBuilder.ApplyName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+               
+            </tr>
+            <tr>
+                <td>
+                    出库时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="Createdtime_Start" date-Picker ng-model="queryBuilder.Createdtime_Start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td style="padding-left:5px;padding-right:5px;">至</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="Createdtime_End" date-Picker ng-model="queryBuilder.Createdtime_End" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-blue" style="*margin-bottom:8px;">返回</a>
+                    </div>
+                </td>
+            </tr>
+          
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="white-space:nowrap">单号</th>
+                <th style="white-space:nowrap">申请人</th>
+                <th style="white-space:nowrap">部门</th>
+                <th style="white-space:nowrap">设备类型</th>
+                <th style="white-space:nowrap">设备类型型号</th>
+                <th style="white-space:nowrap">固定资产标签号</th>
+                <th style="white-space:nowrap">出库数量</th>
+                <th style="white-space:nowrap">投资编号</th>
+                <th style="white-space:nowrap">出库时间</th>
+            </tr>
+            <tr ng-repeat="stock in ListPageData">
+                <td><a ng-href="../Stock/EquipApply?apply_sn={{stock.apply_sn}}" ng-bind="stock.apply_sn"> </a></td>
+                <td ng-bind="stock.applyName"></td>
+                <td ng-bind="stock.deptname"></td>
+                <td ng-bind="stock.EquipClass"></td>
+                <td ng-bind="stock.EquipInfo"></td>
+                <td ng-bind="stock.AssetSn"></td>
+                <td ng-bind="stock.outnum"></td>
+                <td ng-bind="stock.ProjSn"></td>
+                <td ng-bind="stock.edittime"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

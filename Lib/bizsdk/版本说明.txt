@@ -1,0 +1,30 @@
+bizsdk 各程序集版本说明
+
+生成时间: 2009-06-02 16:05
+
+# Botwave.Workflow.Extension.dll
+
+生成时间: 2009-06-02 14:45
+
+# Botwave.Workflow.Core.dll
+# Botwave.Workflow.Extension.dll
+# Botwave.Workflow.IBatisNet.dll
+# Botwave.Core.dll
+
+生成时间: 2009-04-07 18:16
+
+# Botwave.Core.dll
+# Botwave.Extension.IBatisNet.dll
+# Botwave.GMCCServiceHelpers.dll
+# Botwave.GmccWsProxies.dll
+# Botwave.Log.GMCC.dll
+# Botwave.PersonBrain.dll
+# Botwave.Portal.dll
+# Botwave.CMS.dll
+# Botwave.DynamicForm.dll
+# Botwave.DynamicForm.IBatisNet.dll
+# Botwave.Report.dll
+# Botwave.Security.dll
+# Botwave.Security.Extension.dll
+# Botwave.Security.IBatisNet.dll
+# Botwave.StateGraph.dll

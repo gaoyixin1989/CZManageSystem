@@ -1,0 +1,296 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        .public-table-main table tr th {
+            font-weight: normal;
+            text-align: center;
+            width: 25%;
+            padding: 5px 0px;
+            border: 1px solid #eaeaea;
+            border-width: 0px 1px 1px 0px;
+            background: #F4F4F4;
+        }
+
+        .public-table-main table tr td {
+            font-weight: normal;
+            text-align: center;
+            width: 25%;
+            border: 1px solid #eaeaea;
+            border-width: 0px 1px 1px 0px;
+        }
+    </style>
+
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('BirthControlSaticController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+                DpId: "",
+                StartTime: "",
+                EndTime:""
+            };
+            $scope.DpBuilder = {
+                DpName: ""
+            };
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                //alert($scope.queryBuilder.DpId);
+                queryBuilder: $scope.queryBuilder
+                var postData = {
+                    DpId: $scope.queryBuilder.DpId,
+                    StartTime: $scope.queryBuilder.StartTime,
+                    EndTime: $scope.queryBuilder.EndTime
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.curObj = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.DpId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.DpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.DpBuilder.DpName = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            $scope.query = function () {
+                //alert($scope.queryBuilder.DpId);                
+
+                if ($scope.queryBuilder.StartTime != "" && $scope.queryBuilder.EndTime == "")
+                    box.alert('请正确选择查询日期！', { icon: 'error' });
+                else if ($scope.queryBuilder.StartTime == "" && $scope.queryBuilder.EndTime != "")
+                    box.alert('请正确选择查询日期！', { icon: 'error' });
+                else if ($scope.queryBuilder.DpId != "" && $scope.queryBuilder.DpId.split(",").length > 1)
+                    box.alert('请勿选择多个部门查询！', { icon: 'error' });
+                else
+                    GetListData();
+            }
+            $scope.ShowDetail = function () {
+                if ($("#StaticSM").css("display") == "none") {
+                    $("#StaticSM").show();
+                }
+                else {
+                    $("#StaticSM").hide();
+                }
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'BirthControlDataSatic/GetListData', postData);
+            };
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+
+
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="BirthControlSaticController">
+    <!--content--->
+    <div id="StaticSM" class="search-mod" style="display:none">
+        <table>
+            <tr style="height:30px; color:lightcoral; line-height:20px">
+                <td>
+                    &nbsp;&nbsp; 统计方法：在册正式员工人数：公司在职的正式员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 在册男、女正式员工人数：公司在职的正式男、女员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 初婚人数：计划生育员工信息中婚姻状态为“初婚”的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 晚婚数：计划生育员工信息中是否晚婚为“是”的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 已婚未育人数：计划生育员工信息中婚姻状况为“初婚”且在计划生育员工子女信息中没有子女信息的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 生一孩人数：在计划生育员工子女信息中，员工的孩子总数为1的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 生二孩人数：在计划生育员工子女信息中，员工的孩子总数为2的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 生多孩人数：在计划生育员工子女信息中，员工的孩子总数大于2的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 已婚育龄（49周岁以下）男、女员工数：公司在职男、女员工年龄在49周岁以下且已经结婚的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 女员工结扎人数：计划生育员工信息中女员工有结扎的员工人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 男员工配偶结扎人数：计划生育员工信息中男员工配偶有结扎的人数<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 夫妻同单位：计划生育员工信息中夫妻是否同单位为“是”的人数，统计男员工一方<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 生一孩的父母对数：在计划生育员工信息中，夫妻是同单位的，且在计划生育员工子女信息中员工的孩子总数为1的员工人数，统计女员工一方<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 生二孩的父母对数：在计划生育员工信息中，夫妻是同单位的，且在计划生育员工子女信息中员工的孩子总数为2的员工人数，统计女员工一方<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp; 生多孩的父母对数：在计划生育员工信息中，夫妻是同单位的，且在计划生育员工子女信息中员工的孩子总数大于2的员工人数，统计女员工一方<br />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="search-mod" style="height:30px;">
+        <table>
+            <tr>
+                <td >
+                    统计日期：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.StartTime" date-Picker datefmt="yyyyMM" class="cell-input cell-input-data" readonly style="width:80px;" /><i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" ng-model="queryBuilder.EndTime" date-Picker datefmt="yyyyMM" class="cell-input cell-input-data" readonly style="width:80px;" /><i class="icon-data"></i>
+                    </div>
+                </td>                
+                <td>
+                    部门：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="DeptId" ng-model="queryBuilder.DpId" ng- class="cell-input" />
+                        <input type="text" name="DeptName" ng-model="DpBuilder.DpName" class="cell-input" ng-click="editMember('dept')" />
+                        @* <input type="text" ng-model="queryBuilder.DpName" class="cell-input" style="width:120px;" />*@
+                    </div>
+                </td>                
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>在册正式员工人数：</th>
+                <td>{{curObj.OfficialStaffCount}}&nbsp;</td>
+                <th>&nbsp;</th>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th>在册男正式员工人数：</th>
+                <td>{{curObj.OfficialMenStaffCount}}&nbsp;</td>
+                <th>在册女正式员工人数：</th>
+                <td>{{curObj.OfficialWomenStaffCount}}</td>
+            </tr>
+            <tr>
+                <th>初婚人数：</th>
+                <td>{{curObj.FirstMarry}}&nbsp;</td>
+                <th>晚婚人数：</th>
+                <td>{{curObj.LateMarriage}}</td>
+            </tr>
+            <tr>
+                <th>已婚未育人数：</th>
+                <td>{{curObj.MarryButNotChild}}&nbsp;</td>
+                <th>生育1孩人数：</th>
+                <td>{{curObj.SingleChild}}</td>
+            </tr>
+            <tr>
+                <th>生育2孩人数：</th>
+                <td>{{curObj.TwoChild}}&nbsp;</td>
+                <th>生多孩人数：</th>
+                <td>{{curObj.MoreChild}}</td>
+            </tr>
+
+            <tr>
+                <th>已婚育龄（49周岁以下）男员工数：</th>
+                <td>{{curObj.MaryBearAgeMen}}&nbsp;</td>
+                <th>已婚育龄（49周岁以下）女员工数：</th>
+                <td>{{curObj.MaryBearAgeWomen}}</td>
+            </tr>
+            <tr>
+                <th>女员工结扎人数：</th>
+                <td>{{curObj.LigationWomen}}&nbsp;</td>
+                <th>男员工配偶结扎人数：</th>
+                <td>{{curObj.LigationMemSpouse}}</td>
+            </tr>
+
+            <tr>
+                <th>夫妻同单位（对）：</th>
+                <td>{{curObj.SameWork}}&nbsp;</td>
+                <th>生一孩的父母对数：</th>
+                <td>{{curObj.SameWorkOneChild}}</td>
+            </tr>
+            <tr>
+                <th>生二孩的父母对数：</th>
+                <td>{{curObj.SameWorkTwoChild}}&nbsp;</td>
+                <th>生多孩的父母对数：</th>
+                <td>{{curObj.SameWorkMoreChild}}</td>
+            </tr>
+            
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="ShowDetail()" class="btn-find"><i></i>查看统计方法</a></li>
+            </ul>
+
+        </div>
+    </div>
+    <!--content--->
+</div>
+
+

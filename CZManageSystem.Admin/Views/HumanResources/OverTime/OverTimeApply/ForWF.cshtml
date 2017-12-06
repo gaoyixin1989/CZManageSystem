@@ -1,0 +1,155 @@
+﻿
+@{
+    ViewBag.Title = "ForWF";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var workflowName = '@ViewData["workflowName"]';
+
+        $(function () {
+            var type = '@ViewData["Type"]';
+            if (type != 'Look') {
+                $('#For_JUMP').remove();
+            }
+        });
+        var app = angular.module('CreateOrUpdate', [ 'datePicker', 'number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            $scope.curObj = {};
+            $scope.CorpList = [];
+            $scope.RoadList = [];
+            var id = '@ViewData["id"]';
+
+
+            if (id != null && id.toString().length > 0) {
+                box.load("load");
+                var _data = { id: id };//id
+                BusinessService.getDataByID(_data).success(function (response) {
+                    $scope.curObj = response.Items;
+                    $scope.CorpList = response.TypeList;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("load");
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByID = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OverTimeApply/GetDataByID',
+                    data: postData
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 100%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+    }
+
+        .WF_Table tr th {
+            background: white;
+            padding: 7px;
+            font-weight: bold;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            text-align: center;
+        }
+
+        .WF_Table tr td {
+            padding: 5px;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            width: 35%;
+        }
+
+        .WF_Table tr th {
+            background: #F4F4F4;
+            width: 15%;
+        }
+</style>
+
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" >
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table class="WF_Table">
+            <tr><td style="color:red;" colspan="4">申请信息如下</td></tr>
+            <tr>
+                <th>申请人：</th>
+                <td ng-bind="curObj.ApplyUserName"></td>
+                <th>所在部门：</th>
+                <td ng-bind="curObj.DeptName"></td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td ng-bind="curObj.Mobile"></td>
+                <th>申请日期：</th>
+                <td ng-bind="curObj.CreateTime"></td>
+            </tr>
+            <tr>
+                <th>主题名称：</th>
+                <td ng-bind="curObj.ApplyTitle"></td>
+                <th>职务：</th>
+                <td ng-bind="curObj.ApplyPost"></td>
+            </tr>
+            <tr>                
+                <th>直接主管：</th>
+                <td ng-bind="curObj.ManageName"></td>
+                <th>直接主管职务：</th>
+                <td ng-bind="curObj.ManagePost"></td>
+            </tr>
+            <tr>
+                <th>加班地点：</th>
+                <td ng-bind="curObj.Address"></td>
+                <th>加班类型：</th>
+                <td ng-bind="curObj.OvertimeType"></td>
+            </tr>
+            <tr>
+                <th>开始时间：</th>
+                <td ng-bind="curObj.StartTime"></td>
+                <th>时长：</th>
+                <td ng-bind="curObj.PeriodTime"></td>
+            </tr>
+            <tr>
+                <th >加班原因：</th>
+                <td colspan="3" ng-bind="curObj.Reason"></td>
+            </tr>
+            <tr id="For_JUMP">
+                <td colspan="4" style="text-align: center;">
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+

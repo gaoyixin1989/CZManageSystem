@@ -1,0 +1,145 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "个人配置";
+}
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            $scope.dictHour = [];
+            for (var i = 23; i >= -48; i--)
+                $scope.dictHour.push(i);
+
+            $scope.configData = {
+                Schedule: { State: true, Hour: -24 },
+                KaoQin: { State: true }
+            };
+            //获取配置数据
+            $scope.getData = function () {
+                BusinessService.Get().success(function (response) {
+                    $scope.resetConfig(response);
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+            $scope.getData();
+
+            //将后台的配置数据转换为前台需要的格式,并赋值给$scope.configData
+            $scope.resetConfig = function (obj) {
+                for (var p in obj) {
+                    $scope.configData[p] = {};
+                    $.each(obj[p].split(';'), function (i, item) {
+                        var name = item.split('=')[0];
+                        var value = item.split('=')[1];
+                        if (value == 'true') value = true;
+                        else if (value == 'false') value = false;
+                        else if (!isNaN(value)) { value = parseFloat(value); }
+                        $scope.configData[p][name] = value;
+                    })
+                }
+            }
+
+            //$scope.configData转换为后台需要的数据
+            $scope.resetConfigBack = function () {
+                var postData = [];
+                for (var p in $scope.configData) {
+                    var value = '';
+                    for (var q in $scope.configData[p]) {
+                        value += (value.length > 0 ? ';' : '') + q + '=' + $scope.configData[p][q];
+                    }
+                    postData.push({
+                        ConfigName: p,
+                        ConfigValue: value
+                    });
+                }
+                return postData;
+            }
+
+            $scope.Save = function () {
+                var postData = $scope.resetConfigBack();
+
+                BusinessService.Save(postData).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("保存成功", { icon: 'success' });
+                    }
+                    else {
+                        box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' })
+                    }
+                }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.Save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'UserConfig/Save',
+                    data: postData
+                });
+            };
+            serive.Get = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'UserConfig/GET'
+                });
+            };
+
+            return serive;
+
+        }]);
+    </script>
+}
+<style>
+    #ex1Slider .slider-selection {
+        background: #BABABA;
+    }
+</style>
+<!--公告管理--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="userForm">
+        <table>
+            <tr>
+                <th>日程通知： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="checkbox" ng-model="configData.Schedule.State" style="float:left;line-height:30px;height:30px;" />
+                        @*<input type="text" ng-model="configData.Schedule.Hour" number min="-48" max="23" precision="0" ng-disabled="!configData.Schedule.State" class="cell-input" style="width:50px;" />*@
+                        <select ng-model="configData.Schedule.Hour" ng-disabled="!configData.Schedule.State" ng-options="a for a in dictHour" class="cell-input" style="width:80px;  margin-left: 15px;"></select>
+                        <span ng-show="configData.Schedule.State&&configData.Schedule.Hour>=0" style="margin-left: 15px;">行程安排提醒将于当天<span style="color:red;">{{configData.Schedule.Hour}}</span>时后发送</span>
+                        <span ng-show="configData.Schedule.State&&configData.Schedule.Hour<0"  style="margin-left: 15px;">行程安排提醒将于当天0点再提前<span style="color:red;">{{configData.Schedule.Hour*-1}}</span>个小时开始发送</span>
+                        <span ng-show="!configData.Schedule.State" style="margin-left: 15px;">不发送行程安排提醒</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>考勤异常通知： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="checkbox" ng-model="configData.KaoQin.State" style="float:left;line-height:30px;height:30px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="Save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                </td>
+            </tr>
+        </table>
+
+
+
+    </form>
+</div>
+<!--公告管理 end--->

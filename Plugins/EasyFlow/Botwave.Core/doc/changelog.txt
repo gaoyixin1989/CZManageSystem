@@ -1,0 +1,5 @@
+﻿# 记录版本变更历史
+
+2009-03-19
+# 修改GlobalSettings,增加EncryptKey	(shaw)
+# 修改TripleDESHelper,可以根据配置来设置密钥

@@ -1,0 +1,486 @@
+﻿
+@{
+    ViewBag.Title = "暂估纠正申请";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    @*<script src="~/Content/Javascript/jscroll.js"></script>*@
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        var workflowName = '@ViewData["workflowName"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        function addJsCroll(elememt) {
+            if ($(elememt).length > 0) {
+                $(elememt).jscroll({
+                    W: "8px",
+                    BgUrl: "",
+                    Bg: "#f4f4f4",
+                    Bar: {
+                        //Pos: "bottom",
+                        Bd: { Out: "#f4f4f4", Hover: "#f4f4f4" },
+                        Bg: { Out: "#0085d1", Hover: "#03a3fe", Focus: "#03a3fe" }
+                    },
+                    Btn: { btn: false }
+                });
+            }
+        }
+
+
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit','number', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            //获取当前数据
+            var ID = '@ViewData["ID"]';
+            $scope.apply = {};
+            $scope.Ids = [];
+            $scope.CorrectData = [];
+            var selectedId = "";
+
+            //-----------------------------
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.apply = response.items[0];
+                    //获取详情
+                    detail();
+                    //---------------------------
+
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+            else {
+                BusinessService.GetNewApplyInfo().success(function (response) {
+                    for (var item in response) {
+                        $scope.apply[item] = response[item];
+                    }
+                }).error(function (err) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = {
+                        dataObj: $scope.apply,
+                        details: []
+                    }
+                    $.each($scope.CorrectData, function (i, item) {
+                        postData.details.push(item);
+                    })
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'CorrectApply/ApplyList';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //提交数据，提交数据时先执行保存数据
+            $scope.submit = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = {
+                        dataObj: $scope.apply,
+                        details: []
+                    }
+                    $.each($scope.CorrectData, function (i, item) {
+                        postData.details.push(item);
+                    })
+
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var sumbitData = {
+                                ID: response.Message,
+                                nextActivity: nextInfo.nextActivity,
+                                nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                            };
+                            box.load("submit");
+                            BusinessService.SubmitApply(sumbitData).success(function (response2) {
+                                box.ready("submit");
+                                if (response2.IsSuccess) {
+                                    box.alert("提交成功", { icon: 'success' }, function () {
+                                        window.location.href = CurPath + 'CorrectApply/ApplyList';
+                                    });
+                                }
+                                else {
+                                    box.alert(response2.Message.length > 0 ? response2.Message : "提交失败", { icon: 'error' });
+                                }
+                            }).error(function (response2) {
+                                box.ready("submit");
+                                box.alert("网络出错！", { icon: 'error' });
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+
+            $scope.fileDialog = function () {
+                //if (ID == null || ID.toString().length <= 0) {
+                //    box.alert("请先保存申请单！", { icon: 'warning' });
+                //    return;
+                //}
+                selectedId = selectedId.substring(selectedId.length - 1, 1) != "," ? selectedId : selectedId.substring(0, selectedId.length - 1);
+                
+                var iframeId = 'addProjectPay';
+                var title = "添加耗材信息";
+                var iframeSrc = '../ProjectPay/EstimateSelect?selected=' + selectedId;
+                var wWidth = 800;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $.each(result, function (i, item) {
+                                        if ($filter('filter')($scope.CorrectData, { 'ID': item.ID }).length < 1) {
+                                            item.Count = 0;
+                                            $scope.CorrectData.push(item);
+                                        }
+                                    });
+                                    $scope.total = { "SignTotalCount": 0, "PayTotalCount": 0, "TaxCount": 0, "NotPayCount": 0, "PayCount": 0, };
+                                    $.each($scope.CorrectData, function (i, item) {
+                                        //$scope.Ids.push(item.ID);
+                                        selectedId += item.ID + ",";
+                                        $scope.total.SignTotalCount += item.SignTotal;//合同金额
+                                        $scope.total.PayTotalCount += item.PayTotal;//实际合同金额
+                                        $scope.total.TaxCount += item.Tax;//合同税金额
+                                        $scope.total.NotPayCount += item.NotPay;//暂估金额
+                                        $scope.total.PayCount += item.Pay;//已付款金额
+                                    });
+                                    $scope.$apply();
+                                    //addJsCroll($('.jscroll'));
+                                }
+                            }
+                        }
+                    });
+            };
+            //获取耗材详情
+            var detail = function () {
+                BusinessService.getDataByApplyID(ID).success(function (data) {
+                    box.load("CorrectApplyGetListData");
+                    box.ready("CorrectApplyGetListData");
+                    $scope.CorrectData = data.items;
+                    $scope.total = data.Total;
+                    $.each($scope.CorrectData, function (i, item) {
+                        //$scope.Ids.push(item.ID);
+                        selectedId += item.EstimateID + ",";
+
+                    });
+                   
+                }).error(function (err) {
+                    box.ready("CorrectApplyGetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.deleteCorrectApply = function (obj) {
+                var index = $scope.CorrectData.indexOf(obj);
+                $scope.CorrectData.splice(index, 1);
+                $scope.total = { "SignTotalCount": 0, "PayTotalCount": 0, "TaxCount": 0, "NotPayCount": 0, "PayCount": 0, };
+                $.each($scope.CorrectData, function (i, item) {
+                    //$scope.Ids.push(item.ID);
+                    $scope.total.SignTotalCount += item.SignTotal;//合同金额
+                    $scope.total.PayTotalCount += item.PayTotal;//实际合同金额
+                    $scope.total.TaxCount += item.Tax;//合同税金额
+                    $scope.total.NotPayCount += item.NotPay;//暂估金额
+                    $scope.total.PayCount += item.Pay;//已付款金额
+                })
+                $scope.$apply();
+                //addJsCroll($('.jscroll'));
+            }
+
+            //------------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetNewApplyInfo = function () {//获取新的申请信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CorrectApply/getApplyInfo'
+                });
+            };
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CorrectApply/Save_CorrectApply',
+                    data: postData
+                });
+            };
+            serive.SubmitApply = function (postData) {//提交
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CorrectApply/Sumbit_CorrectApply',
+                    data: postData
+                });
+            };
+            serive.getDataByApplyID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CorrectApply/CorrectApplyGetListByApplyID/' + ID
+
+                });
+            };
+            serive.getDataByID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CorrectApply/CorrectApplyGetByID?ID=' + ID
+
+                });
+            };
+            serive.deleteDetail = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CorrectApply/DetaildeleteByID?ID=' + ID
+
+                });
+            };
+
+            return serive;
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            setByType();
+                            //scope.$emit('ngRepeatFinished');
+                            //addJsCroll(element.parents('.jscroll'));
+                        });
+                    }
+                }
+            };
+        });
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr class="editWithout">
+                    <th>申请人：</th>
+                    <td><label>{{apply.ApplyName}}</label> </td>
+                </tr>
+                <tr>
+                    <th style="width:20%">流程单号：</th>
+                    <td>{{apply.Series==null?'(提交时自动生成)':apply.Series}}</td>
+                    <th class="editWithout" style="width:20%">所在部门：</th>
+                    <td class="editWithout" ng-bind="apply.DpName"></td>
+                </tr>
+                <tr class="editWithout">
+                    <th>申请日期：</th>
+                    <td ng-bind="apply.ApplyTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                    <th>手机号码：</th>
+                    <td ng-bind="apply.Mobile"></td>
+                </tr>
+                <tr>
+                    <th>主题：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="Title" ng-model="apply.Title" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Title.$error.required">请输入标题</span>
+                                    <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:550px;" name="Content" ng-model="apply.Content" required ng-maxlength="200" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Content.$error.required">请输入备注</span>
+                                    <span ng-show="editForm.Content.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="4">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="subject-management">
+            <span class="p-title">明细管理</span>
+            <div class="s-layer">
+                <strong>已有纠正列表</strong>
+                <span>
+                    <a ng-click="fileDialog()" class="s-btn layerQuestion forEdit">添加</a>
+                </span>
+            </div>
+        </div>
+        <div class="public-table-main">
+            <div style="height:230px;">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        @*<th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>*@
+                        <th>年份</th>
+                        <th>月份</th>
+                        <th>项目编号</th>
+                        <th>项目名称</th>
+                        <th>合同编号</th>
+                        <th>合同名称</th>
+                        <th>合同金额(元)</th>
+                        <th>实际合同金额(元)</th>
+                        <th>合同税金(元)</th>
+                        <th>形象进度(%)</th>
+                        <th>已付款金额</th>
+                        <th>暂估金额</th>
+                        <th class="forEdit">删除</th>
+                    </tr>
+                    <tr ng-repeat="temp in CorrectData" on-finish-render-filters>
+                        @*<td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>*@
+                        <td ng-bind="temp.Year"></td>
+                        <td ng-bind="temp.Month"></td>
+                        <td style="color:blue;" ng-bind="temp.ProjectID" ng-click="clickTitle(temp)"></td>
+                        <td ng-bind="temp.ProjectName"></td>
+                        <td ng-bind="temp.ContractID"></td>
+                        <td ng-bind="temp.ContractName"></td>
+                        <td ng-bind="temp.SignTotal"></td>
+                        <td ng-bind="temp.PayTotal"></td>
+                        <td ng-bind="temp.Tax"></td>
+                        <td ng-bind="temp.Rate"></td>
+                        <td ng-bind="temp.Pay"></td>
+                        <td ng-bind="temp.NotPay"></td>
+                        <td class="forEdit">
+                            <div class="operation-btn">
+                                <a href="javascript:void(0);" ng-click="deleteCorrectApply(emp.ID)">删除</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="6">合计：</th>
+                        <td>{{total.SignTotalCount}}</td>
+                        <td>{{total.PayTotalCount}}</td>
+                        <td>{{total.TaxCount}}</td>
+                        <td></td>
+                        <td>{{total.PayCount}}</td>
+                        <td>{{total.NotPayCount}}</td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li>
+                        <a id="btnAdd" ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                    </li>
+                    <li>
+                        <a id="btnSave" ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                    </li>
+                    <li><a href="../CorrectApply/ApplyList" class="cell-btn-orange" style="width:70px;">返回</a>
+                </ul>
+
+            </div>
+            <tm-pagination conf="paginationConf"></tm-pagination>
+        </div>
+    </form>
+</div>
+

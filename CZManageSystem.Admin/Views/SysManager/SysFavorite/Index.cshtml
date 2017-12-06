@@ -1,0 +1,284 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination']);
+        //控制器
+        app.controller('SysFavoriteController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            var type = '@ViewData["type"]';
+            $scope.workflowName = "";
+
+            var choseArr = new Array();
+            var workflowIds = new Array();
+            
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    workflowName: $scope.workflowName,
+                    type: type
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    $scope.sysFavoriteList = response.sysFavoriteList;
+                    choseArr = [];
+                    workflowIds = [];
+                    angular.forEach($scope.sysFavoriteList, function (obj) {
+                        choseArr.push(obj.WorkflowId);
+                    });
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        workflowIds.push(obj.WorkflowId);
+                    });
+                    box.ready("GetListData");
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.WorkflowId);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.isCh = function (workID) {
+                return choseArr.indexOf(workID) >= 0;
+
+            }
+            $scope.isAll = function () {
+                if (!$scope.ListPageData) {
+                    return false;
+                }
+                $scope.master = choseArr.length == $scope.ListPageData.length;
+            }
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！")
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.message == "成功") {
+                                //alert("成功删除" + response.successCount + "条数据");
+                                //$scope.query();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        });
+                    }
+                });
+            };
+            //$scope.deleteData = function () {//
+            //    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+            //        alert("请至少选中一条数据再操作！")
+            //        return;
+            //    };
+            //    //调用删除服务
+            //    BusinessService.deleteData(choseArr).success(function (response) {
+            //        alert(response.message);
+            //        $scope.query();
+            //    });
+            //};
+            $scope.deleteOne = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData([id]).success(function (response) {
+                            if (response.message == "成功") {
+                                box.alert("删除成功", { icon: 'success' });
+                                $scope.query();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        });
+                    }
+                });
+            };
+
+            //$scope.deleteOne = function (id) {
+            //    //调用删除服务
+            //    BusinessService.deleteData([id]).success(function (response) {
+            //        alert(response.message);
+            //        $scope.query();
+            //    });
+            //};
+            $scope.query = function () {
+                //alert($scope.workflowName.Createdtime_Start);
+                //alert($scope.workflowName.Createdtime_End);
+                //$scope.workflowName.Createdtime_Start = $("[ng-model='workflowName.Createdtime_Start']").val();
+                //$scope.workflowName.Createdtime_End = $("[ng-model='workflowName.Createdtime_End']").val();
+                GetListData();
+            }
+
+
+            $scope.save = function () {
+                var postData = { workIDs: choseArr, workflowIds: workflowIds };
+                BusinessService.save(postData).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("保存成功", { icon: 'success' }, function () {
+                            //window.location.href = CurPath + 'SysFavorite/Index?type=' + response.Type;
+                        });
+                    }
+                }
+                ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+            };
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'SysFavorite/GetListData', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysFavorite/Delete',
+                    data: ids
+                });
+            };
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysFavorite/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysFavorite/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+    </script>
+}
+
+@section Css{
+    <style>
+        body {
+            min-width: 0px;
+            max-width: 98%;
+        }
+    </style>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="SysFavoriteController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    流程名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="workflowName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="isAll()" ng-model="master" ng-click="all($event)" /> 全部启用</th>
+                <th style="white-space:nowrap">流程名称</th>
+                <th style="white-space:nowrap">版本</th>
+                <th style="white-space:nowrap">备注</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.WorkflowId}}" ng-model="x" ng-checked="isCh(emp.WorkflowId)" ng-click="chk($event,emp.WorkflowId)" /></td>
+                <td style="white-space:nowrap" ng-bind="emp.WorkflowName"></td>
+                <td style="white-space:nowrap" ng-bind="emp.Version"></td>
+                <td style="white-space:nowrap" ng-bind="emp.Remark"></td>
+                @*<td style="white-space:nowrap">
+                        <div class="operation-btn">
+                            <a ng-href="/SysFavorite/Edit?id={{emp.WorkflowId}}">修改</a>
+                            <a href="javascript:void(0);" ng-click="deleteOne(emp.WorkflowId)">删除</a>
+                        </div>
+                    </td>*@
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <a href="javascript:void(0);" ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+

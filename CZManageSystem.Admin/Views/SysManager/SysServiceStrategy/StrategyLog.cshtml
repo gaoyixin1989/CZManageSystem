@@ -1,0 +1,129 @@
+﻿
+@{
+    ViewBag.Title = "服务策略信息管理";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('NoticeController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            $scope.queryBuilder = {
+                pageIndex: $scope.paginationConf.currentPage,
+                pageSize: $scope.paginationConf.itemsPerPage,
+                StrategyId: "",
+                StartTime: "",
+                EndTime: ""
+            };
+
+            var id = '@ViewData["id"]';
+            $scope.queryBuilder.ServiceStrategyId = id;
+
+            //获取列表
+            var GetListData = function () {
+                $scope.queryBuilder.pageIndex = $scope.paginationConf.currentPage;
+                $scope.queryBuilder.pageSize = $scope.paginationConf.itemsPerPage
+                box.load("GetListData");
+
+                BusinessService.list($scope.queryBuilder).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            $scope.query = function () {
+                GetListData();
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'SysLog/GetServiceStrategyLogList', postData);
+            };
+
+            return serive;
+        }]);
+
+    </script>
+    <style>
+        body {
+            min-width: 0px;
+        }
+    </style>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="NoticeController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    日志时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        @*<input type="text" id="Createdtime_Start" ng-model="queryBuilder.Createdtime_Start" class="wdatePicker cell-input cell-input-data">*@
+                        <input type="text" id="StartTime" date-Picker ng-model="queryBuilder.StartTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td style="padding-left:5px;padding-right:5px;">至</td>
+                <td>
+                    <div class="ui-input">
+                        @*<input type="text" id="Createdtime_End" ng-model="queryBuilder.Createdtime_End" class="wdatePicker cell-input cell-input-data" readonly>*@
+                        <input type="text" id="EndTime" date-Picker ng-model="queryBuilder.EndTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                        <a href="../SysServiceStrategy/Index" class="cell-btn-orange" style="width:60px; height:30px; line-height:30px; margin-left:20px; display:none;">返回</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="white-space:nowrap;width:150px;">时间</th>
+                <th style="white-space:nowrap; width:80px;">结果</th>
+                <th style="white-space:nowrap">描述</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td style="white-space:nowrap" ng-bind="emp.LogTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td style="white-space:nowrap" ng-bind="emp.Result?'成功':'失败'"></td>
+                <td style="white-space:nowrap; text-align:left;" ng-bind="emp.Description"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>

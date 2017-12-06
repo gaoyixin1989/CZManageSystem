@@ -1,0 +1,228 @@
+﻿
+@{
+    ViewBag.Title = "排班方式二";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <link href="~/Content/app/AngularJsMultiSelect/isteven-multi-select.css" rel="stylesheet" />
+    <script src="~/Content/app/AngularJsMultiSelect/isteven-multi-select.js"></script>
+    <script>
+        var ZhiBanId = '@ViewData["ZhiBanId"]';
+        var curDate = '@ViewData["curDate"]';
+
+        //将num的长度补齐到n位，左侧加defaultValue，defaultValue默认0
+        function padLeft(num, n, defaultValue) {
+            if (defaultValue == null || defaultValue == '')
+                defaultValue = '0';
+            return Array(n > ('' + num).length ? (n - ('' + num).length + 1) : 0).join(defaultValue) + num;
+        }
+
+        var app = angular.module('ListPage', ['isteven-multi-select']);
+        app.controller('PageController', ['$scope', '$timeout', '$filter', 'BusinessService', function ($scope, $timeout, $filter, BusinessService) {
+            $scope.selectedUser = '';
+            $scope.curObj = {
+                zhibanInfo: {},
+                banciList: [],
+                userDatas: [],
+                dayAndWeek: []
+            };
+
+            //获取当前数据
+            var getCurData = false;
+            var getData = function () {
+                if (ZhiBanId != null && ZhiBanId.toString().length > 0) {
+                    //loadCurData();
+                    BusinessService.getDataByID(ZhiBanId).success(function (response) {
+                        $scope.curObj = response;
+                        $.each($scope.curObj.banciList, function (i, item) {
+                            item.selectAll = false;
+                            item.selectDay = {};
+                            $.each($scope.curObj.dayAndWeek, function (a, itemA) {
+                                item.selectDay[itemA.day] = false;
+                            })
+                        })
+                        $scope.changeUser($scope.selectedUser);
+                        $scope.ResetSaveBtn();
+                    }).error(function (response) {
+                        //alert("错误！");
+                        box.alert("网络出错！", { icon: 'error' });
+                    }).then(function () { getCurData = true; });
+                }
+                else {
+                    getCurData = true;
+                }
+            }
+            getData();
+
+            //判断是否允许保存功能
+            $scope.ResetSaveBtn = function () {
+                var temp = curDate.substr(0, 4) + curDate.substr(5, 2);
+                if (temp >= $scope.curObj.zhibanInfo.Year + $scope.curObj.zhibanInfo.Month) {
+                    $("#btnSave").remove();
+                }
+            }
+
+            $scope.getWeekText = function (value) {
+                var weekTexts = ['日', '一', '二', '三', '四', '五', '六'];
+                var str = weekTexts[value];
+                return str;
+            }
+
+            //修改选中用户
+            $scope.changeUser = function (value) {
+                $scope.selectedUser = value;
+                $.each($scope.curObj.banciList, function (i, item) {
+                    item.selectAll = false;
+                    for (key in item.selectDay) {
+                        item.selectDay[key] = false;
+                    }
+                })
+                if (value == null || value.length == 0) {
+                    return;
+                }
+                $.each($scope.curObj.banciList, function (i, item) {
+                    for (key in item.selectDay) {
+                        var temp = item.RichData['Day' + padLeft(key, 2)];
+                        if (temp == null) temp = '';
+                        if (temp.split(',').indexOf(value) > -1) {
+                            item.selectDay[key] = true;
+                        }
+                    }
+
+                    var temp2 = true;
+                    for (key in item.selectDay) {
+                        if (!item.selectDay[key]) {
+                            temp2 = false;
+                            break;
+                        }
+                    }
+                    item.selectAll = temp2;
+
+                })
+
+            }
+
+            //全选
+            $scope.checkAll = function ($event, banciObj) {
+                var isChecked = $event.target.checked;
+                banciObj.selectAll = isChecked;
+                for (key in banciObj.selectDay)
+                    banciObj.selectDay[key] = isChecked;
+            }
+            //选中某一天
+            $scope.check = function ($event, banciObj, day) {
+                var isChecked = $event.target.checked;
+                banciObj.selectDay[day] = isChecked;
+                if (!isChecked)
+                    banciObj.selectAll = false;
+                else {
+                    var temp = true;
+                    for (key in banciObj.selectDay) {
+                        if (!banciObj.selectDay[key]) {
+                            temp = false;
+                            break;
+                        }
+                    }
+                    banciObj.selectAll = temp;
+                }
+            }
+
+            $scope.save = function () {
+                if ($scope.selectedUser == null || $scope.selectedUser.length == 0) {
+                    box.alert("请选择排班人员", { icon: 'error' });
+                    return;
+                }
+                var data = [];
+                $.each($scope.curObj.banciList, function (i, item) {
+                    var temp = {
+                        banciId: item.Id,
+                        days: []
+                    };
+                    data.push(temp);
+                    for (key in item.selectDay) {
+                        if (item.selectDay[key])
+                            temp.days.push(padLeft(key, 2));
+                    }
+                })
+
+                var postData = {
+                    userName: $scope.selectedUser,
+                    richDatas: data
+                };
+                BusinessService.save(postData).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("保存成功", { icon: 'success' });
+                    }
+                    else {
+                        box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                    }
+                    getData();
+                }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //保存数据
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/Save_RichMode2',
+                    data: postData
+                });
+            };
+            //根据id获取数据
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/GetDataForRichMode2?ZhiBanId=' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+</style>
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="PageController">
+    <div class="public-table-main" style="height:450px; position:relative;">
+        <table>
+            <tr>
+                <th>{{curObj.zhibanInfo.Year+'年'+curObj.zhibanInfo.Month+'月'}}</th>
+                <th colspan="50" style="text-align:left;">值班表</th>@*{{curObj.dayAndWeek.length+1}}*@
+            </tr>
+            <tr>
+                <th rowspan="2">日期</th>
+                <th rowspan="2">排班人员</th>
+                <th ng-repeat="x in curObj.dayAndWeek">{{x.day}}</th>
+            </tr>
+            <tr>
+                <th ng-repeat="x in curObj.dayAndWeek">{{getWeekText(x.week)}}</th>
+            </tr>
+            <tr ng-repeat="x in curObj.banciList">
+                <td>
+                    {{x.BcName+'('+x.StartHour+':'+x.StartMinute+' 到 '+x.EndHour+':'+x.EndMinute+')'}}
+                    <br />
+                    <label><span>全选</span><input type="checkbox" ng-model="x.selectAll" ng-click="checkAll($event,x)" style="vertical-align:middle;" /></label>
+                </td>
+                <td ng-hide="$index>0" rowspan="50">@*{{curObj.banciList.length}}*@
+                    <div class="selectdrapdown" style="margin:0px;">
+                        <select ng-model="selectedUser" ng-options="a for a in curObj.userDatas" ng-change="changeUser(selectedUser)" class="cell-input" style="width:100px;"></select>
+                    </div>
+                </td>
+                <td ng-repeat="a in curObj.dayAndWeek">
+                    <input type="checkbox" ng-model="x.selectDay[a.day]" ng-click="check($event,x,a.day)" />
+                </td>
+            </tr>
+        </table>
+        <div style="margin:10px 0px;">
+            <a id="btnSave" ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+            <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+        </div>
+    </div>
+</div>

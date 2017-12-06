@@ -1,0 +1,1386 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Botwave.DynamicForm</name>
+    </assembly>
+    <members>
+        <member name="T:Botwave.DynamicForm.Renders.TableRenderStrategy">
+            <summary>
+            表单表格呈现策略类.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Renders.TableRenderStrategy.MAX_ROWS">
+            <summary>
+            最大行数.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Renders.TableRenderStrategy.COLS_NUM">
+            <summary>
+            指定列数.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Renders.TableRenderStrategy.SHOULD_TEXTAREA_HOLD_ONEROW">
+            <summary>
+            textarea上否应当占据一行.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Renders.TableRenderStrategy.m_CellsQueue">
+            <summary>
+            存储单元格位置的队列.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Renders.TableRenderStrategy.m_UnPossessiveCells">
+            <summary>
+            存储未被占用单元格的哈希表.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRenderStrategy.Init">
+            <summary>
+            初始化队列.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRenderStrategy.AppendItemCell(Botwave.DynamicForm.Domain.FormItemDefinition,System.Web.UI.WebControls.Table,System.Web.UI.WebControls.TableRow@,System.Web.UI.WebControls.TableCell@)">
+            <summary>
+            附加表单项单元格.
+            </summary>
+            <param name="item">表单项定义.</param>
+            <param name="tbForm">表单临时表.</param>
+            <param name="tr"></param>
+            <param name="tcItem">表单项单元格.</param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRenderStrategy.CreateRow(System.Int32,System.Web.UI.WebControls.Table@)">
+            <summary>
+            创建表格行.
+            </summary>
+            <param name="y"></param>
+            <param name="tbForm"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRenderStrategy.MergeCell(System.Web.UI.WebControls.TableRow,System.Int32,System.Int32,System.Web.UI.WebControls.TableCell)">
+            <summary>
+            合并表格单元格.
+            </summary>
+            <param name="tr"></param>
+            <param name="startAt"></param>
+            <param name="length"></param>
+            <param name="replacer"></param>
+        </member>
+        <member name="T:Botwave.DynamicForm.Renders.ControlCreator">
+            <summary>
+            HTML控件生成类.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Renders.ControlCreator.CONTROL_PREFIX">
+            <summary>
+            控件名称前缀.
+            表单项命名规则：统一前缀 + 类型前缀 + 名称，如 bwdf_txt_项目.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Renders.ControlCreator.UPLOADPATH">
+            <summary>
+            文件上传的虚拟路径.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateTableSchema">
+            <summary>
+            创建表格架构.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateRow">
+            <summary>
+            创建表格列.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateSingleRow">
+            <summary>
+            创建表格单列.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateDoubleRow">
+            <summary>
+            创建表格双列.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateTitleCell">
+            <summary>
+            创建表格的标题单元格.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateTitleCell(System.String)">
+            <summary>
+            创建表格的标题单元格.
+            </summary>
+            <param name="title"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateInputCell">
+            <summary>
+            创建表格的输入框单元格.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.CreateInputCell(System.Int32)">
+            <summary>
+            创建表格的输入框单元格.
+            </summary>
+            <param name="colspan"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderTextInput(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate)">
+            <summary>
+            呈现文本输入框(text) HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+            <param name="validate"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderTextAreaInput(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate)">
+            <summary>
+            呈现多行文本输入框(textarea) HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+            <param name="validate"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderDateInput(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate)">
+            <summary>
+            呈现日期输入框 HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+            <param name="validate"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderRadioOrCheckBoxList(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate,System.Boolean)">
+            <summary>
+            呈现单选框或者复选框 HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+            <param name="validate"></param>
+            <param name="isRadio"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderSelect(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate)">
+            <summary>
+            呈现下拉列表(select) HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+            <param name="validate"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderHiddenInput(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition)">
+            <summary>
+            呈现隐藏字段(hidden) HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderFileInput(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate)">
+            <summary>
+            呈现文件上传输入框 HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+            <param name="validate"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderSpan(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition)">
+            <summary>
+            呈现块状文本区(span) HTML.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderHTMLContainer(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition)">
+            <summary>
+            呈现 HTML 容器.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderComment(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition)">
+            <summary>
+            呈现表单定义的备注信息.
+            </summary>
+            <param name="sw"></param>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.RenderRequireHint(System.IO.StringWriter)">
+            <summary>
+            呈现必须填写的提示星号(*).
+            </summary>
+            <param name="sw"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.ControlCreator.AppendValidateAttributes(System.IO.StringWriter,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate)">
+            <summary>
+            附加控件验证逻辑.
+            </summary>        
+        </member>
+        <member name="T:Botwave.DynamicForm.Renders.FormItemRenderException">
+            <summary>
+            表单呈现异常类.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.FormItemRenderException.#ctor">
+            <summary>
+            构造方法,
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.FormItemRenderException.#ctor(System.String)">
+            <summary>
+            构造方法,
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.FormItemRenderException.#ctor(System.String,System.Exception)">
+            <summary>
+            构造方法,
+            </summary>
+            <param name="message"></param>
+            <param name="innerException"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.FormItemRenderException.#ctor(Botwave.DynamicForm.Domain.FormItemDefinition,System.Exception)">
+            <summary>
+            构造方法,
+            </summary>
+            <param name="item"></param>
+            <param name="innerException"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.FormItemRenderException.#ctor(Botwave.DynamicForm.Domain.FormItemDefinition,System.Exception,System.Boolean)">
+            <summary>
+            构造方法,
+            </summary>
+            <param name="item"></param>
+            <param name="innerException"></param>
+            <param name="isUnknowException">是否未知异常.</param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.FormItemRenderException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            构造方法,
+            </summary>
+            <param name="info"></param>
+            <param name="context"></param>
+        </member>
+        <member name="P:Botwave.DynamicForm.Renders.FormItemRenderException.IsUnknowException">
+            <summary>
+            是否未知异常类.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Renders.FormItemRenderException.FormItem">
+            <summary>
+            异常的表单项对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormDefinition">
+            <summary>
+            表单定义类.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.Id">
+            <summary>
+            表单定义 id.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.Name">
+            <summary>
+            表单定义的名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.Version">
+            <summary>
+            表单定义的版本.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.IsCurrentVersion">
+            <summary>
+            表单定义是否当前版本.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.Enabled">
+            <summary>
+            表单定义是否有效.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.Comment">
+            <summary>
+            表单定义的注释.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.TemplateContent">
+            <summary>
+            表单定义模板内容.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinition.Items">
+            <summary>
+            表单项定义列表.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Services.IFormOptimizeService">
+            <summary>
+            表单优化服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormOptimizeService.GetFormContent(System.Guid)">
+            <summary>
+            获取指定表单实例的表单内容字符串.
+            </summary>
+            <param name="formInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormOptimizeService.SaveFormContent(System.Guid,System.String)">
+            <summary>
+            保存指定表单实例的表单内容数据.
+            </summary>
+            <param name="formInstanceId"></param>
+            <param name="formContent"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Renders.DefaultRenderStrategy">
+            <summary>
+            默认表单呈现策略.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Renders.IRenderStrategy">
+            <summary>
+            表单呈现策略接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.IRenderStrategy.Render(System.Web.UI.HtmlTextWriter,Botwave.DynamicForm.Domain.FormDefinition)">
+            <summary>
+            渲染表单定义.
+            </summary>
+            <param name="htw"></param>
+            <param name="form"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.IRenderStrategy.Render(System.Web.UI.HtmlTextWriter,Botwave.DynamicForm.Domain.FormInstance)">
+            <summary>
+            渲染表单实例.
+            </summary>
+            <param name="htw"></param>
+            <param name="form"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.DefaultRenderStrategy.Render(System.Web.UI.HtmlTextWriter,Botwave.DynamicForm.Domain.FormDefinition)">
+            <summary>
+            呈现表单定义.
+            </summary>
+            <param name="htw"></param>
+            <param name="form"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.DefaultRenderStrategy.Render(System.Web.UI.HtmlTextWriter,Botwave.DynamicForm.Domain.FormInstance)">
+            <summary>
+            呈现表单实例.
+            </summary>
+            <param name="htw"></param>
+            <param name="form"></param>
+        </member>
+        <member name="T:Botwave.DynamicForm.Validators.IFormItemValidator">
+            <summary>
+            表单项验证器接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Validators.IFormItemValidator.TryValidate(Botwave.DynamicForm.Domain.FormItemInstance,System.String@)">
+            <summary>
+            验证表单项.
+            </summary>
+            <param name="fi"></param>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Validators.IFormItemValidator.Validate(Botwave.DynamicForm.Domain.FormItemInstance)">
+            <summary>
+            验证表单项，如不通过则抛出异常.
+            </summary>
+            <param name="fi"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormInstance">
+            <summary>
+            表单实例类.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormInstance.Id">
+            <summary>
+            表单实例编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormInstance.FormDefinitionId">
+            <summary>
+            表单定义Id.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormInstance.Items">
+            <summary>
+            表单项.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.VelocityEngineFactory">
+            <summary>
+            Velocity 引擎工厂类.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.VelocityEngineFactory.GetVelocityEngine">
+            <summary>
+            获取 VelocityEngine.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Validators.IFormValidator">
+            <summary>
+            表单验证器接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Validators.IFormValidator.TryValidate(Botwave.DynamicForm.Domain.FormInstance,System.String@)">
+            <summary>
+            验证表单.
+            </summary>
+            <param name="formInstance"></param>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Validators.IFormValidator.Validate(Botwave.DynamicForm.Domain.FormInstance)">
+            <summary>
+            验证表单，如不通过则抛出异常.
+            </summary>
+            <param name="formInstance"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Services.IFormInstanceService">
+            <summary>
+            表单实例服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.CreateFormInstance(System.Guid,System.Guid,System.String)">
+            <summary>
+            创建表单实例.
+            </summary>
+            <param name="Id"></param>
+            <param name="fromDefinitionId"></param>
+            <param name="actor"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.UpdateFormInstance(System.Guid,System.String)">
+            <summary>
+            更新表单实例.
+            </summary>
+            <param name="id"></param>
+            <param name="actor"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.RemoveFormInstance(System.Guid)">
+            <summary>
+            删除表单实例.
+            </summary>
+            <param name="formInstanceId"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.GetFormInstanceById(System.Guid)">
+            <summary>
+            获取表单实例.
+            </summary>
+            <param name="formInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.GetFormInstanceById(System.Guid,System.Boolean)">
+            <summary>
+            获取表单实例.
+            </summary>
+            <param name="formInstanceId"></param>
+            <param name="withItems">是否需要级联表单项实例.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.GetFormItemInstancesByFormInstanceId(System.Guid)">
+            <summary>
+            根据表单实例Id获取表单项实例.
+            </summary>
+            <param name="formInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.GetFormItemInstancesByFormInstanceId(System.Guid,System.Boolean)">
+            <summary>
+            根据表单实例Id获取表单项实例.
+            </summary>
+            <param name="formInstanceId"></param>
+            <param name="withDefinitions">是否需要级联表单项定义.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.UpdateFormItemInstance(System.Collections.Generic.IList{Botwave.DynamicForm.Domain.FormItemInstance})">
+            <summary>
+            批量更新表单项实例.
+            </summary>
+            <param name="items"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.ListFormInstanceByFormDefinitionId(System.Guid)">
+            <summary>
+            根据表单定义ID，获取表单实例列表.
+            </summary>
+            <param name="formDefinitionId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.SaveForm(System.Guid,Botwave.DynamicForm.FormContext,System.String)">
+            <summary>
+            保存表单内容.
+            </summary>
+            <param name="id"></param>
+            <param name="formContext"></param>
+            <param name="actor"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormInstanceService.SaveForm(System.Guid,System.Collections.Generic.IDictionary{System.String,System.Object},System.String)">
+            <summary>
+            保存表单内容.
+            </summary>
+            <param name="id"></param>
+            <param name="contextVariables"></param>
+            <param name="actor"></param>
+        </member>
+        <member name="T:Botwave.DynamicForm.Plugin.EmptyUploadFileHandler">
+            <summary>
+            上传文件处理的空实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Plugin.IUploadFileHandler">
+            <summary>
+            上传表单项附件服务.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Plugin.IUploadFileHandler.Upload(System.Object)">
+            <summary>
+            上传文件.
+            </summary>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Plugin.EmptyUploadFileHandler.Upload(System.Object)">
+            <summary>
+            上传.
+            </summary>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
+        <!-- 对于成员“T:Botwave.DynamicForm.FormContext”忽略有格式错误的 XML 注释 -->
+        <member name="M:Botwave.DynamicForm.FormContext.#ctor(System.Collections.Specialized.NameValueCollection,System.Web.HttpFileCollection)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="form">页面表单变量.</param>
+            <param name="files">上传的文件集合.</param>
+        </member>
+        <member name="M:Botwave.DynamicForm.FormContext.GetFormVariables(System.Collections.Specialized.NameValueCollection,System.Web.HttpFileCollection)">
+            <summary>
+            获取表单变量字典.
+            </summary>
+            <param name="form">Web 请求的表单字段值字典.</param>
+            <param name="files">Web 请求的上传文件集合.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.DynamicForm.FormContext.Variables">
+            <summary>
+            表单变量名值对字典集合.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormDefinitionsInExternals">
+            <summary>
+            表单定义与外部实体的关系类.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinitionsInExternals.FormDefinitionId">
+            <summary>
+            表单定义编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinitionsInExternals.EntityType">
+            <summary>
+            外部实体类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormDefinitionsInExternals.EntityId">
+            <summary>
+            外部实体编号.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Renders.TableRender">
+            <summary>
+            表单的表格呈现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRender.Render(System.Web.UI.HtmlTextWriter,Botwave.DynamicForm.Domain.FormDefinition,System.Boolean)">
+            <summary>
+            呈现指定表单定义到 HtmlTextWriter 输出流中.
+            </summary>
+            <param name="htw"></param>
+            <param name="form"></param>
+            <param name="appendRowNumber"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRender.RenderForm(System.Collections.Generic.IList{Botwave.DynamicForm.Domain.FormItemDefinition})">
+            <summary>
+            呈现指定表单项为表格.
+            </summary>
+            <param name="itemlist"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRender.AppendInputControl(Botwave.DynamicForm.Domain.FormItemDefinition,Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate,System.Web.UI.WebControls.TableCell@)">
+            <summary>
+            附加输入控件.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.TableRender.AppendRowNumber(System.Web.UI.WebControls.Table,System.Boolean)">
+            <summary>
+            附加行号.
+            </summary>
+            <param name="tbForm"></param>
+            <param name="appendRowNumber"></param>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormItemInstance">
+            <summary>
+            表单项实例.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.Id">
+            <summary>
+            表单项实例 Id.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.FormInstanceId">
+            <summary>
+            表单实例Id.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.FormItemDefinitionId">
+            <summary>
+            表单项定义 Id.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.Value">
+            <summary>
+            值(通用的文本值).
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.TextValue">
+            <summary>
+            大文本值.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.DecimalValue">
+            <summary>
+            数字值.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.FileCount">
+            <summary>
+            文件/附件数量.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemInstance.Definition">
+            <summary>
+            表单项定义对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Binders.FormItemContext">
+            <summary>
+            表单项绑定上下文.
+            <example>
+            <code>结合 NVelocity 对表单模板内容进行解析.
+            <![CDATA[
+               IFormInstanceService formInstanceService; // 设置其实现对象.
+               VelocityEngine engine = VelocityEngineFactory.GetVelocityEngine();
+               VelocityContext vc = new VelocityContext();  
+               IList<FormItemInstance> instnaceList = formInstanceService.GetFormItemInstancesByFormInstanceId(formInstanceId, true);
+               FormItemContext context = new FormItemContext(instnaceList);
+               vc.Put("tc", context);
+               vc.Put("dc", dict);
+               engine.Evaluate(vc, sw, "template tag", template);
+            ]]>
+            </code>
+            </example>
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Binders.FormItemContext.#ctor(System.Collections.Generic.IList{Botwave.DynamicForm.Domain.FormItemInstance})">
+            <summary>
+            构造函数.
+            </summary>
+            <param name="fii"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Binders.FormItemContext.GetValue(System.String)">
+            <summary>
+            获取指定的表单项值.
+            </summary>
+            <param name="name">字段(表单项)名称.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Binders.FormItemContext.GetFlag(System.String,System.String,System.String)">
+            <summary>
+            根据字段名称，值判断是否选中.
+            </summary>
+            <param name="name">字段名称.</param>
+            <param name="targetValue">目标值.</param>
+            <param name="flag">标记.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Binders.FormItemContext.GetItemInstanceDict">
+            <summary>
+            获取表单项实例字典.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Services.IPartTableService">
+            <summary>
+            bwdf_FormItemInstances 分表服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IPartTableService.CreateTable(System.Int32)">
+            <summary>
+            创建指定索引的分表，如存在, 则不创建.
+            </summary>
+            <param name="tableIndex"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IPartTableService.GetCompleteInstanceList(System.Int32)">
+            <summary>
+            获取指定数目的已完成的表单实例编号列表.
+            </summary>
+            <param name="topCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IPartTableService.MigrateData(System.Int32,System.Int32)">
+            <summary>
+            转移指定数目的表单实例的表单项实例数据到指定索引的分表中.
+            </summary>
+            <param name="topCount"></param>
+            <param name="tableIndex"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IPartTableService.MigrateData(System.Collections.Generic.IList{System.Guid},System.Int32)">
+            <summary>
+            转移指定表单实例编号列表的表单项实例数据到指定索引的分表中.
+            </summary>
+            <param name="formInstanceIdList"></param>
+            <param name="tableIndex"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Converters.IFormInstanceConverter">
+            <summary>
+            表单实例转换器.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Converters.IFormInstanceConverter.Convert(Botwave.DynamicForm.Domain.FormDefinition,System.Collections.Specialized.NameValueCollection)">
+            <summary>
+            转换表单实例.
+            </summary>
+            <param name="formDefinition"></param>
+            <param name="nvc"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Converters.DefaultFormInstanceConverter">
+            <summary>
+            默认的表单实例转换器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Converters.DefaultFormInstanceConverter.Convert(Botwave.DynamicForm.Domain.FormDefinition,System.Collections.Specialized.NameValueCollection)">
+            <summary>
+            转换.
+            </summary>
+            <param name="formDefinition"></param>
+            <param name="nvc"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.DynamicForm.Binders.DefaultFormItemDataBinder">
+            <summary>
+            默认表单绑定器实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Binders.IFormItemDataBinder">
+            <summary>
+            表单项数据绑定器接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Binders.IFormItemDataBinder.Bind(System.IO.StringWriter,System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            绑定表单项.
+            </summary>
+            <param name="sw"></param>
+            <param name="formInstanceId"></param>
+            <param name="template"></param>
+            <param name="dict"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Binders.DefaultFormItemDataBinder.Bind(System.IO.StringWriter,System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            绑定模板数据.
+            </summary>
+            <param name="sw"></param>
+            <param name="formInstanceId"></param>
+            <param name="template"></param>
+            <param name="dict"></param>
+        </member>
+        <member name="P:Botwave.DynamicForm.Binders.DefaultFormItemDataBinder.FormInstanceService">
+            <summary>
+            表单实例服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Renders.Position">
+            <summary>
+            位置对象，如果x、y相等即可认为Position相等.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.#ctor(System.Int32,System.Int32)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.Equals(System.Object)">
+            <summary>
+            比较是否相等.
+            </summary>
+            <param name="otherPosition"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.Equals(Botwave.DynamicForm.Renders.Position)">
+            <summary>
+            比较是否相等.
+            </summary>
+            <param name="otherPosition"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.Equals(Botwave.DynamicForm.Renders.Position,Botwave.DynamicForm.Renders.Position)">
+            <summary>
+            比较是否相等.
+            </summary>
+            <param name="pos1"></param>
+            <param name="pos2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.op_Equality(Botwave.DynamicForm.Renders.Position,Botwave.DynamicForm.Renders.Position)">
+            <summary>
+            等于("==")操作比较.
+            </summary>
+            <param name="pos1"></param>
+            <param name="pos2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.op_Inequality(Botwave.DynamicForm.Renders.Position,Botwave.DynamicForm.Renders.Position)">
+            <summary>
+            不等于("!=")操作比较.
+            </summary>
+            <param name="pos1"></param>
+            <param name="pos2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Renders.Position.GetHashCode">
+            <summary>
+            HashCode.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.DynamicForm.Renders.Position.X">
+            <summary>
+            坐标的水平方向值.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Renders.Position.Y">
+            <summary>
+            坐标的垂直方向值.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormItemDefinition">
+            <summary>
+            表单项定义类.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Domain.FormItemDefinition.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Domain.FormItemDefinition.#ctor(System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="fName"></param>
+            <param name="name"></param>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Id">
+            <summary>
+            表单项定义编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.FormDefinitionId">
+            <summary>
+            表单定义Id.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.FName">
+            <summary>
+            字段名称.
+                1、用于在预设固定字段时对应相关字段.
+                2、直接兼容XQP方式.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Name">
+            <summary>
+            表单项名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Comment">
+            <summary>
+            备注信息.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.ItemDataType">
+            <summary>
+            表单项数据类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.ItemType">
+            <summary>
+            表单项类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.DataSource">
+            <summary>
+            表单项的数据源.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.DataBinder">
+            <summary>
+            表单项的数据绑定器.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.DefaultValue">
+            <summary>
+            表单项的默认值.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Left">
+            <summary>
+            表单项的单元格位置离表格左侧距离(单元格数).
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Top">
+            <summary>
+            表单项的单元格位置离表格上侧距离(单元格数).
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Width">
+            <summary>
+            表单项的宽度.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Height">
+            <summary>
+            表单项的高度.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.RowExclusive">
+            <summary>
+            表单项是否独占一行.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Require">
+            <summary>
+            表单项是否为必填项.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateType">
+            <summary>
+            表单项的验证类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.MaxVal">
+            <summary>
+            表单项的最大值.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.MinVal">
+            <summary>
+            表单项的最小值.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.Op">
+            <summary>
+            表单项的比较类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.OpTarget">
+            <summary>
+            表单项的比较目标表单项.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.ErrorMessage">
+            <summary>
+            表单项显示的错误信息.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.ShowSet">
+            <summary>
+            表单项的显示集合.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.ReadonlySet">
+            <summary>
+            表单项的只读集合.
+            </summary>
+        </member>
+        <member name="P:Botwave.DynamicForm.Domain.FormItemDefinition.CreatedTime">
+            <summary>
+            创建时间.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormItemDefinition.DataType">
+            <summary>
+            表单项数据类型枚举.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.DataType.String">
+            <summary>
+            普通字符串.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.DataType.Decimal">
+            <summary>
+            数值.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.DataType.Text">
+            <summary>
+            大文本.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.DataType.File">
+            <summary>
+            文件.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType">
+            <summary>
+            表单项类型枚举.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.Text">
+            <summary>
+            单行文本.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.TextArea">
+            <summary>
+            多行文本.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.DropDownList">
+            <summary>
+            下拉框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.Label">
+            <summary>
+            文本标签.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.CheckBoxList">
+            <summary>
+            多选框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.RadioButtonList">
+            <summary>
+            单选框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.Date">
+            <summary>
+            日期/时间输入框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.File">
+            <summary>
+            文件上传.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.IncrementTextArea">
+            <summary>
+            自增多行文本输入.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.Html">
+            <summary>
+            支持复杂形式的html.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemType.Hidden">
+            <summary>
+            隐藏.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix">
+            <summary>
+            表单项前缀类.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.Text">
+            <summary>
+            单行文本.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.TextArea">
+            <summary>
+            多行文本.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.DropDownList">
+            <summary>
+            下拉框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.Label">
+            <summary>
+            文本标签.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.CheckBoxList">
+            <summary>
+            多选框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.RadioButtonList">
+            <summary>
+            单选框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.Date">
+            <summary>
+            日期/时间输入框.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.File">
+            <summary>
+            文件上传.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.IncrementTextArea">
+            <summary>
+            自增多行文本输入.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.Html">
+            <summary>
+            支持复杂形式的html.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.FormItemPrefix.Hidden">
+            <summary>
+            隐藏.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate">
+            <summary>
+            表单项验证模板类.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate.Require">
+            <summary>
+            是否必须填写.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate.ValidateType">
+            <summary>
+            验证类型.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate.Operator">
+            <summary>
+            操作类型.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate.Target">
+            <summary>
+            目标.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate.MaxVal">
+            <summary>
+            最大值.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate.MinVal">
+            <summary>
+            最小值.
+            </summary>
+        </member>
+        <member name="F:Botwave.DynamicForm.Domain.FormItemDefinition.ValidateTemplate.ErrorMessage">
+            <summary>
+            错误信息.
+            </summary>
+        </member>
+        <member name="T:Botwave.DynamicForm.Services.IFormDefinitionService">
+            <summary>
+            表单定义服务接口，对表单定义以及表单项定义进行数据操作.
+            </summary>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.SaveFormDefinition(Botwave.DynamicForm.Domain.FormDefinition)">
+            <summary>
+            创建表单定义.
+            如果存在,则版本加1,并设为当前版本.
+            </summary>
+            <param name="definiton"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.RemoveFormDefinition(System.Guid,System.String)">
+            <summary>
+            删除表单定义.
+            </summary>
+            <param name="id"></param>
+            <param name="actor"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.UpdateFormDefinitionTemplate(System.Guid,System.String)">
+            <summary>
+            更新表单模板内容.
+            </summary>
+            <param name="fid"></param>
+            <param name="template"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.AppendItemToForm(Botwave.DynamicForm.Domain.FormItemDefinition)">
+            <summary>
+            追加表单项到表单.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.AppendItemsToForm(System.Collections.Generic.IList{Botwave.DynamicForm.Domain.FormItemDefinition})">
+            <summary>
+            追加表单项到表单.
+            </summary>
+            <param name="items"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.RemoveItemFromForm(Botwave.DynamicForm.Domain.FormItemDefinition)">
+            <summary>
+            从表单中移除表单项.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.RemoveItemsFromForm(System.Collections.Generic.IList{Botwave.DynamicForm.Domain.FormItemDefinition})">
+            <summary>
+            从表单中移除表单项.
+            </summary>
+            <param name="items"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.UpdateItem(Botwave.DynamicForm.Domain.FormItemDefinition)">
+            <summary>
+            更新表单项.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.IsFormExists(System.String)">
+            <summary>
+            表单是否存在.
+            </summary>
+            <param name="formName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.IsFormExists(System.Guid)">
+            <summary>
+            表单是否存在.
+            </summary>
+            <param name="formId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.IsItemExists(System.Guid,System.String)">
+            <summary>
+            表单项是否存在.
+            </summary>
+            <param name="formId"></param>
+            <param name="itemName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.IsItemExists(System.String)">
+            <summary>
+            表单项是否存在.
+            </summary>
+            <param name="itemId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.GetFormDefinitionById(System.Guid)">
+            <summary>
+            获取表单定义.
+            </summary>
+            <param name="formId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.GetFormDefinitionById(System.Guid,System.Boolean)">
+            <summary>
+            获取表单项定义列表.
+            </summary>
+            <param name="formId"></param>
+            <param name="withItems">是否需要级联表单项.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.GetFormDefinitionByName(System.String)">
+            <summary>
+            获取表单定义.
+            </summary>
+            <param name="formName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.GetFormDefinitionByExternalEntity(System.String,System.Guid)">
+            <summary>
+            获取表单定义.
+            </summary>
+            <param name="entityType"></param>
+            <param name="entityId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.GetFormDefinitionByFormInstanceId(System.Guid)">
+            <summary>
+            获取指定表单实例编号的表单定义对象.
+            </summary>
+            <param name="formInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.ListFormDefinitions(System.Boolean)">
+            <summary>
+            获取表单定义列表.
+            </summary>
+            <param name="withItems">是否需要级联表单项.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.AssociateFormDefinitionWithExternalEntity(Botwave.DynamicForm.Domain.FormDefinitionsInExternals,System.Boolean)">
+            <summary>
+            关联表单定义与外部实体.
+            </summary>
+            <param name="relationship"></param>
+            <param name="isInsert"></param>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.GetFormItemDefinitionsByFormDefinitionId(System.Guid)">
+            <summary>
+            根据表单定义Id获取表单项列表.
+            </summary>
+            <param name="formDefinitionId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.GetFormItemDefinitionById(System.Guid)">
+            <summary>
+            根据表单项Id获取表单项定义.
+            </summary>
+            <param name="itemId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.ListFormDefinitionsByEntityType(System.String)">
+            <summary>
+            根据实体类型获取表单定义列表
+            </summary>
+            <param name="entityType">实体类型.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.DynamicForm.Services.IFormDefinitionService.ListFormDefinitionByEntityType(System.String)">
+            <summary>
+            根据实体类型返回表单的类表以及表单关联的关系
+            </summary>
+            <param name="entityType">实体类型</param>
+            <returns>返回表单定义及与表单关联的DataTable</returns>
+        </member>
+    </members>
+</doc>

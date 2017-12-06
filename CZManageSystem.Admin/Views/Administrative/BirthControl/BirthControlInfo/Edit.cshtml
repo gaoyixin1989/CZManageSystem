@@ -1,0 +1,600 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        .public-form table tr th {
+            font-weight: normal;
+            text-align: center;
+            width: 13%;
+            padding: 5px 0px;
+            border:1px solid #eaeaea; 
+            border-width:0px 1px 1px 0px; 
+            background:#F4F4F4; 
+        }    
+        .public-form table tr td {
+            font-weight: normal;
+            text-align: center;
+            border:1px solid #eaeaea; 
+            border-width:0px 1px 1px 0px; 
+        }      
+    </style>
+
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+        $(function () {
+            var IsSelf = '@ViewData["IsSelf"]';
+            var IsComfirm = '@ViewData["IsComfirm"]';
+            var IsAdmin = '@ViewData["IsAdmin"]';
+            var Show = '@ViewData["Show"]';
+            //alert(IsComfirm);
+            if (Show == "False")
+            {
+                if (IsSelf == "False") {
+                    $('#ForEdit_ConfirmOption').remove();
+                    if (IsAdmin == "False")
+                        $('#ForEdit_saveOption').remove();
+                }
+                else {
+                    if (IsComfirm == "True") {
+                        $('#ForEdit_ConfirmOption').remove();
+                        $('#ForEdit_saveOption').remove();
+                        $('#ForEdit_ChildAddOption').remove();
+                        $('#ForEdit input,#ForEdit select,#ForEdit textarea,#ForEdit href').attr('disabled', 'disabled');
+                    }
+                }
+            }
+            else
+            {
+                $('#ForEdit_ConfirmOption').remove();
+                $('#ForEdit_saveOption').remove();
+                $('#ForEdit_ChildAddOption').remove();
+                $('#ForEdit input,#ForEdit select,#ForEdit textarea,#ForEdit href').attr('disabled', 'disabled');
+            }
+            
+
+        });
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $timeout, BusinessService, ngDialog) {
+            $scope.curObj = {
+                userId : "",
+                id:""
+            };
+            var userid = '@ViewData["userid"]';
+            var id= '@ViewData["id"]';
+            if (userid != null && userid.toString().length > 0) {
+                BusinessService.getDataByID(userid).success(function (response) {
+                    $scope.curObjBase = response.birthcontrolbaseinfo;
+                    $scope.curObj = response.birthcontrolinfo;
+                    $scope.ListPageData = response.childreninfo;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.deleteChildren = function (id) {
+                //调用删除服务
+                BusinessService.deleteChildren(id).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("删除成功", { icon: 'success' });
+                        $scope.ListPageData =response.data;
+                    }
+                    else {
+                        box.alert("删除失败", { icon: 'error' });
+                    }
+                });
+            };
+            $scope.IdNumCheck = function () {
+                var idcard = $scope.curObj.IdCardNum;
+                if (idcard.length != 15 && idcard.length != 18) {
+                    alert("输入身份证号码位数不正确!");
+                }
+            };
+            $scope.SpouseIdNumCheck = function () {
+                var idcard = $scope.curObj.SpouseIdCardNum;
+                if (idcard.length != 15 && idcard.length != 18) {
+                    alert("输入身份证号码位数不正确!");
+                }
+            };
+            //导入题目
+            $scope.AddChildrenDialog = function (id) {
+                var _UserId = userid;
+                var dialog = ngDialog.openConfirm({
+                    title: '编辑子女信息',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../BirthControlChildrenInfo/Edit?UserId=" + _UserId + "&id=" + id + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        BusinessService.getChildrenDataByUserId(_UserId).success(function (response) {
+                            $scope.ListPageData = response.data;
+                            //box.ready("loadding");
+                        }).error(function (response) {
+                            //box.ready("loadding");
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                });
+
+            };
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'BirthControlInfo/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            $scope.saveconfirm = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.saveconfirm(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("确认成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'BirthControlInfo/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlInfo/Save',
+                    data: postData
+                });
+            };
+            serive.saveconfirm = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlInfo/SaveConfirm',
+                    data: postData
+                });
+            };
+            serive.deleteChildren = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlChildrenInfo/deleteChildren/' + id
+                });
+            };
+            serive.getChildrenDataByUserId = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlChildrenInfo/GetChildrenDataByUserId/' + id
+                });
+            };
+            serive.getDataByID = function (userid) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlInfo/GetDataByID/' + userid
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table class="WF_Table" id="ForEdit">
+            <tr>
+                <th colspan="6">个人基本情况</th>
+            </tr>
+            <tr>
+                <th>所属部门：</th>
+                <td>{{curObjBase.DpName}}</td>
+                <th>是否正式员工：</th>
+                <td>{{curObjBase.IsFormal}} </td>
+                <th>员工编号：</th>
+                <td>{{curObjBase.EmployeeId}} </td>
+            </tr>
+            <tr>
+                <th>员工姓名：</th>
+                <td>{{curObjBase.RealName}}</td>
+                <th>性别：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Sex" ng-model="curObj.Sex" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="1">男</option>
+                                <option value="2">女</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <input type="hidden" id="userId" name="userId" ng-model="curObj.userId" />
+                        </div>
+                    </div>
+                 </td>
+                <th>出生日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="Birthday" name="Birthday" datefmt="yyyy-MM-dd"  style="width:80px;" date-Picker ng-model="curObj.Birthday" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <div><strong class="must-options">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>民族：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Nation" ng-model="curObj.Nation"  style="width:70px;" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                    </div>
+                </td>
+                <th>进入公司时间：</th>
+                <td>{{curObjBase.JoinTime}}</td>
+                <th>&nbsp;</th>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th>身份证号码：</th>
+                <td @*colspan="2"*@>
+                    <div class="ui-input">
+                        <input type="text" name="IdCardNum" ng-model="curObj.IdCardNum" ng-blur="IdNumCheck();" style="width:120px;" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                    </div>
+                </td>
+                <th>户口所属街道：</th>
+                <td @*colspan="2"*@>
+                    <div class="ui-input">
+                        <input type="text" name="StreetBelong" ng-model="curObj.StreetBelong"  style="width:120px;" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                    </div>
+                </td>
+                <th>&nbsp;</th>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th>婚姻状况：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="MaritalStatus" ng-model="curObj.MaritalStatus" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="未婚">未婚</option>
+                                <option value="初婚">初婚</option>
+                                <option value="离婚">离婚</option>
+                                <option value="再婚">再婚</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </div>
+                </td>
+                <th>联系电话：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PhoneNum" ng-model="curObj.PhoneNum"  style="width:70px;" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                    </div>
+                </td>
+                <th>&nbsp;</th>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th>是否晚婚：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Latemarriage" ng-model="curObj.Latemarriage" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <th>是否已生育：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Havebear"  ng-model="curObj.Havebear" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <th>&nbsp;</th>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th>初婚日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="FirstMarryDate" name="FirstMarryDate"  style="width:80px;" date-Picker ng-model="curObj.FirstMarryDate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                    </div>
+                </td>
+                <th>离婚日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="DivorceDate" name="DivorceDate"  style="width:80px;" date-Picker ng-model="curObj.DivorceDate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <th>再婚日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="RemarryDate" name="RemarryDate"  style="width:80px;" date-Picker ng-model="curObj.RemarryDate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>丧偶日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="WidowedDate" name="WidowedDate"  style="width:80px;" date-Picker ng-model="curObj.WidowedDate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <th>结扎时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="LigationDate" name="LigationDate"  style="width:80px;" date-Picker ng-model="curObj.LigationDate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <th>资料最新更新时间：</th>
+                <td>{{curObj.LastModTime}}&nbsp;</td>
+            </tr>   
+            <tr>
+                <th>备注：</th>
+                <td colspan="5">
+                    <div class="ui-input">
+                        <input type="text" id="BRemark" name="BRemark" style="width:180px;" ng-model="curObj.BRemark" class="cell-input">
+                    </div>
+                </td>               
+            </tr>  
+            <tr>
+                <th colspan="6">配偶资料</th>
+            </tr>  
+            <tr>
+                <th>姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="SpouseName" ng-model="curObj.SpouseName" style="width:70px;" class="cell-input" />
+                        <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                    </div>
+                </td>
+                <th>性别：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Spousesex" ng-model="curObj.Spousesex" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                            <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                        </div>
+                    </div>
+                </td>
+                <th>出生日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="SpouseBirthday" name="SpouseBirthday" style="width:80px;" date-Picker ng-model="curObj.SpouseBirthday" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                    </div>
+                </td>
+            </tr>   
+            <tr>
+                <th>身份证号码：</th>
+                <td @*colspan="2"*@>
+                    <div class="ui-input">
+                        <input type="text" name="SpouseIdCardNum" ng-model="curObj.SpouseIdCardNum" ng-blur="SpouseIdNumCheck();" style="width:120px;" class="cell-input" />
+                        <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                    </div>
+                </td>
+                <th>户口所属街道：</th>
+                <td @*colspan="2"*@>
+                    <div class="ui-input">
+                        <input type="text" name="SpouseAccountbelong" ng-model="curObj.SpouseAccountbelong" style="width:120px;" class="cell-input" />
+                        <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                    </div>
+
+                </td>
+                <th>&nbsp;</th>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th>婚姻状况：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="SpouseMaritalStatus" ng-model="curObj.SpouseMaritalStatus" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="初婚">初婚</option>
+                                <option value="再婚">再婚</option>
+                            </select>
+                            <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                        </div>
+                    </div>
+                </td>
+                <th>联系电话：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="SpousePhone" ng-model="curObj.SpousePhone" style="width:70px;" class="cell-input" />
+                        <div ng-switch="curObj.MaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong><strong class="must-options" ng-switch-when="初婚">*</strong></div>
+                    </div>
+                </td>
+                <th>&nbsp;</th>
+                <td>&nbsp;</td>
+            </tr>  
+            <tr>
+                <th>是否有固定工作单位：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="fixedjob" ng-model="curObj.fixedjob" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <th>工作单位：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="SpouseWorkingAddress" ng-model="curObj.SpouseWorkingAddress" style="width:120px;" class="cell-input" />
+                        <div ng-switch="curObj.fixedjob"><strong class="must-options" ng-switch-when="是">*</strong></div>
+                    </div>
+                </td>
+                <th>结扎时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="SpouseLigationDate" name="SpouseLigationDate" style="width:80px;" date-Picker ng-model="curObj.SpouseLigationDate" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr> 
+            <tr>
+                <th>夫妻是否同单位：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="sameworkplace" ng-model="curObj.sameworkplace" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <th>如配偶无单位,是否参加公司组织的妇检：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="organizeGE" ng-model="curObj.Havebear" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <div ng-switch="curObj.fixedjob"><strong class="must-options" ng-switch-when="否">*</strong></div>
+                        </div>
+                    </div>
+                </td>
+                <th>如属再婚，前段婚姻是否生育：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="foremarriagebore" ng-model="curObj.foremarriagebore" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <div ng-switch="curObj.SpouseMaritalStatus"><strong class="must-options" ng-switch-when="再婚">*</strong></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th colspan="6">子女情况</th>
+            </tr>  
+            <tr>
+                <td colspan="6">
+                    <table id="AttachmentTable" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <th style="background-color:#F4F4F4; width:10%">姓名</th>
+                                <th style="background-color:#F4F4F4; width:10%">性别</th>
+                                <th style="background-color:#F4F4F4; width:10%">出生日期</th>
+                                <th style="background-color:#F4F4F4; width:10%">政策内/外</th>
+                                <th style="background-color:#F4F4F4; width:10%">是否独生子女</th>
+                                <th style="background-color:#F4F4F4; width:10%">独生证号</th>
+                                <th style="background-color:#F4F4F4; width:10%">处理情况</th>
+                                <th style="background-color:#F4F4F4; width:10%">备注</th>
+                                <th style="background-color:#F4F4F4; width:20%">操作&nbsp;&nbsp;<a href="javascript:void(0);" id="ForEdit_ChildAddOption"  ng-click="AddChildrenDialog(0)" style="width:70px;">[添加]</a></th>
+                            </tr>
+                            <tr ng-repeat="x in ListPageData">
+                                <td>{{x.Name}}</td>
+                                <td>{{x.Sex}}</td>
+                                <td ng-bind="x.Birthday|date:'yyyy-MM-dd'"></td>
+                                <td>{{x.PolicyPostiton}}&nbsp;</td>
+                                <td>{{x.CISingleChildren}}&nbsp;</td>
+                                <td>{{x.CISingleChildNum}}&nbsp;</td>
+                                <td>{{x.Treatment}}&nbsp;</td>
+                                <td>{{x.remark}}&nbsp;</td>
+                                <td>
+                                    <div>
+                                        <a href="javascript:void(0);"  ng-click="AddChildrenDialog(x.id)" ng-show="@ViewData["Show"]!=True"  style="width:70px;">编辑</a>
+                                        <a href="javascript:void(0);"   ng-click="deleteChildren(x.id)" ng-show="@ViewData["Show"]!=True" style="width:70px;">删除</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="6">
+                    <a ng-click="save()" class="cell-btn-blue" id="ForEdit_saveOption" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="saveconfirm()" class="cell-btn-blue" id="ForEdit_ConfirmOption" style="width:70px; margin-right:20px;">保存并确认</a>
+                    <a href="../BirthControlInfo/Export?id={{curObj.userId}}" class="cell-btn-blue" style="width:70px; margin-right:20px;"><i></i>导出</a>   
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="6">
+                    <span style='color:red;'>点击“保存”后您依然可以修改自己的信息，点击“保存并确认”后您的信息将不能继续修改。</span>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->

@@ -1,0 +1,178 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+        var app = angular.module('CreateOrUpdate', ['datePicker',  'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $timeout, BusinessService, ngDialog) {
+            $scope.curObj = {
+            };
+
+            var id = '@ViewData["Id"]';
+            var getComData = true;
+            //获取周期类型
+            //BusinessService.getDictListByName('年').success(function (response) {
+            //    $scope.dictYear = response.items;
+            //}).error(function (err) {
+            //    box.alert("网络出错！", { icon: 'error' });
+            //}).then(function () { getComData = true; });
+
+            //BusinessService.getDictListByName('月份').success(function (response) {
+            //    $scope.dictMonth = response.items;
+            //}).error(function (err) {
+            //    box.alert("网络出错！", { icon: 'error' });
+            //}).then(function () { getComData = true; });
+
+            var loadCurData = function () {
+                $timeout(function () {
+                    if (getComData) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            $scope.curObj = response;
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+            if (id != null && id.toString().length > 0) {
+                loadCurData();
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'AnnualLeaveConfig/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AnnualLeaveConfig/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AnnualLeaveConfig/GetDataByID/' + id
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table id="ForEdit">
+            <tr>
+                <th>年度：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <input type="text" ng-model="curObj.Annual" name="Annual"  date-Picker datefmt="yyyy" class="cell-input" readonly style="width:70px;" />
+                            @*<select class="cell-input" name="Annual" ng-model="curObj.Annual" required style="width:70px;">
+                                <option value="">全部</option>
+                                <option ng-repeat="x in dictYear" value="{{x.value}}">{{x.text}}</option>
+                            </select>*@
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Annual.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.Annual.$valid">请选择年度</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                     </div>                        
+                </td>
+            </tr>
+            <tr>
+                <th>本年份最晚使用月份：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <input type="text" ng-model="curObj.LimitMonth" name="LimitMonth" date-Picker datefmt="MM" class="cell-input" readonly style="width:70px;" />
+                            @*<select class="cell-input" name="LimitMonth" ng-model="curObj.LimitMonth" required style="width:70px;">
+                                <option value="">全部</option>
+                                <option ng-repeat="x in dictMonth" value="{{x.value}}">{{x.text}}</option>
+                            </select>*@
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.LimitMonth.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.LimitMonth.$valid">请选择本年份最晚使用月份</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                        @*<input type="text" name="LimitMonth" ng-model="curObj.LimitMonth"  required style="width:70px;" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.LimitMonth.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.LimitMonth.$error.required"><i class="icon-error"></i>请输入本年份最晚使用月份。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>*@
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" id="ForEdit_saveOption" style="width:70px; margin-right:20px;">保存</a>
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->
+

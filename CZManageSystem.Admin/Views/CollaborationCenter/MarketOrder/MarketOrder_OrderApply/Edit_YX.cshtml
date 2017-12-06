@@ -1,0 +1,571 @@
+﻿
+@{
+    ViewBag.Title = "营销订单申请";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        var workflowName = '@ViewData["workflowName"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', '$timeout', function ($scope, BusinessService, $filter, $timeout) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            var ApplyID = '@ViewData["ApplyID"]';
+            var RealName = '@ViewData["RealName"]';
+            var Mobile = '@ViewData["Mobile"]';
+            var NewTitle = '@ViewData["NewTitle"]';
+            $scope.curObj = {
+                Apply: {
+                    RealName: RealName,
+                    MobilePh: Mobile,
+                    Title: NewTitle,
+                }
+            }
+            $scope.ActivitiesCompleted = [];
+
+
+            var getCurData = false;
+            var getData = function () {
+                BusinessService.getDataByID(ApplyID).success(function (response) {
+                    $scope.curObj = response;
+
+                    //获取流程步骤执行情况信息
+                    if ($scope.curObj.Apply.WorkflowInstanceId != null && $scope.curObj.Apply.WorkflowInstanceId != '')
+                        BusinessService.getActivitiesCompletedByID($scope.curObj.Apply.WorkflowInstanceId).success(function (response2) {
+                            $scope.ActivitiesCompleted = response2.items;
+                        })
+
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () {
+                    getCurData = true;
+                });
+            }
+
+            //获取当前数据
+            if (ApplyID != null && ApplyID.toString().length > 0) {
+                getData();
+            }
+            else {
+                getCurData = true;
+            }
+
+            //设置相关的配置信息
+            var setConfigureData = function () {
+                $timeout(function () {
+                    if (getCurData) {
+                        //获取“营销方案”
+                        BusinessService.GetMarketData().success(function (response) {
+                            $scope.dictMarketData = response.items;
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                        //获取“终端机型”
+                        BusinessService.GetEndTypeData().success(function (response) {
+                            $scope.dictEndTypeData = response.items;
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                        //获取“基本套餐”
+                        BusinessService.GetSetmealData().success(function (response) {
+                            $scope.dictSetmealData = response.items;
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                        //获取“捆绑业务”
+                        BusinessService.GetBusinessData().success(function (response) {
+                            $scope.dictBusinessData = response.items;
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                        //获取“项目编号”
+                        BusinessService.GetProjectData().success(function (response) {
+                            $scope.dictProjectData = response.items;
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                    }
+                    else {
+                        setConfigureData();
+                    }
+                }, 100);
+            }
+            setConfigureData();//设置相关的配置信息
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+
+                    var postData = $scope.curObj;
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'MarketOrder_OrderApply/Edit_YX?type=edit&ApplyID=' + response.Message;
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //提交数据，提交数据时先执行保存数据
+            $scope.submit = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+
+                    var postData = $scope.curObj;
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            {
+                                var sumbitData = {
+                                    applyID: response.Message,
+                                    nextActivity: nextInfo.nextActivity,
+                                    nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                    nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                                };
+                                box.load("submit");
+                                BusinessService.submit(sumbitData).success(function (response2) {
+                                    box.ready("submit");
+                                    if (response2.IsSuccess) {
+                                        box.alert("提交成功", { icon: 'success' }, function () {
+                                            window.location.href = CurPath + 'MarketOrder_OrderApply/YXList';
+                                        });
+                                    }
+                                    else {
+                                        box.alert(response2.Message.length > 0 ? response2.Message : "提交失败", { icon: 'error' });
+                                    }
+                                }).error(function (response2) {
+                                    box.ready("submit");
+                                    box.alert("网络出错！", { icon: 'error' });
+                                });
+                            }
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+
+
+
+            };
+
+            $scope.print = function () {
+                if ($scope.curObj.Apply.WorkflowInstanceId == null || $scope.curObj.Apply.WorkflowInstanceId.length <= 0)
+                    box.alert("没有流程实例ID，请先提交数据！", { icon: 'error' });
+                else
+                    window.open(CurPath + 'plugins/easyflow/contrib/workflow/pages/print.aspx?wiid=' + $scope.curObj.Apply.WorkflowInstanceId);
+            }
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_OrderApply/Save_Apply_YX',
+                    data: postData
+                });
+            };
+            serive.submit = function (postData) {//提交
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_OrderApply/Sumbit_Apply_YX',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {//根据ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_OrderApply/GetDataByID?id=' + id
+                });
+            };
+
+
+            serive.getActivitiesCompletedByID = function (id) {//根据ID获取流程数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Workflow/GetActivitiesCompletedByID?WorkflowInstanceId=' + id
+                });
+            };
+
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            //获取营销方案信息
+            serive.GetMarketData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Market/GetAllData',
+                    data: { isJK: false }
+                });
+            };
+            //获取终端机型
+            serive.GetEndTypeData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_EndType/GetAllData'
+                });
+            };
+            //获取基本套餐
+            serive.GetSetmealData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Setmeal/GetAllData'
+                });
+            };
+            //获取捆绑业务
+            serive.GetBusinessData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Business/GetAllData'
+                });
+            };
+            //获取项目编号
+            serive.GetProjectData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Project/GetAllData'
+                });
+            };
+
+            return serive;
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            setByType();
+                        });
+                    }
+                }
+            };
+        });
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>标题：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" style="width:540px;" name="Title" ng-model="curObj.Apply.Title" ng-maxlength="500" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Title.$error.required">请输入标题</span>
+                                    <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>单号：</th>
+                    <td>{{(curObj.Apply.State==null||curObj.Apply.State==0)?'(提交时自动生成)':curObj.Apply.SerialNo}}</td>
+
+                </tr>
+                <tr>
+                    <th class="editWithout">发起人：</th>
+                    <td class="editWithout" ng-bind="curObj.Apply.RealName"></td>
+                </tr>
+                <tr>
+                    <th>营销方案:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="MarketID" required ng-model="curObj.Apply.MarketID" ng-options="a.ID as a.Market for a in dictMarketData" class="cell-input"></select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.MarketID.$invalid&&editForm.failSubmited">
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择营销方案</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>终端机型:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="EndTypeID" required ng-model="curObj.Apply.EndTypeID" ng-options="a.ID as a.EndType for a in dictEndTypeData" class="cell-input"></select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.EndTypeID.$invalid&&editForm.failSubmited">
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择营销方案</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>目标客户号码:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="CustomPhone" ng-model="curObj.Apply.CustomPhone" ng-maxlength="50" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CustomPhone.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CustomPhone.$error.required">请输入目标客户号码</span>
+                                    <span ng-show="editForm.CustomPhone.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>客户名称:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="CustomName" ng-model="curObj.Apply.CustomName" ng-maxlength="50" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CustomName.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CustomName.$error.required">请输入目标客户名称</span>
+                                    <span ng-show="editForm.CustomName.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>身份证号:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="CustomPersonID" ng-model="curObj.Apply.CustomPersonID" ng-maxlength="50" class="cell-input" />
+                            <div class="ui-tips" ng-show="editForm.CustomPersonID.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CustomPersonID.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>联系电话:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="CustomOther" ng-model="curObj.Apply.CustomOther" ng-maxlength="50" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CustomOther.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CustomOther.$error.required">请输入联系电话</span>
+                                    <span ng-show="editForm.CustomOther.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>联系地址:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="CustomAddr" ng-model="curObj.Apply.CustomAddr" ng-maxlength="500" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CustomAddr.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CustomAddr.$error.required">请输入联系地址</span>
+                                    <span ng-show="editForm.CustomAddr.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>可用号码:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="UseNumber" ng-model="curObj.Apply.UseNumber" ng-maxlength="50" class="cell-input" />
+                            <div class="ui-tips" ng-show="editForm.UseNumber.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.UseNumber.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>SIM卡号:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="SIMNumber" ng-model="curObj.Apply.SIMNumber" ng-maxlength="50" class="cell-input" />
+                            <div class="ui-tips" ng-show="editForm.SIMNumber.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.SIMNumber.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>IMEI码:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="IMEI" ng-model="curObj.Apply.IMEI" ng-maxlength="50" class="cell-input" />
+                            <div class="ui-tips" ng-show="editForm.IMEI.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.IMEI.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>基本套餐:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="SetmealID" ng-model="curObj.Apply.SetmealID" ng-options="a.ID as a.Setmeal for a in dictSetmealData" class="cell-input"></select>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>捆绑业务:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="BusinessID" ng-model="curObj.Apply.BusinessID" ng-options="a.ID as a.Business for a in dictBusinessData" class="cell-input"></select>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目编号:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="ProjectID" ng-model="curObj.Apply.ProjectID" ng-options="a.ProjectID as a.ProjectID for a in dictProjectData" class="cell-input"></select>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea name="Remark" ng-model="curObj.Apply.Remark" style="width:540px; height:50px;"></textarea>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="4">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li>
+                        <a id="btnSave" ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                    </li>
+                    <li>
+                        <a id="btnSumbit" ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                    </li>
+                    <li><a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a></li>
+                    <li>
+                        <a ng-click="print()" class="cell-btn-blue editWithout" style="width:70px; margin-right:20px;">打印</a>
+                    </li>
+                </ul>
+
+            </div>
+            <tm-pagination conf="paginationConf"></tm-pagination>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

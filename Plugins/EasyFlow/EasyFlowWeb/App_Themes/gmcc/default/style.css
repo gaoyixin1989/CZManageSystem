@@ -1,0 +1,36 @@
+ 
+
+/* forms */
+/*.inputbox { background:#FDFDFD; border:1px solid #888; }*/
+
+/* div use for clear */
+.clear { clear:both; height:1px; font-size:0; overflow:hidden; }
+
+/* select_box */
+#find_item , .selected_title { padding:4px;line-height:18px; vertical-align:middle; background:#E9F2FC; }
+.selected_title { padding-left:8px; color:#BE5516; background:#FFF7C6; height:26px;}
+.selected_title .selected_clear { float:right; text-decoration:none; color:#CB998D; margin-right:5px; }
+#find_item input , #find_item button { vertical-align:middle; }
+#find_item #find_clear {padding:0px; visibility:hidden; width:18px; height:18px; background:url(img/item_find_clear.gif) no-repeat center center; border:0; }
+#find_item .inputbox { padding-left:20px; background:#FFF url(img/item_find.gif) no-repeat 2px 1px; border:1px solid #D4DCE4; }
+.select_box { width:510px; padding:10px;text-align:left }
+.select_item , .selected_item { width:250px; float:left; border:1px solid #C2C2C2; }
+.selected_item { float:right;}
+.item_list { padding-top:2px; height:250px; overflow:auto; }
+.item_list li { line-height:24px; cursor:default; }
+.item_list li span { display:none; }
+.item_list li .item_name:hover { background:url(img/item_name_hover.png); _background-color:#DDF3FF; }
+.item_name_hover { background-color:#DDF3FF; }
+.item_list li ul { display:none; background:url(img/tree_border.gif) repeat-y 12px top; }
+.item_list li ul ul { background:url(img/tree_border.gif) repeat-y 28px top; }
+.item_list li ul ul ul { background:url(img/tree_border.gif) repeat-y 44px top; }
+.item_list li .item_name { padding-left:6px; height:24px; overflow:hidden; }
+.item_list li li .item_name { padding-left:22px; background:url(img/tree_border2.gif) no-repeat 12px bottom; }
+.item_list li li li .item_name { padding-left:38px; background-position:28px; }
+.item_list li li li li .item_name { padding-left:54px; background-position:44px; }
+.item_close , .item_open , .items { display:block; width:16px; height:24px; float:left; background:url(img/item_close.gif) no-repeat left center; }
+.item_open { background-image:url(img/item_open.gif)!important; }
+.items { background-image:url(img/item_person.gif)!important; }
+.group_add , .item_click , .item_del { display:block; width:22px; height:24px; float:right; background:url(img/item_group_add.gif) no-repeat center center; }
+.item_click { background:url(img/item_click.gif) no-repeat center center; }
+.item_del { background:url(img/item_del.gif) no-repeat center center;}

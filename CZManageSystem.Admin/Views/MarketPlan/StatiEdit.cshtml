@@ -1,0 +1,382 @@
+﻿
+@{
+    ViewBag.Title = "StatiEdit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var Id = '@ViewData["Id"]';
+            $scope.market = {};
+            $scope.ChannelList = [];
+            $scope.PlanTypeList = [];
+            $scope.TargetUsersList = [];
+            //-----------------------------
+            if (Id != null && Id.toString().length > 0) {
+                BusinessService.getDataByID(Id).success(function (response) {
+                    $scope.market = response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+            //获取下拉框
+            BusinessService.GetDropList().success(function (response) {
+                $scope.ChannelList = response.ChannelList;
+                $scope.PlanTypeList = response.PlanTypeList;
+                $scope.TargetUsersList = response.TargetUsersList;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.market.Id = Id;
+                    if ($scope.market.IsMarketing == 1) {
+                        if ($scope.market.Coding.substring(0, 5) != "prod.") {
+                            box.alert("营销方案编号必须以prod.开头", { icon: 'warning' });
+                            return;
+                        }
+                        if ($scope.market.Coding.length != 19 || isNaN($scope.market.Coding.substring(5, 20))) {
+                            box.alert("营销方案编号后面必须为14位纯数字", { icon: 'warning' });
+                            return;
+                        }
+
+                    }
+                   
+                    var postData = { market: $scope.market }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'MarketPlan/StatiIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+          
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetDropList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketPlan/GetDropList'
+                });
+            };
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketPlan/Save_marketInfo',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (Id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketPlan/marketInfoGetByID?Id=' + Id
+
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>是否标准方案：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="CorpId" required ng-model="market.IsMarketing" style="width:222px;">
+                                    <option value="1">是</option>
+                                    <option value="0">否</option>
+                                </select>
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.IsMarketing.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择所属单位</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>营销方案编号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="SN" ng-model="market.Coding" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Coding.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Coding.$error.required">请输入营销方案编号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>营销方案名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="LicensePlateNum" ng-model="market.Name" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Name.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Name.$error.required">请输入营销方案名称</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>开始时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="StartTime" name="StartTime" required date-Picker dateFmt="yyyy-MM-dd" ng-model="market.StartTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入开始时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>结束时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="EndTime" name="EndTime" required date-Picker dateFmt="yyyy-MM-dd" ng-model="market.EndTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.EndTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入结束时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>办理渠道：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="Channel" required ng-model="market.Channel" style="width:222px;">
+                                    <option ng-repeat="x in ChannelList" value="{{x.DDText}}">{{x.DDText}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Channel.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择办理渠道</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>指令：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="Orders" ng-model="market.Orders" ng-maxlength="200"  class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>社会渠道登记端口：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="RegPort" ng-model="market.RegPort" ng-maxlength="200"  class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>营销活动细则：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="DetialInfo" style="width:400px;" ng-model="market.DetialInfo" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.DetialInfo.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.DetialInfo.$error.required">请输入营销活动细则</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>方案类型：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="PlanType" required ng-model="market.PlanType" style="width:222px;">
+                                    <option ng-repeat="x in PlanTypeList" value="{{x.DDText}}">{{x.DDText}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.PlanType.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择方案类型</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>目标用户群：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="TargetUsers" required ng-model="market.TargetUsers" style="width:222px;">
+                                    <option ng-repeat="x in TargetUsersList" value="{{x.DDText}}">{{x.DDText}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.TargetUsers.$invalid&&editForm.failSubmited ">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.TargetUsers.$error.required">请输入吨位/人数</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+               
+                <tr>
+                    <th>薪酬规则提要：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CarPrice"style="width:400px;" ng-model="market.PaysRlues" ng-maxlength="200"  class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备用模块1：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="Templet1" style="width:400px;" ng-model="market.Templet1" ng-maxlength="200" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备用模块2：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:400px;" name="Templet2" ng-model="market.Templet2" ng-maxlength="200"  class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备用模块3：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:400px;" name="Templet3" ng-model="market.Templet3" ng-maxlength="200"  class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备用模块4：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:400px;" name="Templet4" ng-model="market.Templet4" ng-maxlength="200" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:400px;" name="Remark" ng-model="market.Remark"  ng-maxlength="200" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->
+

@@ -1,0 +1,248 @@
+﻿@{
+    ViewBag.Title = "我的心声编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@{ var user = ViewBag.User as CZManageSystem.Data.Domain.SysManger.Users;}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$timeout', function ($scope, BusinessService, $timeout) {
+
+            $scope.curObj = {
+                IsInfo: '是',
+                IsNiming: '是'
+            };
+
+            var id = '@ViewData["id"]';
+            $scope.backUrl = '@ViewBag.backUrl';
+            @*$scope.IsEdit = ($scope.IsView != true);//判断是否编辑*@
+
+            $scope.curObj.CreateTime = '@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")';
+
+
+
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response.Items;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            BusinessService.getDictListByName('主题类型').success(function (response) {
+                $scope.dictCorpType = response.items;
+                $timeout(function () {
+                    if (!$scope.curObj.Themetype && !!response.defaultvalue) {
+                        $scope.curObj.Themetype = response.defaultvalue;
+                    }
+                }, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { loadComData1 = true; });
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InnerVoices/GetDataByID_View/' + id
+                });
+            };
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            //serive.get = function (id) {
+            //    return $http({
+            //        method: 'POST',
+            //        url: CurPath + 'MyCenter/GET/'
+            //        //param: id
+            //    });
+            //};
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+           
+            @*<tr>
+                <th>申请人：</th>
+                
+                <td>
+                        <div class="ui-input">
+                            <input type="text" name="Creator" ng-maxlength="50" ng-model="curObj.Creator" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Creator.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Creator.$error.required">请输入申请人</span>
+                                    <span ng-show="editForm.Creator.$error.maxlength">输入申请人过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+            </tr>
+            <tr>
+                <th>所在部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DeptName" ng-maxlength="50" ng-model="curObj.DeptName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DeptName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DeptName.$error.required">请输入所在部门</span>
+                                <span ng-show="editForm.DeptName.$error.maxlength">输入所在部门过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Phone" ng-maxlength="50" ng-model="curObj.Phone" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Phone.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Phone.$error.required">请输入联系电话</span>
+                                <span ng-show="editForm.Phone.$error.maxlength">输入联系电话过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>*@
+            @*<tr>
+                <th>流程单号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Applysn" ng-maxlength="50" ng-model="curObj.Applysn" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Applysn.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Applysn.$error.required">请输入字典名称</span>
+                                <span ng-show="editForm.Applysn.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>*@
+            <tr>
+                <th>标题：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Applytitle" ng-model="curObj.Applytitle"    class="cell-input" />
+                       
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>主题类型：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="CorpID"   ng-model="curObj.Themetype" style="width:222px;">
+                                <option ng-repeat="x in dictCorpType" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                          
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>个人信息是否公开：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="IsInfo"    ng-model="curObj.IsInfo" style="width:222px;">
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            
+            
+            <tr>
+                <th>基层心声是否公开：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="IsNiming"    ng-model="curObj.IsNiming" style="width:222px;">
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>内容：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" name="Remark"   required ng-model="curObj.Remark">内容</textarea>
+                       
+                     </div>
+                    
+                </td>
+            </tr>
+            <tr>
+                <th>申请日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="CreateTime" ng-maxlength="50" ng-model="curObj.CreateTime" required class="cell-input" />
+                       
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                   
+                    <a ng-href="{{backUrl}}"   class="cell-btn-orange" style="width:70px;">返回</a>
+                 
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

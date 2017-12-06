@@ -1,0 +1,176 @@
+﻿
+@{
+    ViewBag.Title = "编辑年度投资金额";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        //保存评价
+        function SaveData() {
+            var appElement = document.querySelector('[ng-controller=CreateController]');
+            var $scope = angular.element(appElement).scope();
+            var mm = false;
+            mm = $scope.save();
+            $scope.$apply();
+            return mm;
+        }
+
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            var ID = '@ViewData["ID"]';
+            var ProjectID = '@ViewData["ProjectID"]';
+            $scope.curObj = {};
+
+            //获取当前数据
+            var getCurData = false;
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                    $scope.curObj.Year = $scope.curObj.Year.toString();
+                    ProjectID = $scope.curObj.ProjectID;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+            else {
+                getCurData = true;
+            }
+
+            //设置相关的配置信息
+            var setConfigureData = function () {
+                $timeout(function () {
+                    if (getCurData) {
+                        //获取字典“年”
+                        BusinessService.getDictListByName('年').success(function (response) {
+                            $scope.dictYear = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.Year && !!response.defaultvalue) {
+                                    $scope.curObj.Year = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        setConfigureData();
+                    }
+                }, 100);
+            }
+            setConfigureData();//设置相关的配置信息
+
+            //保存数据
+            $scope.save = function () {
+                var isSuccess = false;
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    postData.ProjectID = ProjectID;
+
+                    $.ajax({
+                        url: CurPath + 'Project/Save_YearTotal',
+                        data: JSON.stringify(postData),
+                        type: 'POST',
+                        async: false,
+                        contentType: 'application/json;charset=utf-8',
+                        success: function (response) {
+                            if (response.IsSuccess) {
+                                isSuccess = true;
+                            }
+                            else {
+                                box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' })
+                            }
+                        },
+                        error: function () {
+                            box.alert("网络出错！", { icon: 'error' })
+                        }
+                    });
+
+
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+                return isSuccess;
+            };
+
+        }]);
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //保存投资项目
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Project/Save_YearTotal',
+                    data: postData
+                });
+            };
+            //根据id获取投资项目信息
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Project/GetDataByID_YearTotal/' + id
+                });
+            };
+
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    body {
+        min-width: 0px;
+    }
+</style>
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>年度：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select name="Year" required ng-model="curObj.Year" ng-options="a.value as a.text for a in dictYear" class="cell-input" style="width:80px;"></select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Year.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择年度</div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>年度投资金额：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="YearTotal" ng-model="curObj.YearTotal" required class="cell-input" style="width:100px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.YearTotal.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.YearTotal.$error.required">请输入年度投资金额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>

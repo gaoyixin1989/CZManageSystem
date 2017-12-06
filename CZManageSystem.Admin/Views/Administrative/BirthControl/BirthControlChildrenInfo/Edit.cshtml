@@ -1,0 +1,290 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $timeout, BusinessService, ngDialog) {
+            var getComData = false;
+            var id = '@ViewData["id"]';
+            var tempUserId = '@ViewData["UserId"]';            
+            $scope.curObj = {
+                userId: '',
+                id: ''
+            };
+            //获取所属单位
+            BusinessService.getDictListByName('处理情况').success(function (response) {
+                $scope.dictCorpType = response.items;
+                $timeout(function () {
+                    if (!$scope.curObj.CorpID && !!response.defaultvalue) {
+                        $scope.curObj.CorpID = response.defaultvalue;
+                    }
+                }, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData = true; });
+            var loadCurData = function () {
+                //alert("hereadd");
+                box.load("getDataByID");
+                $timeout(function () {
+                    if (getComData) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            box.ready("getDataByID");
+                            $scope.curObj = response;
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+
+
+            if (id != "0") {
+                //alert("hereedit");
+                loadCurData();
+            }
+            else {
+                $scope.curObj['userId'] = tempUserId;
+                $scope.curObj['id'] = id;
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;                    
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var dialog = ngDialog.open({
+                                template: '<div  class="msg_icon blackbox_icon_success"><p>保存成功！</p> </div>',
+                                plain: true,
+                                closeByDocument: false,
+                                closeByEscape: false,
+                                showClose: false,
+                                title: '信息提示',
+                                disableAnimation: true,
+                                width: 400,
+                                height: 140
+                            });
+                            setTimeout(function () {
+                                dialog.close();
+                            }, 2000);
+                        }
+                        else {
+                            var dialog = ngDialog.open({
+                                template: '<div  class="msg_icon blackbox_icon_success"><p>保存失败！</p> </div>',
+                                plain: true,
+                                closeByDocument: false,
+                                closeByEscape: false,
+                                showClose: false,
+                                title: '信息提示',
+                                disableAnimation: true,
+                                width: 400,
+                                height: 140
+                            });
+                            setTimeout(function () {
+                                dialog.close();
+                            }, 2000);
+                        }
+                        //alert("hre");
+                        $scope.closeThisDialog();
+                    }).error(function (response) {});
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlChildrenInfo/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlChildrenInfo/GetDataByID/' + id
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<style>
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Name" ng-model="curObj.Name" required class="cell-input" />
+                        <input type="hidden" id="id" name="id" ng-model="curObj.id" />
+                        <input type="hidden" id="userId" name="userId" ng-model="curObj.userId" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.Name.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.Name.$error.required"><i class="icon-error"></i>请输入姓名。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>性别：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Sex" required ng-model="curObj.Sex" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Sex.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.Sex.$valid">请选择性别</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>出生日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="Birthday" name="Birthday" date-Picker ng-model="curObj.Birthday" required class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Birthday.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-hide="editForm.Birthday.$valid">请选择出生日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>政策内外：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="PolicyPostiton" required ng-model="curObj.PolicyPostiton" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="政策内">政策内</option>
+                                <option value="政策外">政策外</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PolicyPostiton.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.PolicyPostiton.$valid">请选择政策内外</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否独生子女：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="CISingleChildren" required ng-model="curObj.CISingleChildren" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CISingleChildren.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.CISingleChildren.$valid">请选择是否独生子女</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>独生证号： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" ng-model="curObj.CISingleChildnum" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>处理情况：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Treatment" ng-model="curObj.Treatment" style="width:100px; margin-left:5px;">
+                                <option ng-repeat="x in dictCorpType" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="remark" ng-model="curObj.remark"></textarea>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->

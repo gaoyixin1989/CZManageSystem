@@ -1,0 +1,314 @@
+﻿
+@{
+    ViewBag.Title = "设备库存管理";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('StockController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                equip: { arrId: [], arrText: [] },
+                 proj: { arrId: [], arrText: [] }
+
+            };
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            $scope.StockTypeText = function (sta) {
+                if (sta == 0) {
+                    return "非营业厅";
+                }
+               else if (sta == 1) {
+                    return "营业厅";
+                }
+              else{
+                    return "";
+                }
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            $scope.choseArr =[];
+            /*实现全选，多选操作*/
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    $scope.choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        $scope.choseArr.push(obj);
+
+                    });
+                }
+                else
+                    $scope.choseArr = [];            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if ($scope.choseArr.indexOf(z) < 0) {
+                        $scope.choseArr.push(z);
+                    }
+                    if ($scope.choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = $scope.choseArr.indexOf(z);
+                    if (index > -1) {
+                        $scope.choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.InStock = function () {
+                if ($scope.choseArr[0] == "" || $scope.choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                var stock = JSON.stringify($scope.choseArr);
+                var url = CurPath + 'Stock/InStock?stock=' + stock;
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+
+            $scope.OutStock = function () {
+                if ($scope.choseArr[0] == "" || $scope.choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                var stock = JSON.stringify($scope.choseArr);
+                var url = CurPath + 'Stock/OutStock?stock=' + stock;
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+            $scope.query = function () {
+                $scope.queryBuilder.StockType = $("[ng-model='queryBuilder.StockType']").val();
+                $scope.queryBuilder.ProjSn = $("[ng-model='queryBuilder.proj.arrText']").val();
+                $scope.queryBuilder.EquipClass = $("[ng-model='queryBuilder.equip.arrText']").val();
+                $scope.queryBuilder.StockStatus = $("[ng-model='queryBuilder.StockStatus']").val();
+                $scope.queryBuilder.EquipInfo = $("[ng-model='queryBuilder.EquipInfo']").val();
+                GetListData();
+            }
+            //---------------------------------
+            $scope.queryBuilder.proj = { arrId: [], arrText: [] };
+            $scope.queryBuilder.equip = { arrId: [], arrText: [] };
+            $scope.editMember = function (type) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'proj': {
+                        title = '投资项目';
+                        iframeSrc = '../Proj/ProjWindow?selected=' + $scope.queryBuilder.proj.arrText;
+                    } break;
+                    case 'equip': {
+                        title = '设备类型';
+                        iframeSrc = '../Equip/EquipWindow?selected=' + $scope.queryBuilder.equip.arrText;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'proj': {
+                                            $scope.queryBuilder.proj.arrId = getAttrByArr(result, 'id').join(",");
+                                            $scope.queryBuilder.proj.arrText = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        case 'equip': {
+                                            $scope.queryBuilder.equip.arrId = getAttrByArr(result, 'id').join(",");
+                                            $scope.queryBuilder.equip.arrText = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            //----------------------------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Stock/EquipStockNum', postData);
+            };
+            return serive;
+        }]);
+
+        //------------------------------------------
+
+    </script>
+}
+
+<div id="ng-app" ng-app="ListPage" ng-controller="StockController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+
+                <td>
+                    资产类型：
+                </td>
+                <td>
+                        <div class="selectdrapdown">
+                            <select class="cell-input" style="width:120px;"   ng-model="queryBuilder.StockType">
+                                <option value="">全部</option>
+                                <option value="1">营业厅</option>
+                                <option value="0">非营业厅</option>
+                            </select>
+                        </div>
+                </td>
+                <td>
+                    设备类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" placeholder="设备类型"  ng-click="editMember('equip')" ng-model="queryBuilder.equip.arrText" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    设备型号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" placeholder="设备型号" ng-model="queryBuilder.EquipInfo" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    投资项目编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" placeholder="投资项目编号" ng-click="editMember('proj')" ng-model="queryBuilder.proj.arrText" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>            
+            </tr>
+            <tr>
+                <td>
+                    库存状态：
+                </td>
+                <td>
+                    <div class="selectdrapdown">
+                        <select class="cell-input" style="width:120px;" ng-model="queryBuilder.StockStatus">
+                            <option value="">全部</option>
+                            <option value="1">正常</option>
+                            <option value="0">归档</option>
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th style="white-space:nowrap">资产类型</th>
+                <th style="white-space:nowrap">设备类型</th>
+                <th style="white-space:nowrap">设备型号</th>
+                <th style="white-space:nowrap">投资项目编号</th>
+                <th style="white-space:nowrap">投资项目名称</th>
+                <th style="white-space:nowrap">库存数量</th>
+                @*<th style="white-space:nowrap">操作</th>*@
+            </tr>
+            <tr ng-repeat="stock in ListPageData">
+                <td><input type="checkbox" id="{{stock.ProjSn}}" ng-model="x" ng-checked="x" ng-click="chk($event,stock)" /></td>
+                <td style="white-space:nowrap" ng-bind="StockTypeText({{stock.StockType}})"></td>
+                <td ng-bind="stock.EquipClass"></td>
+                <td ng-bind="stock.EquipInfo"></td>
+                <td ng-bind="stock.ProjSn"></td>
+                <td ng-bind="stock.ProjName"></td>
+                <td ng-bind="stock.totalnum"></td>
+                @*<td style="white-space:nowrap">
+                    <div class="operation-btn">
+                        <a ng-href="/Stock/OutStock?stock=[{{stock}}]">查看出库</a>
+                    </div>
+                </td>*@
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="javascript:void(0);" ng-click="InStock()"class="btn-find"><i></i>查看入库</a></li>
+                <li><a href="javascript:void(0);" ng-click="OutStock()" class="btn-find"><i></i>查看出库</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

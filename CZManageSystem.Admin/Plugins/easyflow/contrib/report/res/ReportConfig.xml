@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<report>
+  <object name="bw_Report" description="报表h">
+    <column name="TableName">表名</column>
+    <column name="CreatedTime">hhh</column>
+  </object>
+  <object name="TB_Log_OperateLog" description="行为记录">
+    <column name="opStartTime">时间</column>
+    <column name="operationID">操作类型</column>
+    <column name="description">操作说明</column>
+  </object>
+</report>

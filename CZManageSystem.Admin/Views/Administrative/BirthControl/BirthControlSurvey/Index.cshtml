@@ -1,0 +1,161 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('BirthControlSurveyController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+                EmployeeId: "",
+                BornSituation: ""
+            };
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                queryBuilder: $scope.queryBuilder
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    //alert(postData.queryBuilder);
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                GetListData();
+            }
+            $scope.ShowDetail=function()
+            {
+                if ($("#StaticSM").css("display") == "none") {
+                    $("#StaticSM").show();
+                }
+                else {
+                    $("#StaticSM").hide();
+                }
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'BirthControlSurvey/GetListData', postData);
+            };
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+
+
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="BirthControlSurveyController">
+    <!--content#0085d1--->
+    <div id="StaticSM" class="search-mod" style="display:none">
+        <table>
+            <tr style="height:30px; color:lightcoral; line-height:20px">
+                <td>
+                    &nbsp;&nbsp; 统计方法：计划生育员工信息中已生育的男性员工配偶年龄在49周岁以下，不在同单位，不参加妇检，已生育，未结扎的数据<br />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="search-mod" style="height:30px;">
+        <table>
+            <tr>
+                <td>
+                    生育情况：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.BornSituation" style="width:100px;">
+                                <option value="">全部</option>
+                                <option value="1">已生育1孩</option>
+                                <option value="2">已生育2孩</option>
+                                @*<option value="3">已生育多孩</option>*@
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>男员工姓名</th>
+                <th>男员工单位</th>
+                <th>配偶姓名</th>
+                <th>配偶单位</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="emp.RealName"></td>
+                <td ng-bind="emp.DpName"></td>
+                <td ng-bind="emp.SpouseName"></td>
+                <td ng-bind="emp.SpouseWorkingAddress"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="ShowDetail()" class="btn-find"><i></i>查看统计方法</a></li>
+                <li><a href="../BirthControlSurvey/Export?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+
+

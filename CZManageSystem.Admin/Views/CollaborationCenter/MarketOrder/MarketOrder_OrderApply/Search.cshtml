@@ -1,0 +1,436 @@
+﻿
+@{
+    ViewBag.Title = "订单查询页";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <link href="~/Content/app/AngularJsMultiSelect/isteven-multi-select.css" rel="stylesheet" />
+    <script src="~/Content/app/AngularJsMultiSelect/isteven-multi-select.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'isteven-multi-select', 'ngDialog', 'datePicker']);
+        //控制器
+        app.controller('ListController', ['$scope', "$filter", 'BusinessService', 'ngDialog', '$timeout', function ($scope, $filter, BusinessService, ngDialog, $timeout) {
+            $scope.queryBuilder = {
+            };
+
+            $scope.dictStatus = [
+                                    { text: "编辑", value: "编辑", ticked: false },
+                                    { text: "审批中", value: "审批中", ticked: false },
+                                    { text: "完成", value: "完成", ticked: false }
+            ];
+            $scope.StatusSelected = [];
+            $scope.OrderStatusSelected = [];
+            $scope.EndTypeSelected = [];
+            $scope.AreaSelected = [];
+
+            //获取受理单状态信息
+            BusinessService.GetOrderStatus().success(function (response) {
+                $scope.dictOrderStatus = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+            //获取“终端机型”
+            BusinessService.GetEndTypeData().success(function (response) {
+                $scope.dictEndTypeData = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+            //获取“区域信息”
+            BusinessService.GetAreaData().success(function (response) {
+                $scope.dictAreaData = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            $scope.resetComData = function () {
+                if ($scope.BoardroomInfoList == undefined) {
+                    $timeout(function () {
+                        $scope.resetComData();
+                    }, 100);
+                }
+                else {
+                    $.each($scope.dictOrderStatus, function (i, item) {
+                        if (postData.queryBuilder.ListOrderStatus.indexOf(item.OrderStatus) > -1)
+                            item.ticked = true;
+                    })
+                    $.each($scope.dictStatus, function (i, item) {
+                        if (postData.queryBuilder.ListStatus.indexOf(item.text) > -1)
+                            item.ticked = true;
+                    })
+                    $.each($scope.dictEndTypeData, function (i, item) {
+                        if (postData.queryBuilder.ListEndTypeID.indexOf(item.ID) > -1)
+                            item.ticked = true;
+                    })
+                    $.each($scope.dictAreaData, function (i, item) {
+                        if (postData.queryBuilder.ListAreaID.indexOf(item.ID) > -1)
+                            item.ticked = true;
+                    })
+                }
+            }
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder,
+                        isManager:true
+                    };
+                    $scope.queryBuilder.ListStatus = [];//流程状态
+                    if ($scope.StatusSelected.length > 0) {
+                        $.each($scope.StatusSelected, function (i, item) {
+                            $scope.queryBuilder.ListStatus.push(item.text);
+                        })
+                    }
+                    $scope.queryBuilder.ListOrderStatus = [];//受理单状态
+                    if ($scope.OrderStatusSelected.length > 0) {
+                        $.each($scope.OrderStatusSelected, function (i, item) {
+                            $scope.queryBuilder.ListOrderStatus.push(item.OrderStatus);
+                        })
+                    }
+                    $scope.queryBuilder.ListEndTypeID = [];//终端机型
+                    if ($scope.EndTypeSelected.length > 0) {
+                        $.each($scope.EndTypeSelected, function (i, item) {
+                            $scope.queryBuilder.ListEndTypeID.push(item.ID);
+                        })
+                    }
+                    $scope.queryBuilder.ListAreaID = [];//区域信息
+                    if ($scope.AreaSelected.length > 0) {
+                        $.each($scope.AreaSelected, function (i, item) {
+                            $scope.queryBuilder.ListAreaID.push(item.ID);
+                        })
+                    }
+                    postData.queryBuilder = $scope.queryBuilder;
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                    $scope.resetComData();
+                }
+
+
+
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ApplyID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+
+                var src = CurPath + 'MarketOrder_OrderApply/Edit_YX?type=look&ApplyID=' + obj.ApplyID;
+                window.location.href = src;
+            }
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'MarketOrder_OrderApply/GetListData', postData);
+            };
+            serive.GetOrderStatus = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_OrderStatus/GetAllData'
+                });
+            };
+            //获取终端机型
+            serive.GetEndTypeData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_EndType/GetAllData'
+                });
+            };
+            //获取区域形象
+            serive.GetAreaData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Area/GetAllData'
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ListController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    受理单编号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.SerialNo" class="cell-input" style="width:245px;" />
+                    </div>
+                </td>
+                <td>受理单状态：</td>
+                <td>
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="dictOrderStatus"
+                             output-model="OrderStatusSelected"
+                             button-label="OrderStatus"
+                             item-label="OrderStatus"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:150px;">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>发起时间：</td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="ApplyTime_start" date-Picker ng-model="queryBuilder.ApplyTime_start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <span style="padding:0px 5px;">至</span>
+                        <input type="text" id="ApplyTime_end" date-Picker ng-model="queryBuilder.ApplyTime_end" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    流程状态：
+                </td>
+                <td>
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="dictStatus"
+                             output-model="StatusSelected"
+                             button-label="text"
+                             item-label="text"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:150px;">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>客户号码：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.CustomPhone" class="cell-input" style="width:245px;" />
+                    </div>
+                </td>
+                <td>客户名称：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.CustomName" class="cell-input" style="width:128px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>终端机型：</td>
+                <td>
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="dictEndTypeData"
+                             output-model="EndTypeSelected"
+                             button-label="EndType"
+                             item-label="EndType"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:150px;">
+                        </div>
+                    </div>
+                </td>
+                <td>所属区域：</td>
+                <td>
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="dictAreaData"
+                             output-model="AreaSelected"
+                             button-label="DpName"
+                             item-label="DpName"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:150px;">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>受理时间：</td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="DealTime_start" date-Picker ng-model="queryBuilder.DealTime_start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <span style="padding:0px 5px;">至</span>
+                        <input type="text" id="DealTime_end" date-Picker ng-model="queryBuilder.DealTime_end" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>项目编号：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectID" class="cell-input" style="width:128px;" />
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td>订单类型：</td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.isJK" style="width:150px;">
+                                <option value="">请选择</option>
+                                <option value="False">普通业务</option>
+                                <option value="True">家宽业务</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>项目编号</th>
+                <th>是否超时</th>
+                <th>受理单编号</th>
+                <th>发起时间</th>
+                <th>发起人</th>
+                <th>客户号码</th>
+                <th>客户名称</th>
+                <th>终端机型</th>
+                <th>所属区域</th>
+                <th>受理单状态</th>
+                <th>流程状态</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.ApplyID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ApplyID)" /></td>
+                <td ng-bind="emp.ProjectID"></td>
+                <td ng-bind="emp.SendStatus" style="color:red;"></td>
+                <td ng-bind="emp.SerialNo" ng-click="clickTitle(emp)" class="titleCol"></td>
+                <td ng-bind="emp.ApplyTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td ng-bind="emp.RealName"></td>
+                <td ng-bind="emp.CustomPhone"></td>
+                <td ng-bind="emp.CustomName"></td>
+                <td ng-bind="emp.EndTypeText"></td>
+                <td ng-bind="emp.AreaText"></td>
+                <td ng-bind="emp.OrderStatus"></td>
+                <td ng-bind="emp.Status"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,458 @@
+﻿@{
+    ViewBag.Title = "我的投票";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'ngDialog', 'datePicker']);
+
+        //控制器
+        app.controller('Controller', ['$scope', '$rootScope', 'BusinessService', 'ngDialog', '$filter', function ($scope, $rootScope, BusinessService, ngDialog, $filter) {
+            $scope.ApplyTitle = null;
+
+            //获取列表
+            var GetListData = function () {
+                $scope.master = false;
+                choseArr = [];
+                choseArr = [];
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        applyTitle: $scope.ApplyTitle
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.ApplyTitle = postData.applyTitle;
+                }
+                box.load("GetListData");
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ApplyID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.IsSuccess) {
+                                box.alert("成功删除" + response.data.successCount + "条数据", { icon: 'success' });
+                                GetListData();
+                            }
+                            else {
+                                box.alert("删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            /*单据状态*/
+            $scope.showState = function (state) {
+                var strState = "未提交";
+
+                switch (state) {
+                    case null:
+                        strState = "未提交";
+                        break;
+                    case 1:
+                        strState = "已提交";
+                        break;
+                    case 2:
+                        strState = "已完成";
+                        break;
+                    case 99:
+                        strState = "已取消";
+                        break;
+
+                }
+                return strState;
+            }
+            $scope.deleteOne = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData([id]).success(function (response) {
+                            if (response.IsSuccess) {
+                                box.alert("删除成功", { icon: 'success' });
+                                GetListData();
+                            }
+                            else {
+                                box.alert("删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+            $scope.editData = function (id, isAction) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                        return;
+                    };
+                    url = CurPath + 'Vote/Edit?id=' + choseArr[0];
+                }
+                else {
+                    if (isAction)
+                        url = CurPath + 'Vote/Edit?id=' + id;
+                    else
+                        url = CurPath + 'Vote/Voting?id=' + id + '&isView=true';
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            }
+            $scope.statistics = function (id) {
+                var url = CurPath + 'Vote/Statistics?id=' + id;
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            }
+            $scope.detail = function (id) {
+                var url = CurPath + 'Vote/Detail?ThemeID=' + id;
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            }
+            $scope.updateEndTime = function () {
+                if (choseArr[0] == "" || choseArr.length != 1) {//没有选择一个的时候提示
+                    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                    return;
+                };
+                //弹出层
+                //dept、role、user
+                var iframeId = '_edit';
+                var title = "";
+                var iframeSrc = "";
+
+                title = '投票延期';
+                iframeSrc = '../Vote/UpdateEndTimeIndex?id=' + choseArr[0];
+
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: 360,//窗口宽度，默认400
+                        height: 180,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+
+                                    var data = result;
+                                    BusinessService.updateEndTime(data).success(function (response) {
+                                        if (response.IsSuccess) {
+                                            GetListData();
+                                            box.alert("修改成功", { icon: 'success' });
+                                        }
+                                        else {
+                                            box.alert(response.Message, { icon: 'error' });
+                                        }
+                                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            $scope.downloadQ = function () {
+                if (choseArr[0] == "" || choseArr.length != 1) {//没有选择一个的时候提示
+                    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                    return;
+                };
+                window.location = CurPath + 'Vote/Download?id=' + choseArr[0];
+            }
+            $scope.getAttrByArr = function (arr, attr) {
+                return getAttrByArr(arr, attr);
+            }
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+
+        }]);
+        //app.controller('updateEndTimeDialogController', ['$scope', '$rootScope', '$compile', 'BusinessService', '$filter', 'ngDialog', function ($scope, $rootScope, $compile, BusinessService, $filter, ngDialog) {
+        //    $scope.Model = {
+        //        ApplyID: $rootScope.models[0].ApplyID,
+        //        StartTime: $filter('date')($rootScope.models[0].StartTime, 'yyyy-MM-dd HH:mm'),
+        //        EndTime: $filter('date')($rootScope.models[0].EndTime, 'yyyy-MM-dd HH:mm')
+        //    };
+        //    $scope.Save = function () {
+        //        var data = { id: $rootScope.applyId };
+        //        BusinessService.updateEndTime(data).success(function (response) {
+        //            if (response.IsSuccess) {
+        //                box.alert("修改成功", { icon: 'success' });
+        //                $scope.closeThisDialog();
+        //            }
+        //            else {
+        //                box.alert("删除失败", { icon: 'error' });
+        //            }
+        //        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+        //    };
+        //}]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Vote/GetListData', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/Delete',
+                    data: ids
+                });
+            };
+            serive.updateEndTime = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/UpdateEndTime',
+                    data: id
+                });
+            };
+
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    主题名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="ApplyTitle" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="width:20px;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>主题名称</th>
+                <th>主题类型</th>
+                <th>发起人</th>
+                <th>开始时间</th>
+                <th>结束时间</th>
+                <th>状态</th>
+                <th>人数统计</th>
+                <th>投票统计</th>
+                <th>答案明细</th>
+                @*<th>操作</th>*@
+            </tr>
+
+
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.ApplyID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ApplyID)"/></td>
+                <td><a ng-click="editData(emp.ApplyID,emp.State==null)" ng-bind="emp.ApplyTitle"> </a></td>
+                <td ng-bind="emp.ThemeType"></td>
+                <td ng-bind="emp.Creator"></td>
+                <td ng-bind="emp.StartTime|date:'yyyy-MM-dd HH:mm'"></td>
+                <td ng-bind="emp.EndTime|date:'yyyy-MM-dd HH:mm'"></td>
+                <td ng-bind="showState(emp.State)"></td>
+                <td ng-bind="emp.BodyCount"></td>
+                <td><a ng-click="statistics(emp.ApplyID)">查看</a></td>
+                <td><a ng-click="detail(emp.ThemeID)">查看</a></td>
+                @*<td>
+                        <div class="operation-btn">
+                            <a ng-href="../Vote/Edit?id={{emp.ApplyID}}">修改</a>
+                            <a ng-click="deleteOne(emp.ApplyID)">删除</a>
+                        </div>
+                    </td>*@
+            </tr>
+
+
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../Vote/Edit" class="btn-add"><i></i>发起投票</a></li>
+                <li><a ng-click="downloadQ()" class="btn-export"><i></i>导出功能</a></li>
+                <li><a ng-click="editData('',true)" class="btn-edit"><i></i>编辑</a></li>
+                <li><a ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                <li><a ng-click="updateEndTime()" class="btn-edit"><i></i>投票延期</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+
+    <script type="text/ng-template" id="updateEndTimeId">
+
+        <form name="editForm">
+            <div class="public-form">
+                <table>
+                    <tr>
+                        <th>开始日期：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="StartTime" ng-model="Model.StartTime" date-Picker datefmt='yyyy-MM-dd HH:mm' class="cell-input cell-input-data" required placeholder="开始日期">
+                                <i class="icon-data"></i>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.StartTime.$error.required">请选择开始日期</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>结束日期：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="EndTime" ng-model="Model.EndTime" date-Picker dateFmt='yyyy-MM-dd HH:mm' class="cell-input cell-input-data" required placeholder="结束日期">
+                                <i class="icon-data"></i>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.EndTime.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.EndTime.$error.required">请选择结束日期</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr class="forEdit">
+                        <td colspan="2">
+                            <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <td>
+                            <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                            <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+
+    </script>
+</div>

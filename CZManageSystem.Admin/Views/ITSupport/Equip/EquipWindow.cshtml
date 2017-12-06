@@ -1,0 +1,176 @@
+﻿
+@{
+    ViewBag.Title = "EquipWindow";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+       .main-flip div{
+            right: 290px;
+        }
+        .public-table-main table {
+                width: 66%;
+        }
+    </style>
+
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var choseArr = new Array();
+        var app = angular.module('ListPage', ['tm.pagination']);
+        //控制器
+        app.controller('EquipController', ['$scope',  'BusinessService', function ($scope, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            var selectedId = '@ViewData["selected"]';
+            var str = "";
+            $scope.isCh = function (equip) {
+                if (selectedId.indexOf(equip.EquipClass) >= 0) {
+                    if (str.indexOf(equip.EquipClass) < 0) {
+                        choseArr.push(equip);
+                        str += equip.EquipClass + ",";
+                    }
+                }
+                return selectedId.indexOf(equip.EquipClass) >= 0;
+
+            }          
+
+            /*实现全选，多选操作*/
+           
+            //$scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                $scope.queryBuilder.EquipClass = $("[ng-model='queryBuilder.EquipClass']").val();
+                GetListData();
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Equip/GetListData', postData);
+            };
+            return serive;
+        }]);
+
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=EquipController]');
+            var $scope = angular.element(appElement).scope();
+            var ListPageData = $scope.ListPageData;
+            var result = [];
+            $.each(choseArr, function (i, item) {
+                result.push({
+                    Id: item.Id,
+                    text: item.EquipClass
+                });
+            });
+            return result;
+        }
+    </script>
+}
+<div Id="ng-app" ng-app="ListPage" ng-controller="EquipController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    设备类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EquipClass" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th style="white-space:nowrap">设备类型</th>
+            </tr>
+            <tr ng-repeat="equip in ListPageData">
+                <td><input type="checkbox" Id="{{equip.Id}}" ng-model="x" ng-checked="isCh(equip)" ng-click="chk($event,equip)" /></td>
+                <td ng-bind="equip.EquipClass"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

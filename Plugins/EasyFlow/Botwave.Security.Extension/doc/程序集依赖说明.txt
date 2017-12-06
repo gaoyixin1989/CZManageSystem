@@ -1,0 +1,19 @@
+﻿1. Botwave.Security 这是流程核心引擎，依赖外部程序集：	(1)	Botwave.Core 这是项目公用程序集.		(2)	Spring.dll	(3)	log4net.dll
+	(4)	Microsoft.Practices.EnterpriseLibrary.Caching.dll
+2. Botwave.Security.Extension 依赖的外部程序集说明：	(1)	Botwave.Core 这是项目公用程序集.	
+	(2)    Botwave.Security，这是用户安全核心程序集	(3)	Botwave.Extension.IBatisNet 这是 IBatis.NET 数据操作公用程序集.	
+	
+	(4)	log4net.dll
+	(5)	Spring.Core.dll
+	(6)	Spring.Web.dll
+	(7)	IBatisNet.Common.dll
+	(8)	IBatisNet.DataMapper.dll
+	
+3. Botwave.Security.IBatisNet 这是实现数据访问层的程序集.	(1)	Botwave.Core 这是项目公用程序集.			(2)	Botwave.Extension.IBatisNet 这是 IBatis.NET 数据操作公用程序集.		(3)	Botwave.Security 这是用户安全核心程序集.	
+
+	(4)	IBatisNet.Common.dll
+	(5)	IBatisNet.DataMapper.dll
+	(6)	log4net.dll
+	(7)	Castle.DynamicProxy.dll
+
+注：如果需要脱离以上依赖可以另外建立一个新程序集，将所关系的类迁移到新程序集中。

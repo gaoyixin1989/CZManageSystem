@@ -1,0 +1,74 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            var ID = '@ViewData["ID"]';
+            $scope.curObj = {};
+
+            //获取当前数据
+            var getCurData = false;
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //根据id获取投资项目信息
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InvestContract/GetDataByID?id=' + id
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    table {
+        width: 680px;
+    }
+
+        table th {
+            text-align: right;
+            vertical-align: top;
+        }
+
+        table td {
+            text-align: left;
+            vertical-align: top;
+            padding-right: 50px;
+        }
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr><th style="width:100px;">项目编号：</th><td ng-bind="curObj.ProjectID" style="width:130px;"></td><th  style="width:100px;">项目名称：</th><td ng-bind="curObj.ProjectName" style="width:350px;"></td></tr>
+            <tr><th>合同编号：</th><td ng-bind="curObj.ContractID"></td><th>合同名称：</th><td ng-bind="curObj.ContractName"></td></tr>
+            <tr><th>合同主办部门：</th><td ng-bind="curObj.DpCode_Text"></td><th>主办人：</th><td ng-bind="curObj.User_Text"></td></tr>
+            <tr><th>供应商：</th><td ng-bind="curObj.Supply"></td><th>签订时间：</th><td ng-bind="curObj.SignTime|date:'yyyy-MM-dd HH:mm:ss'"></td></tr>
+            <tr><th>合同项目金额(元)：</th><td ng-bind="curObj.SignTotal"></td><th>合同总金额(元)：</th><td ng-bind="curObj.AllTotal"></td></tr>
+            <tr><th>是否MIS单类：</th><td ng-bind="curObj.IsMIS=='1'?'是';'否'"></td><th></th><td></td></tr>
+            <tr><th>备注：</th><td colspan="2" ng-bind="curObj.Content"></td></tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

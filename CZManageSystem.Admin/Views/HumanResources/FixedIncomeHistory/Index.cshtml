@@ -1,0 +1,320 @@
+﻿
+@{
+    ViewBag.Title = "历史工资单查询";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style type="text/css">
+        .FixedHeaderColumnsTableDiv {
+            overflow: auto;
+            position: relative;
+        }
+
+        .FixedCell {
+            position: relative;
+            top: expression(this.offsetParent.scrollTop);
+            left: expression(this.parentElement.offsetParent.scrollLeft);
+            z-index: 1800;
+        }
+
+        .FixedHeaderRow1 {
+            position: relative;
+            top: expression(this.offsetParent.scrollTop);
+            background-color: #ccc;
+            z-index: 300;
+        }
+
+        .FixedHeaderRow2 {
+            position: relative;
+            top: expression(this.offsetParent.scrollTop);
+            z-index: 290;
+            background-color: #ffccff;
+        }
+
+        .FixedDataColumn {
+            position: relative;
+            left: expression(this.parentElement.offsetParent.parentElement.scrollLeft);
+            z-index: 200;
+            background-color: Aqua;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", '$timeout', 'BusinessService', 'ngDialog', function ($scope, $filter, $timeout, BusinessService, ngDialog) {
+
+            $scope.queryBuilder = {
+                EmployerId: '',
+                EmployerName: ''
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("loading");
+                $scope.master = false;
+                choseArr = [];
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+                BusinessService.list(postData).success(function (response) {
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    box.ready("loading");
+                }).error(function (err) {
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                    box.ready("loading");
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.EmployerId + obj.Billcyc);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, f) {//单选或者多选
+                if (f == null || f == "undefined") {
+                    return;
+                }
+                var z = f.EmployerId + f.Billcyc;
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.editData = function (id) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                        return;
+                    };
+                    url = CurPath + 'FixedIncomeHistory/Edit?keys=' + choseArr[0];
+                }
+                else {
+                    url = CurPath + 'FixedIncomeHistory/Edit?keys=' + id;
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url; 
+            }
+
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.IsSuccess) {
+                                box.alert("成功删除" + response.data.successCount + "条数据", { icon: 'success' });
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.Message.length > 0 ? response.Message : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //导出功能
+            $scope.downloadFile = function () {
+                if ($scope.ListPageData.length == 0) {//没有选择一个的时候提示
+                    box.alert("没有可以导出的数据！！");
+                    return;
+                };
+                box.load("GetListData");
+                window.location.href = CurPath + 'FixedIncomeHistory/Download?queryBuilder=' + JSON.stringify($scope.queryBuilder);
+                box.ready("GetListData");
+            }
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'FixedIncomeHistory/GetListData', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'FixedIncomeHistory/Delete',
+                    data: ids
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    员工编号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EmployerId" class="cell-input" style="width:120px;" />
+                    </div>
+
+                </td>
+                <td>
+                    姓名：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EmployerName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div class="public-table-main FixedHeaderColumnsTableDiv">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="width:30px;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th style="width:230px;" class="FixedCell">员工编号</th>
+                <th style="width:100px;" class="FixedCell">员工姓名</th>
+                <th style="width:130px;" class="FixedCell">账务周期</th>
+                <th style="width:130px;">固定收入</th>
+                <th style="width:130px;">工龄工资</th>
+                <th style="width:130px;">月度考核奖</th>
+                <th style="width:130px;">话费补助</th>
+                <th style="width:130px;">交通补贴</th>
+                <th style="width:130px;">值夜、夜班津贴</th>
+                <th style="width:130px;">节假日加班工资</th>
+                <th style="width:130px;">其他奖金合计</th>
+                <th style="width:130px;">总收入</th>
+                <th style="width:130px;">社保扣款(个人)</th>
+                <th style="width:130px;">医保扣款(个人)</th>
+                <th style="width:130px;">住房公积金(个人)</th>
+                <th style="width:130px;">宿舍房租及水电</th>
+                <th style="width:130px;">其他扣款</th>
+                <th style="width:130px;">社会保险(企)</th>
+                <th style="width:130px;">医疗保险(企)</th>
+                <th style="width:130px;">住房公积金(企)</th>
+                <th style="width:130px;">应纳税所得额</th>
+                <th style="width:130px;">个人所得税</th>
+                <th style="width:130px;">实发</th>
+                <th style="width:130px;">备注</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.EmployerId}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp)" /></td>
+                <td class="FixedCell"><a ng-click="editData(emp.EmployerId+emp.Billcyc)" ng-bind="emp.EmployerId"></a></td>
+                <td class="FixedCell"><a ng-click="editData(emp.EmployerId+emp.Billcyc)" ng-bind="emp.EmployerName"></a></td>
+                <td ng-bind="emp.AccountingCycle" class="FixedCell"></td>
+                <td ng-bind="emp.FixedIncome"></td>
+                <td ng-bind="emp.SeniorityPay"></td>
+                <td ng-bind="emp.ReviewMonthlyAward"></td>
+                <td ng-bind="emp.PhoneSubsidies"></td>
+                <td ng-bind="emp.TravelAllowance"></td>
+                <td ng-bind="emp.NightShiftAllowance"></td>
+                <td ng-bind="emp.HolidayOvertimePay"></td>
+                <td ng-bind="emp.MotorCombinedPrize"></td>
+                <td ng-bind="emp.TotalIncome"></td>
+                <td ng-bind="emp.SocialSecurityDeductions"></td>
+                <td ng-bind="emp.MedicalInsuranceDeductions"></td>
+                <td ng-bind="emp.HousingFundDeductions"></td>
+                <td ng-bind="emp.DormitoryUtilitiesRent"></td>
+                <td ng-bind="emp.OtherDeductions"></td>
+                <td ng-bind="emp.SocialSecurityEnterprise"></td>
+                <td ng-bind="emp.MedicalInsuranceEnterprise"></td>
+                <td ng-bind="emp.HousingFundEnterprise"></td>
+                <td ng-bind="emp.TaxableIncome"></td>
+                <td ng-bind="emp.IncomeTax"></td>
+                <td ng-bind="emp.SalaryPaid"></td>
+                <td ng-bind="emp.Remark"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../FixedIncomeHistory/Edit" class="btn-add"><i></i>添加</a></li>
+                <li><a ng-click="editData('')" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                <li><a href="javascript:void(0);" ng-click="downloadFile()" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>

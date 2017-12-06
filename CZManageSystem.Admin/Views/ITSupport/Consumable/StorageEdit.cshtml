@@ -1,0 +1,121 @@
+﻿
+@{
+    ViewBag.Title = "耗材入库单的明细页面";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            if (type != 'edit') {
+                $('#btnSave').remove();
+                $('#btnSumbit').remove();
+                $('#btnAdd').remove();
+            }
+        });
+
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            var ID = @ViewData["ID"];
+            var RealName = '@ViewData["RealName"]';
+            var Mobile = '@ViewData["Mobile"]';
+            var NewTitle = '@ViewData["NewTitle"]';
+            $scope.curObj = {
+                inputData: { Title: NewTitle },
+                detailDatas: {},
+                sumbitUser: { RealName: RealName, Mobile: Mobile }
+            }
+
+            //获取当前数据
+            if (ID != null && ID.toString().length > 0) {
+
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                    if ($scope.curObj.inputData.Title == null || $scope.curObj.inputData.Title == '') {
+                        $scope.curObj.inputData.Title = NewTitle;
+                    }
+                    if ($scope.curObj.sumbitUser == null) {
+                        $scope.curObj.sumbitUser = { RealName: RealName, Mobile: Mobile };
+                    }
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            //获取耗材信息
+            box.load("GetListData_Storage");
+            BusinessService.GetListData_Storage(ID).success(function (response) {
+                box.ready("GetListData_Storage");
+                $scope.ConsumableData = response.items;
+            }).error(function (err) {
+                box.ready("GetListData_Storage");
+                //alert("网络出错！");
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+           
+ 
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByID = function (ID) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/GetDataByID_InputList?id=' + ID
+                });
+            };
+
+            serive.GetListData_Storage = function (ID) {//获取耗材信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/GetListData_Storage?id=' + ID,
+                   
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form" style="margin-bottom:10px;">
+            <table>
+                <tr><th>入库单：</th><td>{{curObj.inputData.State==1?curObj.inputData.Code:'(提交时自动生成)'}}</td></tr>
+                <tr><th>入库管理员：</th><td ng-bind="curObj.sumbitUser.RealName"></td></tr>
+                <tr><th>手机号码：</th><td ng-bind="curObj.sumbitUser.Mobile"></td></tr>
+                
+            </table>
+        </div>
+        <div class="public-table-main">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <th>耗材类别</th>
+                    <th>耗材名称</th>
+                    <th>耗材品牌</th>
+                    <th>耗材型号</th>
+                    <th>数量</th>
+                </tr>
+                <tr ng-repeat="emp in ConsumableData">
+                    <td ng-bind="emp.Type"></td>
+                    <td ng-bind="emp.Name"></td>
+                    <td ng-bind="emp.Trademark"></td>
+                    <td ng-bind="emp.Model"></td>
+                    <td ng-bind="emp.Amount"></td>
+                </tr>
+
+            </table>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

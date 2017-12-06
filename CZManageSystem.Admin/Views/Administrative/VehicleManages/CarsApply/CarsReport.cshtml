@@ -1,0 +1,197 @@
+﻿
+@{
+    ViewBag.Title = "派车报表";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'number']);
+
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope,$filter, BusinessService) {
+            $scope.queryBuilder = {};
+            //$scope.queryBuilder.ApplyType = "";
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                   // ApplyType: 1
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+
+            $scope.query = function () {
+                GetListData();
+            }
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+            
+            //导出功能
+            $scope.downloadFile = function () {
+                if ($scope.ListPageData.length == 0) {//没有选择一个的时候提示
+                    box.alert("没有可以导出的数据！！");
+                    return;
+                };
+                box.load("GetListData");
+                window.location.href = CurPath + 'CarsApply/Download?queryBuilder=' + JSON.stringify($scope.queryBuilder);
+                box.ready("GetListData");
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'CarsApply/GeServiceReport', postData);
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <th>用车类型：</th>
+                <td colspan="3">
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.ApplyType" style="width:122px">
+                                <option value="-1">全部</option>
+                                <option value="0">用车申请</option>
+                                <option value="1">有偿用车申请</option>
+                                <option value="2">紧急用车</option>
+                            </select>
+                        </div>
+                    </div>                   
+                </td>
+                <th>用车开始时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="StartTime" name="StartTime" date-Picker dateFmt="yyyy-MM-dd" ng-model="queryBuilder.StartTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <th>预计结束时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="TimeOut" name="TimeOut" date-Picker dateFmt="yyyy-MM-dd" ng-model="queryBuilder.TimeOut" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>用车人</th>
+                <th>用车开始时间</th>
+                <th>预计结束时间</th>
+                <th>车辆类型</th>
+                <th>路途类别</th>
+                <th>车辆用途</th>
+                <th>出发地点</th>
+                <th>目的地1</th>
+                <th>目的地2</th>
+                <th>车辆分配信息</th>
+                <th>备注</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td>
+                    <div style="margin:auto; width:140px;" class="divOverflow" ng-mouseenter="showTitle($event)">{{emp.Driver}}</div>
+                </td>
+                <td ng-bind="emp.StartTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td ng-bind="emp.TimeOut|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td ng-bind="emp.CarTonnage"></td>
+                <td ng-bind="emp.Road"></td>
+                <td ng-bind="emp.UseType"></td>
+                <td ng-bind="emp.Starting"></td>
+                <td ng-bind="emp.Destination1"></td>
+                <td ng-bind="emp.Destination2"></td>
+                <td><div style="margin:auto; width:140px;" class="divOverflow" ng-mouseenter="showTitle($event)">{{emp.AllotIntro}}</div></td>
+                <td ng-bind="emp.Remark"></td>
+
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a  href="javascript:void(0);" ng-click="downloadFile()"  class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

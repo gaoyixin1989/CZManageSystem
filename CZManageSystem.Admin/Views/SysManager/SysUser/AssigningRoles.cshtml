@@ -1,0 +1,207 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "CreateOrUpdate";
+}
+<style>
+    fieldset {
+        padding: 10px;
+    }
+</style>
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script>
+        var app = angular.module('AssigningRoles', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('Controller', ['$scope', '$timeout', 'CreateService', function ($scope,$timeout, CreateService) {
+            var id = '@ViewData["id"]';
+            var vm = $scope.vm = {};
+            var selectedList = [];
+            if (id != 0) {
+                box.load("GetListData");
+                CreateService.get(id).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.response = response;
+                    //angular.forEach(response.roles, function (obj) {
+                    //    selectedList.push(obj.RoleId);
+                    //});
+                    selectedList = response.UsersInRoles;
+                    $timeout(function () {
+                        //angular.forEach(selectedList, function (curId) {
+                        //    angular.element("[id='" + curId + "']").prop("checked", true);
+                        //})
+                        if (selectedList.length == $scope.response.roles.length)
+                            $scope.master = true;
+                        else
+                            $scope.master = false;
+                    }, 1);
+                    
+                }).error(function (response) {
+                    box.ready("GetListData");
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.isChecked = function (roleid) {
+                return selectedList.indexOf(roleid) >= 0;
+            };
+            $scope.parentChecked = function ($event, roleid) {
+                var isChecked = $event.target.checked;
+                var childs = getChild(roleid);
+                childs.push(roleid);
+
+                //angular.forEach($($event.target.parentNode.parentNode).find('[type=checkbox]'), function (obj) {
+                //    obj.checked = isChecked;
+                //    $(obj).attr("checked",isChecked);
+                //});
+                angular.forEach(childs, function (obj) {
+                    //angular.element("[id='" + obj + "']").prop("checked", isChecked);
+                    var index = selectedList.indexOf(obj);
+                    if (isChecked && index < 0) {
+                        selectedList.push(obj);
+                    }
+                    else if (!isChecked && index >= 0) {
+                        selectedList.splice(index, 1);
+                    }
+                });
+                if (selectedList.length == $scope.response.roles.length)
+                    $scope.master = true;
+                else
+                    $scope.master = false;
+            };
+
+            function getChildObj(obj) {
+                return childs.indexOf(obj.id) >= 0
+            }
+            function getChild(pareId) {
+                var childs = new Array();
+                angular.forEach($scope.response.roles, function (obj) {
+                    if (obj.ParentId == pareId) {
+                        childs.push(obj.RoleId);
+                    }
+                });
+                return childs;
+            }
+            function getParentId(Id)
+            {
+                angular.forEach($scope.response.roles, function (obj) {
+                    if (obj.RoleId == Id) {
+                        childs.push(obj.RoleId);
+                        return obj.ParentId;
+                    }
+                });
+            }
+            /*实现全选，多选操作*/
+
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                //angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    selectedList = [];
+                    angular.forEach($scope.response.roles, function (obj) {
+                        selectedList.push(obj.RoleId);
+                    });
+                }
+                else
+                    selectedList = [];
+            };
+            $scope.chk = function ($event, curId, ParentId) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (selectedList.indexOf(curId) < 0) {
+                        selectedList.push(curId);
+                    }
+                }
+                else {//取消选中
+                    var index = selectedList.indexOf(curId);
+                    if (index > -1) {
+                        selectedList.splice(index, 1);
+                    }
+                }
+
+                //判断上级是否选中
+                var brothers = getChild(ParentId);
+                for(var i=0;i<brothers.length;i++){
+                    if (selectedList.indexOf(brothers[i]) < 0) {
+                        //angular.element("[id='" + ParentId + "']").prop("checked", false);
+                        //$($event.target.parentNode.parentNode).find('[type=checkbox]')[0].checked = false;
+                        var index = selectedList.indexOf(ParentId);
+                        if (index > -1) {
+                            selectedList.splice(index, 1);
+                        }
+                        break;
+                    }
+                    if (brothers.length - 1 == i) {
+                        //angular.element("[id='" + ParentId + "']").prop("checked", true);
+                        //$($event.target.parentNode.parentNode).find('[type=checkbox]')[0].checked = true;
+                        if (selectedList.indexOf(ParentId) < 0)
+                            selectedList.push(ParentId);
+                    }
+                }
+
+                //判断是否全选
+                if (selectedList.length == $scope.response.roles.length)
+                    $scope.master = true;
+                else
+                    $scope.master = false;
+            };
+            $scope.createOrSave = function () {
+                var postData = {
+                    UserId: $scope.response.user.UserId,
+                    RoleList: selectedList
+                };
+                CreateService.createOrSave(postData).success(function (response) {
+                    box.alert(response.message, function () {
+                        window.location.href = CurPath + 'SysUser/Index';
+                    });
+                });
+            };
+        }]);
+        //业务类
+        app.factory('CreateService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.createOrSave = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + '/SysUser/SetAssigningRoles',
+                    data: postData
+                });
+            };
+            serive.get = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysUser/GetAssigningRoles/' + id
+                    //param: id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<!--公告管理--->
+
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="AssigningRoles" class="public-form" ng-controller="Controller">
+    <div class="public-table-main">
+        <span><input type="checkbox" ng-model="master" ng-click="all($event)" /> 全选</span>
+        <fieldset ng-repeat="roles in response.roles| filter:{ParentId:'00000000-0000-0000-0000-000000000000'}" style="">
+            <legend>
+                <input type="checkbox" id="{{roles.RoleId}}" ng-model="x" ng-checked="isChecked(roles.RoleId)" ng-click="parentChecked($event,roles.RoleId)" /><label ng-bind="roles.RoleName"></label>
+            </legend>
+            <div ng-repeat="role in response.roles| filter:{ParentId:roles.RoleId}" style="float:left;width :auto ;height:auto ;margin-left :18px">
+                <input type="checkbox" id="{{role.RoleId}}" ng-model="x" ng-checked="isChecked(role.RoleId)" ng-click="chk($event,role.RoleId,role.ParentId)" />
+                <label for="{{role.RoleId}}" ng-bind="role.RoleName"> </label>
+            </div>
+        </fieldset>
+        <div style="text-align:center ">
+            <span>
+                <a ng-click="createOrSave()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                <a href="../SysUser/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+            </span>
+        </div>
+    </div>
+</div>
+<!--公告管理 end--->

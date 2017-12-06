@@ -1,0 +1,277 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "菜单编辑";
+}
+@section Css{
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+<!--[if lte IE 8]>
+    <script>
+        document.createElement('treecontrol');
+    </script>
+<![endif]-->
+
+    <script>
+        var app = angular.module('Edit', ['treeControl']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EditController', ['$scope', 'CreateService', function ($scope, CreateService) {
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+            //菜单树形结构
+            $scope.dataForTheTree = [];
+            $scope.ParentId = 0;
+            $scope.MenuLevel = 1;
+            $scope.MenuFullName = '';
+            CreateService.getmenue().success(function (response) {
+                $scope.dataForTheTree = response;
+                $scope.showSelected = function (sel, parent) {
+                    $scope.selectedNode = sel;
+                    $scope.ParentId = sel.MenuId;
+                    $scope.ParentName = sel.MenuName;
+                    $scope.MenuLevel = sel.MenuLevel;
+                    $scope.MenuFullName = sel.MenuFullName;//
+                    pname = $scope.MenuFullName.split('》');
+                    $("#menuTree").toggle();
+                };
+            });
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#menuTree").toggle();
+            }
+
+            var id = '@ViewData["id"]';
+            var pname = "";
+            if (id != 0) {
+                CreateService.get(id).success(function (response) {
+                    pname = response.MenuFullName.split('》');
+                    $scope.id = id;
+                    $scope.MenuId = response.MenuId;
+                    $scope.MenuName = response.MenuName;
+                    $scope.ParentId = response.ParentId;
+                    $scope.ParentName = pname[pname.length - 2];
+                    $scope.MenuLevel = response.MenuLevel;
+                    $scope.OrderNo = response.OrderNo;
+                    $scope.PageUrl = response.PageUrl;
+                    $scope.MenuType = response.MenuType;
+                    $scope.EnableFlag = response.EnableFlag;
+                    $scope.remark = response.Remark;
+                    $scope.ResourceId = response.ResourceId;
+                    $scope.MenuFullName = response.MenuFullName;
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.create = function () {
+                $scope.EditForm.submitted = false;
+                if ($scope.EditForm.$valid) {
+                    var id = 0;
+                    if ('@ViewData["id"]' > 0) {
+                        var id = '@ViewData["id"]';
+                    }
+                    else {
+                        $scope.MenuLevel = $scope.MenuLevel + 1;
+                    }
+                    if ($scope.ParentName == "" || typeof ($scope.ParentName) == undefined) {
+                        $scope.MenuLevel = 1;
+                        $scope.ParentId = 0;
+                        $scope.MenuFullName = $scope.MenuName;
+                    }
+                    else {
+                        if ($scope.MenuFullName == null || $scope.MenuFullName =="") {
+                            $scope.MenuFullName = $scope.MenuName;
+                        }
+                        else {
+                            if (pname[pname.length - 1] != $scope.MenuName) {
+                                $scope.MenuFullName = $scope.MenuFullName + "》" + $scope.MenuName;
+                            }
+                           
+                        }
+
+                    }
+                    var postData = {
+                        Id: id,
+                        MenuId: $scope.MenuId,
+                        MenuName: $scope.MenuName,
+                        ParentId: $scope.ParentId,
+                        MenuFullName: $scope.MenuFullName,
+                        MenuLevel: $scope.MenuLevel,
+                        OrderNo: $scope.OrderNo,
+                        PageUrl: $scope.PageUrl,
+                        MenuType: $scope.MenuType,
+                        EnableFlag: $scope.EnableFlag,
+                        Remark: $scope.remark,
+                        ResourceId: $scope.ResourceId
+                    }
+                    CreateService.create(postData).success(function (response) {
+                        box.alert(response.message, { icon: 'success' }, function () {
+                            window.location.href = CurPath + 'SysMenu/Index';
+                        });
+                       
+                    });
+                    
+                }
+                else {
+                    $scope.EditForm.submitted = true;
+                }
+            };
+
+            $scope.names = ["菜单", "页面", "接口"];
+
+            //$scope.check = function () {
+            //    ele =$(event.target);
+            //    if (ele.val() == "") {
+            //        ele.addClass("on-error");
+            //        ele.nextAll(".must-options").toggle();
+            //     ele.nextAll(".ui-tips").toggle();
+            //    }
+            //    else {
+            //        ele.removeClass("on-error");
+            //        ele.nextAll(".must-options").hide();;
+            //        ele.nextAll(".ui-tips").hide();
+            //    }
+            //}
+
+
+
+        }]);
+        //业务类
+        app.factory('CreateService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.create = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysMenu/Save',
+                    data: postData
+                });
+            };
+            serive.get = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysMenu/GET/' + id
+                    //param: id
+                });
+            };
+            serive.getmenue = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysMenu/GETList'
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<!--菜单管理--->
+@*<div ng-app="Edit" ng-controller="EditController" class="public-form">
+    <form name="EditForm">*@
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="Edit" ng-controller="EditController" name="EditForm" novalidate>
+        <table>
+            <tr style="display:none">
+                <th>Id： </th>
+                <td ng-model="id">
+                    <div value="" ng-model="id">
+                        {{id}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>菜单名称:</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="MenuName" ng-model="MenuName" class="cell-input " required />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="EditForm.MenuName.$invalid&& EditForm.submitted">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入菜单名称</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>父级菜单： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="ParentName" name="ParentName" class="cell-input" placeholder="请选择" ng-click="showTree(this)" />
+                    </div>
+                    <div>
+                        <treecontrol id="menuTree" class="tree-light" style="display:none"
+                                     tree-model="dataForTheTree"
+                                     options="treeOptions"
+                                     on-selection="showSelected(node,$parentNode)">
+                            {{node.MenuName}}
+                        </treecontrol>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>路径： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" ng-model="PageUrl" name="PageUrl" class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>菜单类型： </th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="MenuType" placeholder="请选择" ng-options="x for x in names"></select>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>排序： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="number" value="" class="cell-input" ng-model="OrderNo" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否启用： </th>
+                <td>
+                    <div>
+                        <input type="checkbox" ng-model="EnableFlag" ng-checked="EnableFlag" />
+                    </div>
+
+                </td>
+            </tr>
+
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" ng-model="remark">这里是备注</textarea>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="create()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysMenu/Index" class="cell-btn-orange" style="width:70px; margin-right:20px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<!--菜单管理 end--->

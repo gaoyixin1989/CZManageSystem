@@ -1,0 +1,336 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Css{
+    <style>
+        .public-form table tr th {
+            font-weight: normal;
+            text-align: center;
+            width: 18%;
+            padding: 5px 0px;
+            /*border: 1px solid #eaeaea;
+            border-width: 0px 1px 1px 0px;*/
+            background: #F4F4F4;
+        }
+
+        .public-form table tr td {
+            font-weight: normal;
+            text-align: left;
+            /*border: 1px solid #eaeaea;
+            border-width: 0px 1px 1px 0px;*/           
+             
+        }
+        .ui-input
+        {
+            height:23px;
+            line-height:15px;
+        }
+        .ui-input .cell-input, .ui-input .must-options, .ui-input .ui-tips, .ui-input .icon-data, .the-text-area textarea, .the-text-area .must-options, .the-text-area .ui-tips
+        {
+            float:none; 
+        }
+    </style>
+
+}
+@section Scripts{
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'ngDialog', 'datePicker', 'number']);
+        //控制器
+        app.controller('PageController', ['$scope', '$filter', 'ngDialog', 'BusinessService', function ($scope, $filter, ngDialog, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            var choseArr = new Array();
+            var choseArrBook = new Array();
+            var id = '@ViewData["id"]';
+            //alert(id);
+            BusinessService.getDataByID(id).success(function (response) {
+                $scope.curObjBase = response.baseinfo;
+                $scope.ListPageData = response.info;
+                $scope.BookInfoList = response.bookinfo;
+                choseArr = [];
+                angular.forEach($scope.ListPageData, function (obj) {
+                    choseArr.push(obj.Id);
+                });
+                angular.forEach($scope.BookInfoList, function (obj) {
+                    choseArrBook.push(obj.Id);
+                });
+            }).error(function (response) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            $scope.saveData = function () {
+                var tempDatas = $filter('filter')($scope.ListPageData, function (obj) {
+                    return choseArr.indexOf(obj.Id) > -1;
+                });
+                var tempBookDatas = $filter('filter')($scope.BookInfoList, function (obj) {
+                    return choseArrBook.indexOf(obj.Id) > -1;
+                });
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = {
+                        dataBase: $scope.curObjBase,
+                        dataList: tempDatas,
+                        databookList: tempBookDatas
+                    }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功！" + (response.Message.length > 0 ? "<br/>" : "") + response.Message, { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'OrderMealDinningRoom/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' })
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OrderMealDinningRoom/GetListData', postData);
+            };
+            serive.getDataByID = function (id) {
+                //alert("here");
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OrderMealDinningRoom/GetDataByID/' + id
+                });
+            };
+           
+            //保存合同信息
+            serive.save = function (postData) {
+                //return $http({
+                //    method: 'POST',
+                //    url: CurPath + 'OrderMealDinningRoom/Save',
+                //    data: { dataList: postData }
+                //});
+                return $http.post(CurPath + 'OrderMealDinningRoom/Save', postData);
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="ListPage" ng-controller="PageController" name="editForm" novalidate>
+        <table class="WF_Table" id="ForEdit">
+            <tr>
+                <th>食堂名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DinningRoomName" value="" ng-model="curObjBase.DinningRoomName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.DinningRoomName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.DinningRoomName.$error.required"><i class="icon-error"></i>请输入食堂名称。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+
+
+            </tr>
+            <tr>
+                <th>食堂简介：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Discription" ng-model="curObjBase.Discription"></textarea>
+                    </div>
+                </td>
+
+
+            </tr>
+            <tr>
+                <th>设置供餐时段：</th>
+                <td>
+                    <div>
+                        <ol>
+                            <li ng-repeat="emp in ListPageData">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="ui-input">
+                                                是否提供[{{emp.MealTimeType}}]：<input type="checkbox" ng-model="emp.State" ng-checked="emp.State" style="width:30px !important"  />
+                                            </div>
+                                            <input type="hidden" id="Id" name="Id" ng-model="emp.Id" />
+                                        </td>
+
+                                    </tr>
+                                </table>
+                            </li>
+                        </ol>
+                    </div>
+                </td>
+
+
+            </tr>
+            <tr>
+                <th>用户订餐时间设置：</th>
+                <td>
+                    <div>
+                        <ol>
+                            <li ng-repeat="emp in ListPageData">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="ui-input">
+                                                [{{emp.MealTimeType}}]的订餐时间范围： 从：
+                                                <input type="text" id="BeginTime" name="BeginTime" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' ng-model="emp.BeginTime" class="cell-input cell-input-data" style="float:none; width:60px;">
+                                                <i class="icon-data"></i>  至：
+                                                <input type="text" id="EndTime" name="EndTime" ng-model="emp.EndTime" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" style="float:none; width:60px;">
+                                                <i class="icon-data"></i> 最晚退餐时间:
+                                                <input type="text" id="ClosePayBackTime" name="ClosePayBackTime" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' ng-model="emp.ClosePayBackTime" class="cell-input cell-input-data" style="float:none; width:60px;">
+                                                <i class="icon-data"></i>
+                                            </div>
+                                            <input type="hidden" id="Id" name="Id" ng-model="emp.Id" />
+                                        </td>
+
+                                    </tr>
+                                </table>
+                            </li>
+                        </ol>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>短信发送设置：</th>
+                <td>
+                    <div>
+                        <ol>
+                            <li ng-repeat="emp in ListPageData">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="ui-input">
+                                                [{{emp.MealTimeType}}]的短信发送时间范围： 从：<input type="text" id="SmsTime" name="SmsTime" ng-model="emp.SmsTime" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" style="float:none;width:60px;">
+                                                <i class="icon-data"></i>  至：
+                                                <input type="text" id="LastSmsTime" name="LastSmsTime" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' ng-model="emp.LastSmsTime" class="cell-input cell-input-data" style="float:none;width:60px;">
+                                                <i class="icon-data"></i>
+                                                <input type="hidden" id="Id" name="Id" ng-model="emp.Id" />
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                </table>
+                            </li>
+                        </ol>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>订餐记录推送设置：</th>
+                <td>
+                    <div>
+                        <ol>
+                            <li ng-repeat="emp in ListPageData">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="ui-input">
+                                                [{{emp.MealTimeType}}]的订餐记录推送时间范围：从：<input type="text" id="OrderMealRecordSendTime" name="OrderMealRecordSendTime" ng-model="emp.OrderMealRecordSendTime" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" style="float:none;width:60px;">
+                                                <i class="icon-data"></i>  至：
+                                                <input type="text" id="LastOrderMealRecordSendTime" name="LastOrderMealRecordSendTime" ng-model="emp.LastOrderMealRecordSendTime" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" style="float:none;width:60px;">
+                                                <i class="icon-data"></i>
+                                                <input type="hidden" id="Id" name="Id" ng-model="emp.Id" />
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                </table>
+                            </li>
+                        </ol>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>预约订餐设置：</th>
+                <td>
+                    <div>
+                        <ol>
+                            <li ng-repeat="emp2 in BookInfoList">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="ui-input">
+                                                是否提供预约[{{emp2.MealTimeType}}]： <input type="checkbox" ng-model="emp2.State" ng-checked="emp2.State" style="width:30px !important" />
+                                                <input type="hidden" id="Id" name="Id" ng-model="emp2.Id" />
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                </table>
+                            </li>
+                        </ol>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>预约类型设置：</th>
+                <td>
+                    <div>
+                        <ol>
+                            <li ng-repeat="emp2 in BookInfoList">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="ui-input">
+                                                [{{emp2.MealTimeType}}]的预约设置： 一周内（7天） ：<input type="checkbox" ng-model="emp2.Week" ng-checked="emp2.Week" style="width:30px !important"  />  一个月内：
+                                                <input type="checkbox" ng-model="emp2.Month" ng-checked="emp2.Month" style="width:30px !important"  />
+                                                <input type="hidden" id="Id" name="Id" ng-model="emp2.Id" />
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                </table>
+                            </li>
+                        </ol>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" style="text-align: center;">
+                    <a ng-click="saveData()" class="cell-btn-blue" id="ForEdit_saveOption" style="width:70px; margin-right:20px;">保存</a>
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    
+    
+    
+    </form>
+
+
+
+        @*<!--content--->
+        
+
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li><a href="javascript:void(0);" ng-click="saveData()" class="btn-edit"><i></i>保存</a></li>
+                </ul>
+
+            </div>
+        </div>
+        <!--content--->*@
+</div>
+
+
+

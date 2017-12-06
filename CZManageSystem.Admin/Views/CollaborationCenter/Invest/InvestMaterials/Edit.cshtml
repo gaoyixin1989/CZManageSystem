@@ -1,0 +1,428 @@
+﻿
+@{
+    ViewBag.Title = "物资采购导入 ";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        /*在修改的表单项上才显示错误信息*/
+        input.ng-dirty.ng-invalid {
+            border: 1px solid red;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+            var key = '@ViewData["key"]';
+            $scope.User = { UserName: '', DeptName: '' };
+            $scope.InvestMaterials = {
+                /// <summary>
+                /// 唯一键
+                /// <summary>
+                ID: '',
+                /// <summary>
+                /// 项目编号
+                /// <summary>
+                ProjectID: '',
+                /// <summary>
+                /// 项目名称
+                /// <summary>
+                ProjectName: '',
+                /// <summary>
+                /// 订单编号
+                /// <summary>
+                OrderID: '',
+                /// <summary>
+                /// 订单说明
+                /// <summary>
+                OrderDesc: '',
+                /// <summary>
+                /// 订单录入公司
+                /// <summary>
+                OrderInCompany: '',
+                /// <summary>
+                /// 审核状态(批准)
+                /// <summary>
+                AuditStatus: '',
+                /// <summary>
+                /// 订单录入金额
+                /// <summary>
+                OrderInPay: 0,
+                /// <summary>
+                /// 订单接收公司
+                /// <summary>
+                OrderOutCompany: '',
+                /// <summary>
+                /// 订单接收金额
+                /// <summary>
+                OrderOutSum: 0,
+                /// <summary>
+                /// 订单创建时间
+                /// <summary>
+                OrderCreateTime: '',
+                /// <summary>
+                /// 合同编号
+                /// <summary>
+                ContractID: '',
+                /// <summary>
+                /// 合同名称
+                /// <summary>
+                ContractName: '',
+                /// <summary>
+                /// 外围系统合同编号
+                /// <summary>
+                OutContractID: '',
+                /// <summary>
+                /// 订单标题
+                /// <summary>
+                OrderTitle: '',
+                /// <summary>
+                /// 订单备注
+                /// <summary>
+                OrderNote: '',
+                /// <summary>
+                /// 供应商
+                /// <summary>
+                Apply: '',
+                /// <summary>
+                /// 订单接收百分比 SUM
+                /// <summary>
+                OrderOutRate: 0,
+                /// <summary>
+                /// 未接收设备（元）
+                /// <summary>
+                OrderUnReceived: 0
+            };
+          
+
+            //获取当前数据
+            if (key != null && key.toString()!='00000000-0000-0000-0000-000000000000' && key != "undefined") {
+               
+                box.load("loading");
+                BusinessService.getDataByID(key).success(function (response) {
+                    if (response.IsSuccess) {
+                        $scope.InvestMaterials = response.data;
+                        $scope.InvestMaterials.OrderCreateTime = $filter('date')($scope.InvestMaterials.OrderCreateTime, 'yyyy-MM-dd');
+                    }
+                    else
+                        box.alert(response.Message.length > 0 ? response.Message : "网络出错！", { icon: 'error' }); box.ready("loading");
+                    box.ready("loading");
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' }); box.ready("loading");
+                });
+            };
+
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var payViewModel = $scope.InvestMaterials
+                    BusinessService.save(payViewModel).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'InvestMaterials/IndexMy';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InvestMaterials/Save',
+                    data: postData
+                });
+            };
+
+            serive.getDataByID = function (key) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InvestMaterials/GetDataByID?key=' + key
+                });
+            };
+
+            return serive;
+        }]);
+
+
+
+    </script>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table> 
+            <tr>
+                <th>项目编号：</th>
+                <td>
+
+                    <div class="ui-input">
+                        <input type="text" name="ProjectID" ng-model="InvestMaterials.ProjectID" required placeholder="请输入项目编号" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ProjectID.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ProjectID.$error.required">请输入项目编号</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>项目名称：</th>
+                <td>
+
+                    <div class="ui-input" >
+                        <input type="text" name="ProjectName" ng-model="InvestMaterials.ProjectName" required placeholder="请输入项目名称" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ProjectName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ProjectName.$error.required">请输入项目编号</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>订单编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderID" ng-model="InvestMaterials.OrderID" required placeholder="请输入订单编号" class="cell-input" />
+                        <strong class="must-options">*</strong>
+
+                        <div class="ui-tips" ng-show="editForm.OrderID.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OrderID.$error.required">请输入订单编号</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>订单说明：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderDesc" ng-model="InvestMaterials.OrderDesc" placeholder="请输入订单说明" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单录入公司：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderInCompany" ng-model="InvestMaterials.OrderInCompany" placeholder="请输入订单录入公司" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>审批状态：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="AuditStatus" ng-model="InvestMaterials.AuditStatus" placeholder="请输入审批状态" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单录入金额：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderInPay" ng-model="InvestMaterials.OrderInPay" required placeholder="请输入数额" number precision="2" max="9999999" min="0" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OrderInPay.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OrderInPay.$error.required">请输入订单录入金额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单接收公司：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderOutCompany" ng-model="InvestMaterials.OrderOutCompany" placeholder="请输入订单接收公司" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单接收金额：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderOutSum" ng-model="InvestMaterials.OrderOutSum" required placeholder="请输入数额" number precision="2" max="9999999" min="0" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OrderOutSum.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OrderOutSum.$error.required">请输入订单接收金额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单创建时间：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="OrderCreateTime" ng-model="InvestMaterials.OrderCreateTime" date-Picker datefmt="yyyy-MM-dd" maxdate="%y-%M-%d" class="cell-input cell-input-data" required placeholder="请选择时间">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OrderCreateTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OrderCreateTime.$error.required">请选择订单创建时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ContractID" ng-model="InvestMaterials.ContractID" placeholder="请输入合同编号" class="cell-input" />
+                        @*<strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ContractID.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ContractID.$error.required">请输入合同编号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>*@
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ContractName" ng-model="InvestMaterials.ContractName" placeholder="请输入合同名称" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>外围系统合同编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OutContractID" ng-model="InvestMaterials.OutContractID" placeholder="请输入外围系统合同编号" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单标题：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderTitle" ng-model="InvestMaterials.OrderTitle" placeholder="请输入订单标题" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单备注：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="HousingFundDeductions" ng-model="InvestMaterials.OrderNote" placeholder="请输入订单备注" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>供应商：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Apply" ng-model="InvestMaterials.Apply" placeholder="请输入供应商" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>订单接收百分比 SUM：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderOutRate" ng-model="InvestMaterials.OrderOutRate" required placeholder="请输入订单接收百分比 SUM" number precision="2" max="9999999" min="0" class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OrderOutRate.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OrderOutRate.$error.required">请输入订单接收百分比 SUM</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>未接收设备（元）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OrderUnReceived" ng-model="InvestMaterials.OrderUnReceived" placeholder="请输入数额" number precision="2" max="9999999" min="0" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+
+
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

@@ -1,0 +1,325 @@
+﻿@{
+    ViewBag.Title = "我的会议室申请使用满意度报表";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <link href="~/Content/app/AngularJsMultiSelect/isteven-multi-select.css" rel="stylesheet" />
+    <script src="~/Content/app/AngularJsMultiSelect/isteven-multi-select.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'isteven-multi-select']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.roomSelected = [];
+
+            $scope.queryBuilder = {
+                AppTime_start: "",
+                AppTime_end: "",
+                JudgeState: [1, 2],
+                isManager: true
+            };
+
+            //获取会议室资料信息
+            BusinessService.GetBoardroomInfoListData_short().success(function (response) {
+                $scope.BoardroomInfoList = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                $scope.queryBuilder.pageIndex = $scope.paginationConf.currentPage;
+                $scope.queryBuilder.pageSize = $scope.paginationConf.itemsPerPage;
+
+                $scope.queryBuilder.Room = [];
+                if ($scope.roomSelected.length > 0) {
+                    $.each($scope.roomSelected, function (i, item) {
+                        $scope.queryBuilder.Room.push(item.BoardroomID);
+                    })
+                }
+
+                BusinessService.list($scope.queryBuilder).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.deleteOne = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData([id]).success(function (response) {
+                            if (response.isSuccess) {
+                                box.alert("删除成功", { icon: 'success' });
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+            $scope.dictCorpType = null;
+            $scope.getCorpTextById = function (CorpID) {
+                var result = "";
+                if ($scope.dictCorpType != null) {
+                    var temp = $filter('filter')($scope.dictCorpType, { 'value': CorpID });
+                    if (temp.length > 0)
+                        result = temp[0].text;
+                    return result;
+                }
+                else {
+                    //获取所属单位
+                    BusinessService.getDictListByName('所属单位').success(function (response) {
+                        $scope.dictCorpType = response.items;
+                    }).error(function (err) {
+                        box.alert("网络出错！", { icon: 'error' });
+                    }).then(function () {
+                        var temp = $filter('filter')($scope.dictCorpType, { 'value': CorpID });
+                        if (temp.length > 0)
+                            result = temp[0].text;
+                        return result;
+                    });
+                }
+
+            }
+
+            //选择用户（与会人员）
+            $scope.editUser = function (users) {
+                var iframeId = 'user_edit';
+                var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + users;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择用户',
+                        width: 760,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.queryBuilder.AppPerson = getAttrByArr(result, 'id');
+                                    $scope.queryBuilder.AppPerson_text = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'BoardroomManage/GetBoardroomApplyListData', postData);
+            };
+            serive.GetBoardroomInfoListData_short = function () {//获取会议室资料数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/GetBoardroomInfoListData_short'
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod" style="height:60px;">
+        <table>
+            <tr>
+                
+                <td>会议室：</td>
+                <td>
+                    <div class="selectdrapdown">
+                        @*<select class="cell-input" ng-model="queryBuilder.Room" style="width:135px;">
+                                <option ng-repeat="x in BoardroomInfoList" value="{{x.BoardroomID}}">{{x.Name}}</option>
+                            </select>*@
+                        <div isteven-multi-select
+                             input-model="BoardroomInfoList"
+                             output-model="roomSelected"
+                             button-label="Name"
+                             item-label="Name"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:160px;">
+                        </div>
+                    </div>
+                </td>
+
+                <td>申请人：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="width:150px;" ng-model="queryBuilder.AppPerson_text" class="cell-input" readonly ng-click="editUser(queryBuilder.AppPerson.join(','))" />
+                    </div>
+                </td>
+
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td>
+                    申请时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="AppTime_start" date-Picker ng-model="queryBuilder.AppTime_start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td style="padding-left:5px;padding-right:5px;">至</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="AppTime_end" date-Picker ng-model="queryBuilder.AppTime_end" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="display:none;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>流水号</th>
+                <th>会议室</th>
+                <th>申请人</th>
+                <th>联系电话</th>
+                <th width="110px;">申请时间</th>
+                <th>服务质量</th>
+                <th>环境卫生</th>
+                <th>其他建议</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td style="display:none;"><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                <td ng-bind="emp.Code"></td>
+                <td ng-bind="emp.RoomInfo.Name"></td>
+                <td ng-bind="emp.AppPerson_text"></td>
+                <td ng-bind="emp.ContactMobile"></td>
+                <td ng-bind="emp.AppTime|date:'yyyy-MM-dd HH:mm'"></td>
+                <td ng-bind="emp.JudgeServiceQuality"></td>
+                <td ng-bind="emp.JudgeEnvironmental"></td>
+                <td><div style="width:280px;" class="divOverflow" ng-mouseenter="showTitle($event)">{{emp.JudgeOtherSuggest}}</div></td>
+            </tr>
+
+        </table>
+    </div>
+    <div class="the-operation1" style="float:left">
+        <ul>
+            <li><a href="../BoardroomManage/DownloadboardroomApply?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+        </ul>
+
+    </div>
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>

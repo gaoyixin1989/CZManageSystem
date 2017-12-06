@@ -1,0 +1,160 @@
+﻿
+@{
+    ViewBag.Title = "年福利编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var YID = '@ViewData["YID"]';
+            $scope.yearInfo = {};
+            //-----------------------------
+            if (YID != null && YID.toString().length > 0) {
+                BusinessService.getDataByID(YID).success(function (response) {
+                    $scope.yearInfo = response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.yearInfo.YID = YID;
+                    var postData = { yearInfo: $scope.yearInfo }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'WelfareManage/YearInfo';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'WelfareManage/Save_yearInfo',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (YID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'WelfareManage/YearInfoGetByID?YID=' + YID
+
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>员工编号：</th>
+                    <td ng-bind="yearInfo.Employee"></td>
+                </tr>
+                <tr>
+                    <th>员工姓名：</th>
+                    <td ng-bind="yearInfo.EmployeeName"></td>
+                </tr>
+                <tr>
+                    <th>年：</th>
+                    <td ng-bind="yearInfo.CYear"></td>
+                </tr>
+                <tr>
+                    <th>年福利总额：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="WelfareYearTotalAmount" ng-model="yearInfo.WelfareYearTotalAmount" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.WelfareYearTotalAmount.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.WelfareYearTotalAmount.$error.required">请输入年福利总额</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+       
+    </form>
+</div>
+<!--公告编辑 end--->
+

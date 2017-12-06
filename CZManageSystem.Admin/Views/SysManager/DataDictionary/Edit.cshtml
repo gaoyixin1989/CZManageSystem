@@ -1,0 +1,202 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            $scope.curObj = {
+                EnableFlag: false,
+                DefaultFlag: false,
+                ValueType: 'string'
+            };
+
+            var id = '@ViewData["id"]';
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'DataDictionary/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }) });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>当前状态： </th>
+                <td>
+                    {{(curObj.DDId!=null && curObj.DDId.toString().length>0)?"编辑":"新增"}}
+                </td>
+            </tr>
+            @*<tr>
+                    <th>id：</th>
+                    <td>{{curObj.DDId}}</td>
+                </tr>*@
+            <tr>
+                <th>字典名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DDName" ng-maxlength="50" ng-model="curObj.DDName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DDName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DDName.$error.required">请输入字典名称</span>
+                                <span ng-show="editForm.DDName.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>字典类型：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="ValueType" required ng-model="curObj.ValueType" style="width:222px;">
+                                <option value="string">string</option>
+                                <option value="int">int</option>
+                                <option value="bool">bool</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ValueType.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择字典类型</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>字典值：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DDValue" ng-model="curObj.DDValue" ng-maxlength="50" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DDValue.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DDValue.$error.required">请输入字典值</span>
+                                <span ng-show="editForm.DDValue.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>字典文本：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DDText" ng-model="curObj.DDText" ng-maxlength="50" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DDText.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DDText.$error.required">请输入字典文本</span>
+                                <span ng-show="editForm.DDText.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否启用：</th>
+                <td>
+                    <label><input type="radio" name="EnableFlag" ng-value='true' ng-model="curObj.EnableFlag" />是</label>
+                    <label style="margin-left:20px;"><input type="radio" name="EnableFlag" ng-value='false' ng-model="curObj.EnableFlag" />否</label>
+                </td>
+            </tr>
+            <tr>
+                <th>默认选项：</th>
+                <td>
+                    <label><input type="radio" name="DefaultFlag" ng-value='true' ng-model="curObj.DefaultFlag" />是</label>
+                    <label style="margin-left:20px;"><input type="radio" name="DefaultFlag" ng-value='false' ng-model="curObj.DefaultFlag" />否</label>
+                </td>
+            </tr>
+            <tr>
+                <th>序号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number name="OrderNo" ng-model="curObj.OrderNo" class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../DataDictionary/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

@@ -1,0 +1,220 @@
+﻿@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "角色管理";
+}
+@section Scripts{
+    <script src="~/Content/Javascript/angular/tree-grid-directive.js"></script>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+    <link href="~/Content/css/treeGrid.css" rel="stylesheet" />
+
+
+    <script type="text/javascript">
+        var app = angular.module('TreeList', ['treeGrid']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        //控制器
+        app.controller('TreeController', ['$scope', 'SelectService',
+            function ($scope, SelectService) {
+                $scope.tree_data = [];//菜单数据
+                $scope.my_tree = {};
+                box.load("GetListData");
+                SelectService.list().success(function (response) {
+                    box.ready("GetListData");
+                    $scope.tree_data = response;
+                    $scope.my_tree = response;
+                }).error(function () {
+                    box.ready("GetListData");
+                });
+                $scope.deleteData = function (id) {
+                    SelectService.deleteData(id).success(function (response) {
+                        box.alert(response.message);
+                        $scope.getmenue();
+                    });
+                    $scope.getmenue = function () {
+                        box.load("getmenue");
+                        SelectService.list().success(function (response) {
+                            box.ready("getmenue");
+                            $scope.tree_data = response;
+                            $scope.my_tree = response;
+                        }).error(function () {
+                            box.ready("getmenue");
+                        });
+                    }
+
+                }
+
+
+                $scope.expanding_property = {
+                    field: "RoleName",
+                    displayName: "角色名",
+                    sortable: true,
+                    filterable: true
+                };
+                $scope.col_defs = [
+                //{
+                //    //field: "EndTime",//绑定字段名
+                //   displayName: "结束时间",
+                //   cellTemplate: "<span>{{row.branch.EndTime|date:'yyyy-MM-dd HH:mm:ss'}}</span>",
+                //   sortable: true
+                //    //sortingType: "string"//
+                //},
+                     {
+                         field: "Comment",
+                         displayName: "备注",
+                         sortable: true
+                     },
+                {
+                    filed: "RoleId",
+                    displayName: "操作",
+                    cellTemplate: "<div class='operation-btn'><a ng-href='../SysRole/Edit?id={{row.branch.RoleId}}' class='lia-1'>修改</a><a ng-href='/SysRole/RolesInResources?id={{row.branch.RoleId}}' class='lia-1'>分配权限</a><a href='javascript:void(0);' class='lia-1' ng-click='cellTemplateScope.selectUser(row.branch)'>分配用户</a><a href='javascript:void(0);' class='lia-1' ng-click='cellTemplateScope.click(this)'>删除</a></div>",
+                    cellTemplateScope: {
+                        click: function (data) { // this works too: $scope.someMethod;
+                            //alert(data.row.branch.MenuId);
+
+                            box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                                if (result) {
+                                    $scope.deleteData(data.row.branch.RoleId);
+                                }
+                            });
+                        },
+                        selectUser: function (obj) {
+                            var iframeId = 'user_edit';
+                            var title = "用户选择";
+                            var strUrl = '../UsersGrounp/SelectUsers';
+                            var data = { selectedId: obj.userList.join(",") };
+
+                            box.popup('',
+                                {
+                                    url: strUrl,
+                                    iframeData: data,
+                                    iframeId: iframeId,
+                                    title: title,
+                                    width: 760,//窗口宽度，默认400
+                                    height: 380,//窗口高度，默认400
+                                    hasOk: true,
+                                    hasCancel: true,
+                                    onBeforeClose: function (data) {
+                                        if (data == true) {
+                                            var theWindow = window;
+                                            while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                                theWindow = theWindow.parent;
+                                            }
+                                            if (!theWindow.frames[iframeId]) {
+                                                box.alert('出错！', { icon: 'error' });
+                                            }
+                                            else {
+                                                var result = theWindow.frames[iframeId].getResult();
+                                                var postData = {
+                                                    roleId:obj.RoleId,
+                                                    listUsers: getAttrByArr(result, 'id')
+                                                };
+
+                                                SelectService.saveRoleUsers(postData).success(function (response) {
+                                                    if (response.IsSuccess) {
+                                                        //alert("保存成功");
+                                                        box.alert("保存成功", { icon: 'success' }, function () {
+                                                            obj.userList = postData.listUsers;
+                                                        });
+                                                    }
+                                                    else {
+                                                        box.alert(response.Message, { icon: 'error' });
+                                                    }
+                                                }).error(function (response) {
+                                                    box.alert('网络出错！', { icon: 'error' });
+                                                });
+
+
+                                            }
+                                        }
+                                    }
+                                });
+
+
+                        }
+
+
+                    }
+                }
+                ];
+                $scope.my_tree_handler = function (branch) {
+                }
+
+
+
+            }]);
+        //业务类
+        app.factory('SelectService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/GETList'//
+                });
+            };
+            //删除
+            serive.deleteData = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/DeleteById/' + id
+                    //data: id
+                });
+            };
+
+            serive.saveRoleUsers = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/SaveRoleUsers',
+                    data: postData
+                });
+            };
+
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+    </script>
+
+}
+<div ng-app="TreeList" ng-controller="TreeController">
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    角色名：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input class="cell-input" style="width:120px;" type="text" data-ng-model="filterString" placeholder="角色名" />
+                    </div>
+                </td>
+
+            </tr>
+        </table>
+
+    </div>
+    <div class="public-table-main">
+        <tree-grid tree-data="tree_data"
+                   tree-control="my_tree" col-defs="col_defs"
+                   expand-on="expanding_property"
+                   on-select="my_tree_handler(branch)"
+                   expand-level="10"
+                   icon-leaf="glyphicon glyphicon-globe"></tree-grid>
+
+    </div>
+    <div class="the-operation1" style="float:left">
+
+        <ul>
+            <li><a href="../SysRole/Edit" class="btn-add"><i></i>添加</a></li>
+        </ul>
+
+    </div>
+</div>

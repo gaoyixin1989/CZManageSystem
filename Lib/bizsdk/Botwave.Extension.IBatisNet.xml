@@ -1,0 +1,382 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Botwave.Extension.IBatisNet</name>
+    </assembly>
+    <members>
+        <member name="T:Botwave.Extension.IBatisNet.IBatisMapper">
+            <summary>
+            IBatisNet Mapper 辅助类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Extension.IBatisNet.IBatisMapper.Mapper">
+            <summary>
+            IBatisNet 的 ISqlMapper 实例对象.
+            修改数据库连接字符串，从 web.config 中读取相应的配置节点.
+            </summary>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisMapper.Insert(System.String,System.Object)">
+            <summary>
+            插入指定 statementId、paramValue 的数据.
+            </summary>
+            <param name="statementId"></param>
+            <param name="paramValue"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisMapper.Update(System.String,System.Object)">
+            <summary>
+            更新指定 statementId、paramValue 的数据.
+            </summary>
+            <param name="statementId"></param>
+            <param name="paramValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisMapper.Delete(System.String,System.Object)">
+            <summary>
+            删除指定 statementId、paramValue 的数据.
+            </summary>
+            <param name="statementId"></param>
+            <param name="paramValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisMapper.Load``1(System.String,System.Object)">
+            <summary>
+            根据 statementId、paramValue 获取对象T
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="statementId"></param>
+            <param name="paramValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisMapper.Select``1(System.String)">
+            <summary>
+            根据 statementId 获取对象 T 列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisMapper.Select``1(System.String,System.Object)">
+            <summary>
+            根据statementId、paramValue获取对象T列表
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="statementId"></param>
+            <param name="paramValue"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Extension.IBatisNet.IBatisDbHelper">
+            <summary>
+            IBatisNet的数据访问帮助类.
+            主要用于不需要IBatisNet的映射的情况，如直接执行sql、返回DataSet等.
+            仿MS的SqlHelper，主要不同点在于借助IBatisNet的DataSource/DbProvider来创建IDbConnection、IDbCommand、IDbDataAdapter、IDbDataParameter.
+            而不是像SqlHelper一样通过SqlConnection、SqlCommand等来访问.
+            </summary>
+        </member>
+        <member name="F:Botwave.Extension.IBatisNet.IBatisDbHelper.ConnectionString">
+            <summary>
+            数据库连接字符串, 只读.
+            </summary>
+        </member>
+        <member name="F:Botwave.Extension.IBatisNet.IBatisDbHelper.dbProvider">
+            <summary>
+            数据提供源.
+            </summary>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.GetConnectionString">
+            <summary>
+            获取数据库连接.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.CreateConnection">
+            <summary>
+            创建数据库连接实例.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.CreateCommand">
+            <summary>
+            创建数据操作命令接口.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.CreateDataAdapter">
+            <summary>
+            创建数据适配器实例.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.CreateParameter">
+            <summary>
+            创建数据参数实例.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.CreateParameterSet(System.Int32)">
+            <summary>
+            创建数据参数集合.
+            </summary>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.AttachParameters(System.Data.IDbCommand,System.Data.IDbDataParameter[])">
+            <summary>
+            附件参数对象到指定 IDbCommand 对象.
+            </summary>
+            <param name="command"></param>
+            <param name="commandParameters"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.AssignParameterValues(System.Data.IDbDataParameter[],System.Object[])">
+            <summary>
+            设置参数值.
+            </summary>
+            <param name="commandParameters"></param>
+            <param name="parameterValues"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.PrepareCommand(System.Data.IDbCommand,System.Data.IDbConnection,System.Data.IDbTransaction,System.Data.CommandType,System.String,System.Data.IDbDataParameter[],System.Boolean@)">
+            <summary>
+            设置命令对象.
+            </summary>
+            <param name="command"></param>
+            <param name="connection"></param>
+            <param name="transaction"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <param name="mustCloseConnection"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteNonQuery(System.Data.CommandType,System.String)">
+            <summary>
+            执行SQL, 并返回受影响的行数.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteNonQuery(System.String,System.Object[])">
+            <summary>
+            执行SQL, 并返回受影响的行数.
+            </summary>
+            <param name="spName"></param>
+            <param name="parameterValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteNonQuery(System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行SQL, 并返回受影响的行数.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteNonQuery(System.Data.IDbConnection,System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行SQL, 并返回受影响的行数.
+            </summary>
+            <param name="connection"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteNonQuery(System.Data.IDbTransaction,System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行SQL, 并返回受影响的行数.
+            </summary>
+            <param name="transaction"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteScalar(System.Data.CommandType,System.String)">
+            <summary>
+             执行查询，并返回查询所返回的结果集中第一行的第一列. 忽略其他列或行.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteScalar(System.String,System.Object[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集中第一行的第一列. 忽略其他列或行.
+            </summary>
+            <param name="spName"></param>
+            <param name="parameterValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteScalar(System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集中第一行的第一列. 忽略其他列或行.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteScalar(System.Data.IDbConnection,System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集中第一行的第一列. 忽略其他列或行.
+            </summary>
+            <param name="connection"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteReader(System.Data.CommandType,System.String)">
+            <summary>
+             执行查询，并生成一个 System.Data.IDataReader 对象.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteReader(System.String,System.Object[])">
+            <summary>
+            执行查询，并生成一个 System.Data.IDataReader 对象.
+            </summary>
+            <param name="spName"></param>
+            <param name="parameterValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteReader(System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并生成一个 System.Data.IDataReader 对象.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteReader(System.Data.IDbConnection,System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并生成一个 System.Data.IDataReader 对象.
+            </summary>
+            <param name="connection"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteDataset(System.Data.CommandType,System.String)">
+            <summary>
+            执行查询，并返回结果数据集.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteDataset(System.String,System.Object[])">
+            <summary>
+            执行查询，并返回结果数据集.
+            </summary>
+            <param name="spName"></param>
+            <param name="parameterValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteDataset(System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并返回结果数据集.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.ExecuteDataset(System.Data.IDbConnection,System.Data.CommandType,System.String,System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并返回结果数据集.
+            </summary>
+            <param name="connection"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="commandParameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.FillDataset(System.Data.CommandType,System.String,System.Data.DataSet,System.String[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集填充到指定数据集中.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="dataSet"></param>
+            <param name="tableNames"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.FillDataset(System.Data.IDbConnection,System.Data.CommandType,System.String,System.Data.DataSet,System.String[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集填充到指定数据集中.
+            </summary>
+            <param name="connection"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="dataSet"></param>
+            <param name="tableNames"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.FillDataset(System.Data.CommandType,System.String,System.Data.DataSet,System.String[],System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集填充到指定数据集中.
+            </summary>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="dataSet"></param>
+            <param name="tableNames"></param>
+            <param name="commandParameters"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.FillDataset(System.String,System.Data.DataSet,System.String[],System.Object[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集填充到指定数据集中.
+            </summary>
+            <param name="spName"></param>
+            <param name="dataSet"></param>
+            <param name="tableNames"></param>
+            <param name="parameterValues"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.FillDataset(System.Data.IDbConnection,System.Data.CommandType,System.String,System.Data.DataSet,System.String[],System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集填充到指定数据集中.
+            </summary>
+            <param name="connection"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="dataSet"></param>
+            <param name="tableNames"></param>
+            <param name="commandParameters"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.FillDataset(System.Data.IDbConnection,System.String,System.Data.DataSet,System.String[],System.Object[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集填充到指定数据集中.
+            </summary>
+            <param name="connection"></param>
+            <param name="spName"></param>
+            <param name="dataSet"></param>
+            <param name="tableNames"></param>
+            <param name="parameterValues"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.FillDataset(System.Data.IDbConnection,System.Data.IDbTransaction,System.Data.CommandType,System.String,System.Data.DataSet,System.String[],System.Data.IDbDataParameter[])">
+            <summary>
+            执行查询，并返回查询所返回的结果集填充到指定数据集中.
+            </summary>
+            <param name="connection"></param>
+            <param name="transaction"></param>
+            <param name="commandType"></param>
+            <param name="commandText"></param>
+            <param name="dataSet"></param>
+            <param name="tableNames"></param>
+            <param name="commandParameters"></param>
+        </member>
+        <member name="M:Botwave.Extension.IBatisNet.IBatisDbHelper.GetPagedList(System.String,System.String,System.Int32,System.Int32,System.String,System.String,System.String,System.Int32@)">
+            <summary>
+            获取已分页列表.
+            </summary>
+            <param name="tableName">要分页显示的表(视图)名.</param>
+            <param name="fieldKey">于定位记录的主键(惟一键)字段,只能是单个字段.</param>
+            <param name="pageIndex">要显示的页码.</param>
+            <param name="pageSize">每页的大小(记录数).</param>
+            <param name="fieldShow">以逗号分隔的要显示的字段列表,如果不指定,则显示所有字段.</param>
+            <param name="fieldOrder">以逗号分隔的排序字段列表,可以指定在字段后面指定DESC/ASC 用于指定排序顺序.</param>
+            <param name="where">查询条件.</param>
+            <param name="recordCount">总记录数.</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

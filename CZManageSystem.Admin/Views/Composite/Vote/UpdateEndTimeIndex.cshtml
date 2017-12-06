@@ -1,0 +1,117 @@
+﻿
+@{
+    ViewBag.Title = "投票延期";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=CreateController]');
+            var $scope = angular.element(appElement).scope();
+            return $scope.Model;
+        }
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+            var ApplyID = '@ViewData["ApplyID"]';
+            var StartTime = '@ViewData["StartTime"]';
+            var EndTime = '@ViewData["EndTime"]';
+            $scope.Model = {
+                ApplyID: ApplyID,
+                StartTime: StartTime,
+                EndTime: EndTime
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.updateEndTime = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/UpdateEndTime',
+                    data: id
+                });
+            };
+            return serive;
+        }]);
+
+
+
+    </script>
+    <style>
+        body {
+            min-width: 0px;
+        }
+    </style>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>开始日期：</th>
+                    <td>
+                        <div class="ui-input" style="margin-right:0px;">
+                            <input type="text" name="StartTime" ng-model="Model.StartTime" date-Picker datefmt='yyyy-MM-dd HH:mm' class="cell-input cell-input-data" required placeholder="开始日期">
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.StartTime.$error.required">请选择开始日期</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>结束日期：</th>
+                    <td>
+                        <div class="ui-input" style="margin-right:0px;">
+                            <input type="text" name="EndTime" ng-model="Model.EndTime" date-Picker dateFmt='yyyy-MM-dd HH:mm' class="cell-input cell-input-data" required placeholder="结束日期">
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.EndTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.EndTime.$error.required">请选择结束日期</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+
+
+                    </td>
+                </tr>
+                @*<tr class="forEdit">
+                        <td colspan="2">
+                            <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <td>
+                            <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                            <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                        </td>
+                    </tr>*@
+            </table>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

@@ -1,0 +1,388 @@
+﻿
+@{
+    ViewBag.Title = "编辑月固定收入类型";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        /*在修改的表单项上才显示错误信息*/
+        input.ng-dirty.ng-invalid {
+            border: 1px solid red;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', 'ngDialog', function ($scope, BusinessService, $filter, ngDialog) {
+
+            var id = '@ViewData["id"]';
+            $scope.UserName = '';
+            $scope.DeptName = '';
+            $scope.GdPayId = {
+                payid: 0,
+                payname: '',
+                pid:0,
+                bz: '',
+                sort: '',
+                RowExclusive: true,
+                Inherit: true,
+                DataType: 'num'
+            };
+            $scope.PayNames = [];
+
+
+            //获取当前数据
+            if (id != null && id.toString().length > 0 && id != "undefined" && id.toString() != "0") {
+                box.load("loading");
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.GdPayId = response;
+                    //$scope.GdPayId.Billcyc = $scope.GdPayId.Billcyc.toString("yyyy年M月");
+                    //$scope.getUserInfo($scope.GdPayId.EmployerId);
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+
+            var getP = function () {
+                BusinessService.getIncomeTypeP().success(function (response) {
+                    $scope.PayNames = response;
+                }).error(function (err) {
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            };
+            getP();
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.GdPayId
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'FixedIncomeItems/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            $scope.openDialog = function () {
+                var dialog = ngDialog.open({
+                    title: '月固定收入类型标题编辑',
+                    template: 'DialogId',
+                    controller: 'DialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 450,
+                    height: 230,
+                    top: -60
+                });
+                dialog.closePromise.then(function (data) {
+                    getP();
+                });
+            };
+
+        }]);
+        app.controller('DialogController', ['$scope', 'BusinessService', '$filter', 'ngDialog', function ($scope, BusinessService, $filter, ngDialog) {
+            var id = '@ViewData["id"]';
+            $scope.UserName = '';
+            $scope.DeptName = '';
+            $scope.GdPayId = {
+                payid: 0,
+                payname: '',
+                pid: 0,
+                bz: '',
+                sort: '',
+                RowExclusive: true,
+                Inherit: true,
+                DataType: 'num'
+            };
+            $scope.PayNames = [];
+
+
+            //获取当前数据
+            //if (id != null && id.toString().length > 0 && id != "undefined" && id.toString() != "0") {
+            //    box.load("loading");
+            //    BusinessService.getDataByID(id).success(function (response) {
+            //        $scope.GdPayId = response;
+            //        //$scope.GdPayId.Billcyc = $scope.GdPayId.Billcyc.toString("yyyy年M月");
+            //        //$scope.getUserInfo($scope.GdPayId.EmployerId);
+            //    }).error(function (response) {
+            //        box.alert("网络出错！", { icon: 'error' });
+            //    });
+            //    box.ready("loading");
+            //};
+
+
+
+            //保存数据
+            $scope.save = function () { 
+                $scope.openForm.failSubmited = false;
+                if ($scope.openForm.$valid) {
+                    var postData = $scope.GdPayId
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            $scope.closeThisDialog();
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.openForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'FixedIncomeItems/Save',
+                    data: postData
+                });
+            };
+
+            serive.getDataByID = function (id) {//根据ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'FixedIncomeItems/GetDataByID?id=' + id
+                });
+            };
+
+
+            serive.getIncomeTypeP = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'FixedIncomeItems/GetIncomeTypeP'
+                });
+            };
+            return serive;
+        }]);
+
+
+
+    </script>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" class="public-form">
+    <form action="" method="post" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>月固定收入类型：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="payname" ng-model="GdPayId.payname" placeholder="请输入月固定收入类型" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.payname.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.payname.$error.required">请输入月固定收入类型</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>所属大标题：</th>
+                <td>
+                    <div class="ui-input">
+
+                        <select class="cell-input" name="pid" ng-change="getUserInfo(GdPayId.pid)" required ng-model="GdPayId.pid" placeholder="请选择所属大标题" style="width:222px;">
+                            <option ng-repeat="x in PayNames" value="{{x.PayId}}">{{x.PayName}}</option>
+                        </select>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.pid.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.pid.$error.required">请选择员工编号</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+
+                        <span>
+                            <a class="s-btn open-Dp" ng-click="openDialog()">新增大标题</a>
+
+
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否沿用上月数据：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="checkbox" name="Inherit" ng-model="GdPayId.Inherit" class="cell-input" style="width:18px !important" />
+                        <strong class="must-options">*</strong>
+
+                    </div>
+                </td>
+            </tr>
+            @*<tr>
+                <th>排序：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="sort" ng-model="GdPayId.sort" placeholder="请输入数字" required class="cell-input" ng-pattern="/^[0-9]$/"  />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.sort.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.sort.$error.required">请输入数字</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>*@
+            <tr>
+                <th>独占一行：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="checkbox" name="RowExclusive" ng-model="GdPayId.RowExclusive" class="cell-input" style="width:18px !important" />
+                        <strong class="must-options">*</strong>
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>数据类型：</th>
+                <td>
+                    <div class="ui-input">
+                        <select class="cell-input" name="DataType" required ng-model="GdPayId.DataType" style="width:222px;">
+                            <option value="num">数字</option>
+                            <option value="string">字符串</option>
+                        </select>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DataType.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DataType.$error.required">请选择月固定收入类型</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="bz" ng-model="GdPayId.bz" placeholder="备注" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+
+
+    </form>
+    <script type="text/ng-template" id="DialogId">
+       
+            <form name="openForm" novalidate>
+
+
+
+
+                <table style="margin:10px !important;margin-top:20px !important">
+                    <tr>
+                        <th>标题名称：</th>
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" name="payname" ng-model="GdPayId.payname" placeholder="请输入标题名称" required class="cell-input" />
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="openForm.payname.$invalid&&openForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="openForm.payname.$error.required">请输入标题名称</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>排序：</th>
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" name="sort" ng-model="GdPayId.sort" placeholder="请输入数字" required class="cell-input" ng-pattern="/^[0-9]$/" />
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="openForm.sort.$invalid&&openForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="openForm.sort.$error.required">请输入排序(整型)</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>备注：</th>
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" name="bz" ng-model="GdPayId.bz" placeholder="备注" class="cell-input" />
+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <td>
+                            <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">确定</a>
+                          
+                        </td>
+                    </tr>
+                </table>
+
+
+
+
+
+            </form>
+       
+
+    </script>
+
+</div>
+<!--公告编辑 end--->

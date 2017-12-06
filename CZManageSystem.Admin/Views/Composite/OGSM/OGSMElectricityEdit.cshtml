@@ -1,0 +1,193 @@
+﻿
+@{
+    ViewBag.Title = "OGSMElectricityEdit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', 'ngDialog', function ($scope, BusinessService, ngDialog) {
+
+            $scope.curObj = {
+                USR_NBR: '',
+                PAY_MON: '',
+                ElectricityMeter: '',
+                Electricity: '',
+                Remark : ''
+            };
+
+            var id = '@ViewData["id"]';
+            var tempUSR_NBR = '@ViewData["USR_NBR"]';
+            var tempPAY_MON = '@ViewData["PAY_MON"]';
+
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                    //alert($scope.curObj.id);
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            else
+            {
+                $scope.curObj['USR_NBR'] = tempUSR_NBR;
+                $scope.curObj['PAY_MON'] = tempPAY_MON;
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;                    
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'OGSM/OGSMElectricityIndex?USR_NBR=@ViewData["USR_NBR"]&PAY_MON=@ViewData["PAY_MON"]';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            //导入数据
+            $scope.fileDialog = function () {
+                var _type = 'OGSMElectricity'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入数据',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        //BusinessService.getQuestionTemp().success(function (response) {
+                        //    $scope.Questions = response;
+                        //    console.info(response);
+                        //    console.info($scope.Questions);
+                        //    $scope.Total = Math.ceil($scope.Questions.length / $scope.Size);
+                        //    box.ready("loadding");
+                        //}).error(function (response) {
+                        //    box.ready("loadding");
+                        //    console.info(response);
+                        //    box.alert("网络出错！", { icon: 'error' });
+                        //});
+                    }
+                });
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/OGSMElectricitySave',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/GetOGSMElectricityDataByID/' + id
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<style>
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>月份：</th>
+                <td>
+                    <input type="hidden" id="PAY_MON" name="PAY_MON" ng-model="curObj.PAY_MON"/>
+                    <label>{{curObj.PAY_MON}}</label>
+                    @*<div class="ui-input">
+                        <input type="text" name="PAY_MON" ng-model="curObj.PAY_MON" date-Picker datefmt="yyyyMM" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.PAY_MON.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.PAY_MON.$error.required"><i class="icon-error"></i>请输入月份。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>*@
+
+                </td>
+            </tr>
+            <tr>
+                <th>户号：</th>
+                <td>
+                    <input type="hidden" id="USR_NBR" name="USR_NBR" ng-model="curObj.USR_NBR"/>
+                    <label>{{curObj.USR_NBR}}</label>
+                    @*<div class="ui-input">
+                        <input type="text" name="USR_NBR" ng-model="curObj.USR_NBR" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.USR_NBR.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.USR_NBR.$error.required"><i class="icon-error"></i>请输入户号。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>*@
+
+                </td>
+            </tr>            
+            <tr>
+                <th>分表名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ElectricityMeter" name="ElectricityMeter" ng-model="curObj.ElectricityMeter" class="cell-input">
+                    </div>
+                </td>
+            </tr>          
+            <tr>
+                <th>电量：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="Electricity" name="Electricity" ng-model="curObj.Electricity" class="cell-input">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark"></textarea>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../OGSM/OGSMElectricityIndex?PAY_MON=@ViewData["PAY_MON"]&USR_NBR=@ViewData["USR_NBR"]" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->
+

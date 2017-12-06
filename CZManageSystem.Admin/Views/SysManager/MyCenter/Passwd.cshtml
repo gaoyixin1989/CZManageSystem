@@ -1,0 +1,153 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "修改密码";
+}
+
+@section Scripts{
+
+    <script>
+        var CurPath = '@Request.ApplicationPath'; //获取站点下的当前路径
+        if (CurPath == "/")
+            CurPath = "../";
+
+        var app = angular.module('CreateOrUpdate', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('PasswdController', ['$scope', 'LoginService', function ($scope, LoginService) {
+            $scope.save = function () {
+                $scope.LoginForm.submitted = false;
+                if ($scope.LoginForm.$valid) {
+                    var postData = $scope.user;
+                    LoginService.save(postData).success(function (response) {
+                        alert(response.message);
+                    });
+                }
+                else { $scope.LoginForm.submitted = true; }
+            };
+            //$scope.user = {Password: "", NewPassword: "" };
+            //$scope.result = { Message: "", IsSuccess: true, data: "" };
+
+            //$scope.save = function () {
+            //    $scope.LoginForm.submitted = false;
+            //    if ($scope.LoginForm.$valid) {
+            //        var user = { UserName: "", Password: "" };
+
+            //        user.Password = user.Password;
+            //        user.NewPassword = user.NewPassword;
+
+            //        var postData = $scope.user;
+            //        LoginService.save(postData).error(function (response) {
+            //            //$scope.result.Message = response;
+            //            alert(response.message);
+
+            //        })
+            //        .success(function (response) {
+            //            $scope.result = response;
+            //            if ($scope.result.IsSuccess) {
+            //                window.location.href = CurPath + $scope.result.data;
+            //            }
+
+            //        });
+            //    }
+            //    else {
+            //        $scope.LoginForm.submitted = true;
+            //    }
+            //};
+        }]);
+        //业务类
+        app.factory('LoginService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/ChangePassword',
+                    data: postData
+                });
+            };
+
+            return serive;
+
+        }]);
+    </script>
+}
+@section Css{
+    <style>
+        body {
+            min-width: 0px;
+        }
+    </style>
+}
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="PasswdController" name="LoginForm" novalidate>
+        <table>
+            <tr>
+                <th>账号：</th>
+                <td>
+                    <div class="ui-input">
+                        @ViewBag.UserName
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>原始密码：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="password" name="Password" ng-model="user.Password" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="LoginForm.Password.$invalid&&LoginForm.submitted">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="LoginForm.Password.$error.required">请输入原始密码</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>新密码：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="password" name="NewPassword" ng-model="user.NewPassword" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="LoginForm.NewPassword.$invalid&&LoginForm.submitted">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="LoginForm.NewPassword.$error.required">请输入新密码</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>确认新密码：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="password" name="ConfirmPassword" ng-model="user.ConfirmPassword" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="LoginForm.ConfirmPassword.$invalid&&LoginForm.submitted">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="LoginForm.ConfirmPassword.$error.required">请输入确认新密码</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+

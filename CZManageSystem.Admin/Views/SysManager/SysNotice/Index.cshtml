@@ -1,0 +1,288 @@
+﻿
+@{
+    ViewBag.Title = "公告管理";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('NoticeController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                Title: "",
+                Createdtime_Start: "",
+                Createdtime_End: ""
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.NoticeId);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.editData = function (id) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请至少选中一条数据再操作！");
+                        return;
+                    };
+                    url = CurPath + 'SysNotice/Edit?id=' + choseArr[0];
+                }
+                else {
+                    url = CurPath + 'SysNotice/Edit?id=' + id;
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            }
+
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert("删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.deleteOne = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData([id]).success(function (response) {
+                            if (response.isSuccess) {
+                                box.alert("删除成功", { icon: 'success' });
+                                GetListData();
+                            }
+                            else {
+                                box.alert("删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                //alert($scope.queryBuilder.Createdtime_Start);
+                //alert($scope.queryBuilder.Createdtime_End);
+                //$scope.queryBuilder.Createdtime_Start = $("[ng-model='queryBuilder.Createdtime_Start']").val();
+                //$scope.queryBuilder.Createdtime_End = $("[ng-model='queryBuilder.Createdtime_End']").val();
+                GetListData();
+            }
+
+            $scope.setTop = function (id, isTop) {
+                BusinessService.setTop([id], isTop).then(function () {
+                    GetListData();
+                });
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'SysNotice/GetListData', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysNotice/Delete',
+                    data: ids
+                });
+            };
+            serive.setTop = function (ids, isTop) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysNotice/SetTop',
+                    data: { ids: ids, isTop: isTop }
+                });
+            };
+            return serive;
+        }]);
+    </script>
+    <style>
+        .TopCss {
+            background-color: orange;
+        }
+    </style>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="NoticeController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    标题：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Title" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    创建时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        @*<input type="text" id="Createdtime_Start" ng-model="queryBuilder.Createdtime_Start" class="wdatePicker cell-input cell-input-data">*@
+                        <input type="text" id="Createdtime_Start" date-Picker ng-model="queryBuilder.Createdtime_Start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td style="padding-left:5px;padding-right:5px;">至</td>
+                <td>
+                    <div class="ui-input">
+                        @*<input type="text" id="Createdtime_End" ng-model="queryBuilder.Createdtime_End" class="wdatePicker cell-input cell-input-data" readonly>*@
+                        <input type="text" id="Createdtime_End" date-Picker ng-model="queryBuilder.Createdtime_End" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>标题</th>
+                @*<th>内容</th>*@
+                <th style="white-space:nowrap">到期日期</th>
+                <th style="white-space:nowrap">是否启用</th>
+                @*<th style="white-space:nowrap">序号</th>*@
+                <th style="white-space:nowrap">创建时间</th>
+                <th style="white-space:nowrap">创建人</th>
+                <th>操作</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData" ng-class="{TopCss:emp.OrderNo>0}">
+                <td><input type="checkbox" id="{{emp.NoticeId}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.NoticeId)" /></td>
+                <td><a ng-bind="emp.Title" ng-click="editData(emp.NoticeId)"></a></td>
+                @*<td ng-bind="emp.Content"></td>*@
+                <td style="white-space:nowrap" ng-bind="emp.ValidTime|date:'yyyy-MM-dd'"></td>
+                <td style="white-space:nowrap" ng-bind="emp.EnableFlag?'是':'否'"></td>
+                @*<td style="white-space:nowrap" ng-bind="emp.OrderNo"></td>*@
+                <td style="white-space:nowrap" ng-bind="emp.Createdtime|date:'yyyy-MM-dd HH:mm:ss'"> </td>
+                <td style="white-space:nowrap" ng-bind="emp.Creator"></td>
+                <td>
+                    <div class="operation-btn">
+                        <a style="display:none;" ng-href="../SysNotice/Edit?id={{emp.NoticeId}}">修改</a>
+                        <a style="display:none;" href="javascript:void(0);" ng-click="deleteOne(emp.NoticeId)">删除</a>
+                        <a href="javascript:void(0);" ng-click="setTop(emp.NoticeId,true)" ng-show="emp.OrderNo==0">置顶</a>
+                        <a href="javascript:void(0);" ng-click="setTop(emp.NoticeId,false)" ng-hide="emp.OrderNo==0">取消置顶</a>
+                    </div>
+                </td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../SysNotice/Edit" class="btn-add"><i></i>添加</a></li>
+                <li><a href="javascript:void(0);" ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>

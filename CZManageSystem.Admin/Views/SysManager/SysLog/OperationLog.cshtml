@@ -1,0 +1,261 @@
+﻿
+@{
+    ViewBag.Title = "用户操作日志";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+<script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('OperateLogController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+                UserName: "",
+                OperationType:""
+
+            };
+            $scope.CC_person = {
+                datas: [],
+                ids: '',
+                values: '',
+                texts: ''
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    OperationType: $scope.queryBuilder.OperationType,
+                    UserName: $scope.queryBuilder.UserName,
+                    startTime: $scope.queryBuilder.startTime,
+                    endTime: $scope.queryBuilder.endTime
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+  
+            /***************************************************************
+           当页码和页面记录数发生变化时监控后台查询
+           如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+           ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                GetListData();
+            }
+           
+
+            //选择用户
+            $scope.editUser = function (users) {
+                var iframeId = 'user_edit';
+                var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + users;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择用户',
+                        width: 760,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.CC_person.datas = [];
+                                    $.each(result, function (i, item) {
+                                        $scope.CC_person.datas.push({ UserName: item.UserName, RealName: item.text });
+                                    });
+                                    //$scope.CC_person.ids = getAttrByArr(result, 'id').join(",");
+                                    $scope.queryBuilder.UserName = getAttrByArr(result, 'UserName').join(",");
+                                    //$scope.CC_person.texts = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+           
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'SysLog/GetOperationLogList', postData);
+            };
+
+            return serive;
+        }]);
+        app.filter("OpertionalType", function ($filter) {
+            return function (input) {
+                var Optional = "";
+                switch(input)
+                {
+                    case 0:
+                        Optional = "浏览";
+                        break;
+                    case 1:
+                        Optional = "查看";
+                        break;
+                    case 2:
+                        Optional = "添加";
+                        break;
+                    case 3:
+                        Optional = "编辑";
+                        break;
+                    case 4:
+                        Optional = "保存";
+                        break;
+                    case 5:
+                        Optional = "删除";
+                        break;
+                    case 6:
+                        Optional = "导入";
+                        break;
+                    case 7:
+                        Optional = "导出";
+                        break;
+                    case 8:
+                        Optional = "登录";
+                        break;
+                    case 9:
+                        Optional = "退出";
+                        break;
+                    case 10:
+                        Optional = "打印";
+                        break;
+                    case 11:
+                        Optional = "设置";
+                        break;
+                    case 12:
+                        Optional = "推送";
+                        break;
+                   
+                }
+                return Optional;
+            };
+        });
+    </script>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="OperateLogController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    操作类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.OperationType" style="width:60px;">
+                                <option value="">全部</option>
+                                <option value="0">浏览</option>
+                                <option value="1">查看</option>
+                                <option value="2">添加</option>
+                                <option value="3">编辑</option>
+                                <option value="4">保存</option>
+                                <option value="5">删除</option>
+                                <option value="6">导入</option>
+                                <option value="7">导出</option>
+                                <option value="8">登录</option>
+                                <option value="9">退出</option>
+                                <option value="10">打印</option>
+                                <option value="11">设置</option>
+                                <option value="12">推送</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    操作人：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="width:100px;" ng-model="queryBuilder.UserName" class="cell-input" readonly ng-click="editUser(queryBuilder.UserName)" />
+                    </div>
+                </td>
+                <td>
+                    起始时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="startTime" style="width:80px;" date-Picker ng-model="queryBuilder.startTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td style="padding-left:5px;padding-right:5px;">至</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="endTime" style="width:80px;" date-Picker ng-model="queryBuilder.endTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="white-space:nowrap">用户账号</th>
+                <th style="white-space:nowrap">用户名称</th>
+                <th style="white-space:nowrap">操作IP</th>
+                <th style="white-space:nowrap">操作类型</th>
+                <th style="white-space:nowrap">操作页面</th>
+                <th style="white-space:nowrap">操作描述</th>
+                <th style="white-space:nowrap">操作时间</th>
+            </tr>
+            <tr ng-repeat="log in ListPageData">
+                <td style="white-space:nowrap" ng-bind="log.UserName"></td>
+                <td style="white-space:nowrap" ng-bind="log.RealName"></td>
+                <td style="white-space:nowrap" ng-bind="log.OperationIp"></td>
+                <td style="white-space:nowrap" ng-bind="log.Operation|OpertionalType"></td>
+                <td style="white-space:nowrap" ng-bind="log.OperationPage"></td>
+                <td style="white-space:nowrap" ng-bind="log.OperationDesc"></td>
+                <td style="white-space:nowrap" ng-bind="log.OperationTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+

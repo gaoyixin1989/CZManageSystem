@@ -1,0 +1,334 @@
+﻿
+@{
+    ViewBag.Title = "其他休假明细管理";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('VacationConfigController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = { };
+            $scope.YearDateList = [];
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+
+            BusinessService.GetYearList().success(function (response) {
+                $scope.YearDateList = response.YearDateList;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'VacationHoliday/Edit?ID=' + obj.ID;
+                src += '&type=look';
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = src;
+            }
+            //修改按钮
+            $scope.editData = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'VacationHoliday/Edit?type=edit&ID=' + choseArr[0];
+            }
+            $scope.addData = function () {
+                var url = CurPath + 'VacationHoliday/Edit?type=edit';
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+            //---------------
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.DpId;
+                    } break;
+                    case 'user': {
+                        title = '姓名';
+                        var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.queryBuilder.UserId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.DpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.queryBuilder.DeptName = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        case 'user': {
+                                            $scope.queryBuilder.UserId = getAttrByArr(result, 'id').join(',');
+                                            $scope.queryBuilder.UserName = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+
+            //-----------------------------
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'VacationHoliday/GetListData', postData);
+            };
+
+            serive.deleteData = function (Id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/Delete',
+                    data: {Ids: Id }
+                });
+            };
+            serive.GetVacationTypeList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetVacationTypeList'
+                });
+            };
+            serive.GetVacationTypeList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetVacationTypeList'
+                });
+            };
+            serive.GetYearList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetYearList'
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="VacationConfigController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <th>年度：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.YearDate" style="width:80px;">
+                                <option ng-repeat="x in YearDateList" value="{{x.DDText}}">{{x.DDText}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <th>员工编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EmployeeId" class="cell-input" style="width:150px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="DpId" ng-model="queryBuilder.DpId" ng- class="cell-input" />
+                        <input type="text" style="width:150px;" name="DeptName" ng-model="queryBuilder.DeptName" required class="cell-input" ng-click="editMember('dept')" />
+                    </div>
+                </td>
+                <th>姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="UserId" ng-model="queryBuilder.UserId" ng- class="cell-input" />
+                        <input type="text" style="width:150px;" name="UserName" ng-model="queryBuilder.UserName" required class="cell-input" ng-click="editMember('user')" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>员工编号</th>
+                <th>员工姓名</th>
+                <th>部门</th>
+                <th>年度</th>
+                <th>休假类型</th>
+                <th>开始时间</th>
+                <th>结束时间</th>
+                <th>休假天数</th>
+            </tr>
+            <tr ng-repeat="temp in ListPageData">
+                <td><input type="checkbox" id="{{temp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,temp.ID)" /></td>
+                <td style="color:blue; cursor:pointer" ng-bind="temp.EmployeeId" ng-click="clickTitle(temp)"></td>
+                <td ng-bind="temp.UserName"></td>
+                <td ng-bind="temp.DpName"></td>
+                <td ng-bind="temp.YearDate"></td>
+                <td ng-bind="temp.VacationType"></td>
+                <td ng-bind="temp.StartTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td ng-bind="temp.EndTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td ng-bind="temp.PeriodTime"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="javascript:void(0);" ng-click="addData()" class="btn-add"><i></i>添加</a></li>
+                <li><a href="javascript:void(0);" ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

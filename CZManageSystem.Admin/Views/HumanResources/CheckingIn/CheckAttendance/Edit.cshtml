@@ -1,0 +1,259 @@
+﻿@{
+    ViewBag.Title = "考勤异常申报";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@{ var user = ViewBag.User as CZManageSystem.Data.Domain.SysManger.Users;}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script>
+        var workflowName = '@ViewData["workflowName"]';
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'datePicker', 'number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            $scope.curObj = { CreateTime: '' };
+            var key = '@ViewData["key"]';
+            var isTrue = '@ViewData["isTrue"]';
+            if (key != null && key != '' && key.toString().length > 0) {
+                box.load("load");
+                var _data = { key: key, isTrue: isTrue };//id与类别
+                BusinessService.getDataByID(_data).success(function (response) {
+                    $scope.curObj = response.data;
+                    $scope.curObj.CreateTime = $filter('date')($scope.curObj.CreateTime, 'yyyy-MM-dd HH:mm');
+                    box.ready("load");
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                    box.ready("load");
+                });
+            }
+
+            $scope.save = function (isTrue) {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var nextInfo = $scope.aftersubmitConf.getValue();
+                    if (isTrue) {
+                        if (!nextInfo.isSuccess) {
+                            box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                            return;
+                        }
+                        if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                            box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                            return;
+                        }
+                    }
+
+                    var postData = isTrue == true ? {
+                        hrUnattendApply: $scope.curObj,
+                        isAction: true,
+                        nextActivity: nextInfo.nextActivity,
+                        nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                        nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                    } : $scope.curObj;
+                    box.load("loadding");
+                    BusinessService.save(postData).success(function (response) { 
+                        box.ready("loadding");
+                        if (response.IsSuccess) {
+                            var msg = isTrue == true ? "提交成功" : "保存成功";
+                            box.alert(msg, { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'CheckAttendance/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                            box.ready("loadding");
+                        }
+                    }).error(function (response) { box.alert(response.Message, { icon: 'error' }) });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CheckAttendance/SaveAbnormalApply',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CheckAttendance/GetAbnormalByID',
+                    data: postData
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+
+
+            <tr>
+                <th>申请人：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ApplyUserName" ng-model="curObj.ApplyUserName" required readonly class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ApplyUserName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ApplyUserName.$error.required">请输入申请人</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>所在部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ApplyDept" ng-model="curObj.ApplyDept" required readonly class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ApplyDept.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ApplyDept.$error.required">请输入所在部门</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>申请日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="CreateTime" ng-model="curObj.CreateTime" readonly class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Mobile" ng-model="curObj.Mobile" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Mobile.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Mobile.$error.required">请输入联系电话</span>
+                                <span ng-show="editForm.Mobile.$error.maxlength">输入联系电话</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>主题名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ApplyTitle" ng-model="curObj.ApplyTitle" ng-maxlength="150" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ApplyTitle.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ApplyTitle.$error.required">请输入主题名称</span>
+                                <span ng-show="editForm.ApplyTitle.$error.maxlength">输入主题名称过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+
+
+
+
+            <tr>
+                <th>异常记录：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" name="RecordContent" ng-model="curObj.RecordContent" style="max-height :40px!important"></textarea>
+
+                    </div>
+
+                </td>
+            </tr>
+
+            <tr>
+                <th>异常原因：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" name="Reason" ng-model="curObj.Reason" required style="max-height :40px!important"></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Reason.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Reason.$error.required">请输入异常原因</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" name="Remark" ng-model="curObj.Remark" style="max-height :40px!important">内容</textarea>
+                    </div>
+
+                </td>
+            </tr>
+
+            <tr class="forEdit">
+                <td colspan="2">
+                    <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save(false)" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="save(true)" class="cell-btn-blue" style="width:70px; margin-right:20px;">提交</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

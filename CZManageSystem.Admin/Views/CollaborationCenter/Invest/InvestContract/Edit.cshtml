@@ -1,0 +1,406 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            var ID = '@ViewData["ID"]';
+            $scope.curObj = {};
+            $scope.ProjectID = '';
+            $scope.ContractID = '';
+            var getData = function () {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.ProjectID = response.ProjectID;
+                    $scope.ContractID = response.ContractID;
+                    $scope.curObj = response;
+                    curObj.ProjectID
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+
+            //获取当前数据
+            var getCurData = false;
+            if (ID != null && ID.toString().length > 0) {
+                getData();
+            }
+            else {
+                getCurData = true;
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = { dataObj: $scope.curObj, ProjectID: $scope.ProjectID, ContractID: $scope.ContractID };
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'InvestContract/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' })
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //打开窗口
+            $scope.openWindow = function (type, value) {
+                if (type == "UserID") {
+                    if ($scope.curObj.DpCode == null || $scope.curObj.DpCode == '') {
+                        box.alert('请先选择合同主办部门！', { icon: 'info' });
+                        return;
+                    }
+                }
+
+                var iframeId = type + '_edit';
+                var title = "";
+                var strUrl = "";
+                var data = {};
+                var wWidth = 530;
+                var wHeight = 360;
+
+                switch (type) {
+                    case 'selectProject': {//选择项目
+                        wWidth = 700;
+                        wHeight = 450;
+                        title = "项目选择";
+                        strUrl = '../Project/ProjectSelect';
+                    } break;
+                    case 'DpCode': {//合同主办部门
+                        title = "部门选择";
+                        strUrl = '../UsersGrounp/SelectDepts';
+                        data = {
+                            selectedId: value
+                        };
+                    } break;
+                    case 'UserID': {//主办人
+                        wWidth = 760;
+                        title = "用户选择";
+                        strUrl = '../UsersGrounp/SelectUsers';
+                        data = {
+                            selectedId: value,
+                            startDeptId: $scope.curObj.DpCode
+                        };
+                    } break;
+                    default: {
+                        box.alert('没有对应的窗口类型！', { icon: 'error' });
+                    } break;
+                }
+
+                box.popup('',
+                                    {
+                                        url: strUrl,
+                                        iframeData: data,
+                                        iframeId: iframeId,
+                                        title: title,
+                                        width: wWidth,//窗口宽度，默认400
+                                        wHeight: 380,//窗口高度，默认400
+                                        hasOk: true,
+                                        hasCancel: true,
+                                        onBeforeClose: function (data) {
+                                            if (data == true) {
+                                                var theWindow = window;
+                                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                                    theWindow = theWindow.parent;
+                                                }
+                                                if (!theWindow.frames[iframeId]) {
+                                                    box.alert('出错！', { icon: 'error' });
+                                                }
+                                                else {
+                                                    var result = theWindow.frames[iframeId].getResult();
+                                                    switch (type) {
+                                                        case 'selectProject': {//选择项目
+                                                            if (result.length > 0) {
+                                                                $scope.curObj.ProjectID = result[0].ProjectID;
+                                                                $scope.curObj.ProjectName = result[0].ProjectName;
+                                                            }
+                                                        } break;
+                                                        case 'DpCode': {
+                                                            if (result.length > 0) {
+                                                                $scope.curObj.DpCode = result[0].id;
+                                                                $scope.curObj.DpCode_Text = result[0].text;
+                                                            }
+                                                            else {
+                                                                $scope.curObj.DpCode = null;
+                                                                $scope.curObj.DpCode_Text = null;
+                                                            }
+                                                            $scope.curObj.UserID = null;
+                                                            $scope.curObj.User_Text = null;
+                                                        } break;
+                                                        case 'UserID': {
+                                                            $scope.curObj.UserID = getAttrByArr(result, 'id').join(',');
+                                                            $scope.curObj.User_Text = getAttrByArr(result, 'text').join(',');
+                                                        } break;
+                                                        default: break;
+                                                    }
+                                                    $scope.$apply();
+                                                }
+                                            }
+                                        }
+                                    });
+
+
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //保存合同信息
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InvestContract/Save',
+                    data: postData
+                });
+            };
+            //根据id获取合同信息
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InvestContract/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>项目编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="ProjectID" ng-model="curObj.ProjectID" required readonly ng-click="openWindow('selectProject','')" class="cell-input" style="width:400px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ProjectID.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ProjectID.$error.required">请输入项目编号</span>
+                                <span ng-show="editForm.ProjectID.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>项目名称：</th>
+                <td>
+                    {{curObj.ProjectName}}
+                    <div class="ui-input" style="display:none;">
+                        <input type="text" name="ProjectName" ng-model="curObj.ProjectName" readonly class="cell-input" style="width:400px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="100" name="ContractID" ng-model="curObj.ContractID" required class="cell-input" style="width:400px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ContractID.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ContractID.$error.required">请输入合同编号</span>
+                                <span ng-show="editForm.ContractID.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="1000" name="ContractName" ng-model="curObj.ContractName" required class="cell-input" style="width:400px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ContractName.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ContractName.$error.required">请输入合同名称</span>
+                                <span ng-show="editForm.ContractName.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同主办部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="DpCode" ng-model="curObj.DpCode" required class="cell-input" />
+                        <input type="text" ng-model="curObj.DpCode_Text" required class="cell-input" readonly ng-click="openWindow('DpCode',curObj.DpCode)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DpCode.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DpCode.$error.required">请选择负责专业室</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>主办人：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="UserID" ng-model="curObj.UserID" required class="cell-input" />
+                        <input type="text" ng-model="curObj.User_Text" required class="cell-input" readonly ng-click="openWindow('UserID',curObj.UserID)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.UserID.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.UserID.$error.required">请选择主办人</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>供应商：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="500" name="Supply" ng-model="curObj.Supply" required class="cell-input" style="width:400px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Supply.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Supply.$error.required">请输入供应商</span>
+                                <span ng-show="editForm.Supply.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同总金额(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="AllTotal" ng-model="curObj.AllTotal" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.AllTotal.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.AllTotal.$error.required">请输入合同总金额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同项目金额(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="SignTotal" ng-model="curObj.SignTotal" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.SignTotal.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SignTotal.$error.required">请输入合同项目金额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>合同税金(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="Tax" ng-model="curObj.Tax" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Tax.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Tax.$error.required">请输入合同税金</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>签订时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="SignTime" name="SignTime" required date-Picker dateFmt="yyyy-MM-dd HH:mm:ss" ng-model="curObj.SignTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.SignTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入签订时间</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否MIS单类：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select name="IsMIS" ng-model="curObj.IsMIS" required class="cell-input" style="width:80px;">
+                                <option value="">请选择</option>
+                                <option value="1">是</option>
+                                <option value="0">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.IsMIS.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择是否MIS单类</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Content" ng-model="curObj.Content" ng-maxlength="300"></textarea>
+                        <div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入备注</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>输入文本过长</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

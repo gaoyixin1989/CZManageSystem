@@ -1,0 +1,287 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "部门编辑";
+}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+    <!--[if lte IE 8]>
+        <script>
+            document.createElement('treecontrol');
+            document.createElement('treeitem');
+        </script>
+    <![endif]-->
+
+    <script>
+        var list = list || [];
+        function GetData() {
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10
+            };
+            $.ajax({
+                url: CurPath + 'SysDeptment/GetAllSysDeptment',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    list = data.items;
+                }
+            });
+        }
+        var app = angular.module('Edit', ['treeControl']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'CreateService', function ($scope, CreateService) {
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+            $scope.deptment = {};
+            //var app, deps;
+
+            //deps = ['treeControl'];
+
+            //app = angular.module('treeGridTest', deps);
+            var tree;
+
+            GetData();
+
+            var rawTreeData = list;
+
+            var deptment = { Name: '', ParentDpId: '', DpFullName: '' };
+            var myTreeData = getTree(rawTreeData, 'DpId', 'ParentDpId');
+            $scope.dataForTheTree = [];
+            //$scope.tree_data = myTreeData;
+            $scope.my_tree = tree = {};
+            $scope.dataForTheTree = myTreeData;
+            $scope.tree_data = function (sel, parent) {
+                $scope.selectedNode = sel;
+                $scope.deptment.Name = sel.DpName;
+                $scope.deptment.ParentDpId = sel.DpId;
+                $scope.deptment.DpFullName = sel.DpFullName;
+                //$scope.deptment.DpId = sel.DpId;
+                //$scope.ParentName = sel.MenuName;
+                //$scope.MenuLevel = sel.MenuLevel;
+                $scope.showTree();
+            };
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#menuTree").toggle();
+            }
+            $scope.my_tree_handler = function (branch) {
+            }
+
+            function getTree(data, primaryIdName, parentIdName) {
+                if (!data || data.length == 0 || !primaryIdName || !parentIdName)
+                    return [];
+
+                var tree = [],
+                    rootIds = [],
+                    item = data[0],
+                    primaryKey = item[primaryIdName],
+                    treeObjs = {},
+                    parentId,
+                    parent,
+                    len = data.length,
+                    i = 0;
+
+                angular.forEach(data, function (curObj) {
+                    treeObjs[curObj[primaryIdName]] = curObj;
+                });
+
+                while (i < len) {
+                    item = data[i++];
+                    primaryKey = item[primaryIdName];
+                    //treeObjs[primaryKey] = item;
+                    parentId = item[parentIdName];
+                    parent = treeObjs[parentId];
+
+                    if (parent) {
+
+                        if (parent.children) {
+                            parent.children.push(item);
+                        } else {
+                            parent.children = [item];
+                        }
+                    } else {
+                        rootIds.push(primaryKey);
+                    }
+                }
+
+                for (var i = 0; i < rootIds.length; i++) {
+                    tree.push(treeObjs[rootIds[i]]);
+                };
+                return tree;
+            }
+
+
+            //$scope.IsTmpDpList = [{ name: '请选择', value: '' }, { name: '是', value: '1' }, { name: '否', value: '0' }];
+            var id = '@ViewData["DpId"]';
+            //alert("fghj");
+            //alert(id);
+            if (id != "") {
+                //alert("fghj");
+                CreateService.get(id).success(function (response) {
+                    $scope.deptment = response;
+                    if (response.DpFullName != null) {
+                        var pname = response.DpFullName.split('>');
+                        $scope.deptment.Name = pname[pname.length - 2];
+                    }
+                    //$scope.deptment.Name = response.DpName;
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.deptment;
+                    CreateService.save(postData).success(function (response) {
+                        box.alert(response.message, function () {
+                            window.location.href = CurPath + 'SysDeptment/Index';
+                        });
+                    });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            }
+
+        }]);
+        //业务类
+        app.factory('CreateService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysDeptment/Save',
+                    data: postData
+                });
+            };
+            serive.get = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysDeptment/GET/' + id
+                    //param: id
+                });
+            };
+
+            return serive;
+            //return {
+            //    list: function (postData) {
+            //        return list(postData);
+            //    }
+            //}
+        }]);
+    </script>
+}
+<!--公告管理--->
+@*<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="Edit" ng-controller="CreateController" class="public-form">
+    <form name="editForm">*@
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="Edit" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>部门名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DpName" value="" ng-model="deptment.DpName" required class="cell-input on-error" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DpName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DpName.$error.required">请输入部门名称</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>父级部门：</th>
+                <td>
+                    <div>
+                        @*<input type="text" ng-model="deptment.DpId" style="display:none" />*@
+                        <input type="text" ng-model="deptment.ParentDpId" style="display:none" />
+                        <input type="text" ng-model="deptment.DpFullName" style="display:none" />
+                        <input type="text" ng-model="deptment.Name" class="cell-input" placeholder="请选择" ng-click="showTree(this)" />
+                        <div class="">
+                            <treecontrol id="menuTree" class="tree-light" style="display:none"
+                                         tree-model="dataForTheTree"
+                                         options="treeOptions"
+                                         on-selection="tree_data(node,$parentNode)">
+                                {{node.DpName}}
+                            </treecontrol>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>部门层次：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DpLevel" value="" ng-model="deptment.DpLevel" required class="cell-input on-error" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DpLevel.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DpLevel.$error.required">请输入部门层次</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            @*<tr>
+                <th>是否启用： </th>
+                <td>
+                    <div>
+                        <input type="checkbox" ng-model="deptment.Type" ng-checked="deptment.Type" />
+                    </div>
+
+                </td>
+            </tr>*@
+            @*<tr>
+                    <th>序号：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" value="" ng-model="deptment.OrderNo" require class="cell-input on-error" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入序号</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>*@
+
+            <tr>
+                <th>是否第三方：</th>
+                <td>
+                    <label><input type="radio" name="IsTmpDp" ng-value='true' ng-model="deptment.IsTmpDp" />是</label>
+                    <label style="margin-left:20px;"><input type="radio" name="IsTmpDp" ng-value='false' ng-model="deptment.IsTmpDp" />否</label>
+
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysDeptment/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                    @*<a ng-click="save()" class="cell-btn-orange" style="width:70px;">发布</a>*@
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<!--公告管理 end--->

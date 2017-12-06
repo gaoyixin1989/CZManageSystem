@@ -1,0 +1,326 @@
+﻿
+@{
+    ViewBag.Title = "修改劳资管理员工信息 ";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+
+            var keys = '@ViewData["keys"]';
+            $scope.isEdit = false;
+            $scope.HRLzUserInfo = {
+                EmployeeId: '',
+                EmployeeName: '',
+                PositionRank: '',
+                Gears: '',
+                SetIntoTheRanks: '',
+                PositionRank: '',
+                Tantile: ''
+            };
+            $scope.queryBuilder = { DeptIds: '' }
+            $scope.PositionRank = [2, 3, 4, 5, 6, 7, 8, 9];
+            $scope.Gears = ['A', 'B', 'C'];
+            $scope.PayNames = [];
+            var id = '@ViewData["id"]';
+            if (id != null && id.toString().length > 0 && id != "undefined") {
+                $scope.isEdit = true;
+                box.load("loading");
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.HRLzUserInfo = response;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var hrLzUserInfo = $scope.HRLzUserInfo
+
+                    BusinessService.save(hrLzUserInfo).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'HRLzUserInfo/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            var startId = '@ViewData["startId"]';
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    //case 'dept': {
+                    //    title = '部门';
+                    //    iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.DeptIds + '&startId=' + startId;
+                    //} break;
+                    //case 'role': {
+                    //    title = '角色';
+                    //    // iframeSrc = '../UsersGrounp/SelectRoles?selectedId=' + $scope.roles.arrId.join(",");
+                    //} break;
+                    case 'user': {
+                        title = '用户';
+                        iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.queryBuilder.UserIds + '&startId=' + startId;
+                        wWidth = 760;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        //case 'dept': {
+                                        //    $scope.queryBuilder.DeptIds = getAttrByArr(result, 'id').join();
+                                        //    $scope.Builder.DeptNames = getAttrByArr(result, 'text').join();
+                                        //} break;
+                                        //case 'role': {
+                                        //    //$scope.roles.arrId = getAttrByArr(result, 'id');
+                                        //    //$scope.roles.arrText = getAttrByArr(result, 'text');
+                                        //} break;
+                                        case 'user': {
+                                            $scope.queryBuilder.UserIds = getAttrByArr(result, 'id')[0];
+                                            $scope.HRLzUserInfo.EmployeeName = getAttrByArr(result, 'text')[0];
+                                            $scope.getEmployeeId();
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            };
+            $scope.getEmployeeId = function () {
+
+                BusinessService.getEmployeeId({ id: $scope.queryBuilder.UserIds }).success(function (response) {
+                    if (response.IsSuccess) {
+                        $scope.HRLzUserInfo.EmployeeId = response.data;
+                    }
+                    else {
+                        box.alert(response.Message.length > 0 ? response.Message : "获取员工编号失败", { icon: 'error' });
+                    }
+                }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'HRLzUserInfo/Save',
+                    data: postData
+                });
+            };
+            serive.getEmployeeId = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'HRLzUserInfo/GetEmployeeId',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (keys) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'HRLzUserInfo/GetDataByID?id=' + keys
+                });
+            };
+
+
+            serive.getEmployeeIds = function () {//获取耗材信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'HRLzUserInfo/GetEmployeeIds'
+                });
+            };
+
+            return serive;
+        }]);
+
+
+
+    </script>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate class="public-form">
+        <table>
+            <tr>
+                <th>员工姓名：</th>
+                <td>
+                    <div class="ui-input" ng-if="isEdit">
+                        <input type="text" name="EmployeeName" ng-model="HRLzUserInfo.EmployeeName" readonly class="cell-input" style="border :0;" />
+                    </div>
+                    <div class="ui-input" ng-if="!isEdit">
+                        <input type="text" name="EmployeeName" ng-model="HRLzUserInfo.EmployeeName"  ng-click="editMember('user')" readonly class="cell-input" placeholder="请选择员工" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.EmployeeName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.EmployeeName.$error.required">请选择职位职级</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>员工编号：</th>
+                <td>
+                    <div class="ui-input" ng-if="isEdit">
+                        <input type="text" name="EmployeeId" ng-model="HRLzUserInfo.EmployeeId" readonly class="cell-input" style="border :0;" />
+                    </div>
+                    <div class="ui-input" ng-if="!isEdit">
+                        <input type="text" name="EmployeeId" ng-model="HRLzUserInfo.EmployeeId" readonly class="cell-input" placeholder="选择员工姓名后显示" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.EmployeeId.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.EmployeeId.$error.required">员工编号为必须</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>职位职级：</th>
+                <td>
+                    <div class="ui-input">
+
+                        <select class="cell-input" name="PositionRank" required ng-model="HRLzUserInfo.PositionRank" style="width:222px;" placeholder="请选择职位职级" >
+                            <option ng-repeat="x in PositionRank" value="{{x}}">{{x}}</option>
+                        </select>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.PositionRank.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.PositionRank.$error.required">请选择职位职级</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>套入职级：</th>
+                <td>
+                    <div class="ui-input">
+                        <select class="cell-input" name="SetIntoTheRanks" required ng-model="HRLzUserInfo.SetIntoTheRanks" style="width:222px;" placeholder="请选择套入职级">
+                            <option ng-repeat="x in PositionRank" value="{{x}}">{{x}}</option>
+                        </select>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.SetIntoTheRanks.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SetIntoTheRanks.$error.required">请选择套入职级</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>分位值：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Tantile" ng-model="HRLzUserInfo.Tantile"  number precision="0" max="999"  class="cell-input"  placeholder="请输入整数"/>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Tantile.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Tantile.$error.required">请输入分位值</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>档位：</th>
+                <td>
+                    <div class="ui-input">
+                        <select class="cell-input" name="Gears" required ng-model="HRLzUserInfo.Gears" style="width:222px;" placeholder="请选择档位">
+                            <option ng-repeat="x in Gears" value="{{x}}">{{x}}</option>
+                        </select>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Gears.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Gears.$error.required">请选择档位</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Remark" ng-model="HRLzUserInfo.Remark" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

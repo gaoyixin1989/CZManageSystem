@@ -1,0 +1,304 @@
+﻿
+@{
+    ViewBag.Title = "TransferPayEdit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var ID = '@ViewData["ID"]';
+            $scope.transferpay = {};
+            //-----------------------------
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.transferpay = response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.transferpay.ID = ID;
+                    var postData = { transferpay: $scope.transferpay }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'ProjectPay/TransferPayIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            $scope.editMember = function (type) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                //------------------------
+                //---------------------------
+                switch (type) {
+                    case 'project': {
+                        wWidth = 760;
+                        title = '选择项目';
+                        iframeSrc = '../Project/ProjectSelect?selected=' + $scope.transferpay.ProjectID
+                    } break;
+                    case 'contract': {
+                        wWidth = 760;
+                        title = '选择合同';
+                        iframeSrc = '../InvestContract/ContractSelect?selected=' + $scope.transferpay.ContractID;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe Id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'project': {
+                                            $scope.transferpay.ProjectID = getAttrByArr(result, 'ProjectID').join(",");
+                                            $scope.transferpay.ProjectName = getAttrByArr(result, 'ProjectName').join(",");
+                                        } break;
+                                        case 'contract': {
+                                            $scope.transferpay.ContractID = getAttrByArr(result, 'ContractID').join(",");
+                                            $scope.transferpay.ContractName = getAttrByArr(result, 'ContractName').join(',');
+                                           
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ProjectPay/Save_TransferPay',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ProjectPay/TransferPayInfoGetByID?ID=' + ID
+
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>项目编号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="ProjectID" readonly ng-click="editMember('project')" ng-model="transferpay.ProjectID" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ProjectID.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ProjectID.$error.required">请输入项目编号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="SN" ng-model="transferpay.ProjectName" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ProjectName.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ProjectName.$error.required">请输入项目名称</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>合同编号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="ContractID" readonly ng-click="editMember('contract')" ng-model="transferpay.ContractID" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ContractID.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ContractID.$error.required">请输入合同编号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+              
+                <tr>
+                    <th>合同名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="ContractName" ng-model="transferpay.ContractName" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ContractName.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ContractName.$error.required">请输入合同名称</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>是否已转资：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="IsTransfer" required ng-model="transferpay.IsTransfer" style="width:222px;">
+                                    <option value="是">是</option>
+                                    <option value="否">否</option>
+                                </select>
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.IsTransfer.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择是否已转资</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>已转资金额：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="TransferPay" number ng-model="transferpay.TransferPay"  required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.TransferPay.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.TransferPay.$error.required">请输入已付款金额</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li>
+                        <a id="btnAdd" ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                    </li>
+                    <li>
+                        <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </li>
+                </ul>
+
+            </div>
+            <tm-pagination conf="paginationConf"></tm-pagination>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->
+

@@ -1,0 +1,1523 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Botwave.Security</name>
+    </assembly>
+    <members>
+        <member name="T:Botwave.Security.Domain.AuthorizationInfo">
+            <summary>
+            授权信息类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Domain.AuthorizationInfo.#ctor">
+            <summary>
+            构造方法.创建 Authorizations 实例对象.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.Id">
+            <summary>
+            授权 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.FromUserId">
+            <summary>
+            授权用户.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.ToUserId">
+            <summary>
+            被授权用户.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.IsFullAuthorized">
+            <summary>
+            是否完全授权.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.BeginTime">
+            <summary>
+            授权的开始时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.EndTime">
+            <summary>
+            授权的结束时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.Enabled">
+            <summary>
+            授权是否有效.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.FromRealName">
+            <summary>
+            授权用户的真实姓名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.ToRealName">
+            <summary>
+            被授权用户的真实姓名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.ToUserName">
+            <summary>
+            被授权用户的用户名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.AuthorizationInfo.ToDpFullName">
+            <summary>
+            被授权的用户所属部门.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Web.Controls.MenuListItem">
+            <summary>
+            菜单列表项控件类.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuListItem.Attributes">
+            <summary>
+            属性集合.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuListItem.Text">
+            <summary>
+            显示文本.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuListItem.NavigateUrl">
+            <summary>
+            菜单转向地址.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuListItem.Target">
+            <summary>
+            菜单转向目标.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuListItem.ResourceValue">
+            <summary>
+            资源值.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuListItem.EnableTheming">
+            <summary>
+            是否启用主题.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Service.IResourceService">
+            <summary>
+            权限资源服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.InsertResource(Botwave.Security.Domain.ResourceInfo)">
+            <summary>
+            新增指定权限资源.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.UpdateResource(Botwave.Security.Domain.ResourceInfo)">
+            <summary>
+            更新指定权限资源.
+            </summary>
+            <param name="item"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.UpdateResourceEnabled(System.String,System.Boolean)">
+            <summary>
+            更新指定权限资源的可用性.
+            </summary>
+            <param name="resourceId">权限资源编号.</param>
+            <param name="enabled">是否启用.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.UpdateResourceVisible(System.String,System.Boolean)">
+            <summary>
+            更新指定权限资源的在界面上的可见性.
+            </summary>
+            <param name="resourceId">权限资源编号.</param>
+            <param name="isVisible">是否在界面可见.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.ResourceIsExists(System.String,System.String)">
+            <summary>
+            检查指定资源是否已经存在.
+            </summary>
+            <param name="resourceName"></param>
+            <param name="resourceAlias"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.DeleteByResourceId(System.String)">
+            <summary>
+            删除指定权限资源编号的权限资源信息.
+            </summary>
+            <param name="resourceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourceById(System.String)">
+            <summary>
+            获取指定资源编号的权限资源信息.
+            </summary>
+            <param name="resourceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourceCountByParentId(System.String)">
+            <summary>
+            获取指定父权限资源其子资源的数目.
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourcesByUserId(System.Guid)">
+            <summary>
+            获取指定用户的用户资源字典.
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourcesByUserName(System.String,System.String)">
+            <summary>
+            获取指定用户的用户资源字典.
+            </summary>
+            <param name="userName">用户名.</param>
+            <param name="resourcePrefix">资源编号的前缀.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourcesByType(System.String)">
+            <summary>
+            获取指定资源类型的全部权限资源列表.
+            </summary>
+            <param name="resourceType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourcesByParentId(System.String)">
+            <summary>
+            获取指定父资源编号的子资源列表.
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourcesByRoleId(System.Guid)">
+            <summary>
+            获取指定角色的资源列表.
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IResourceService.GetResourcesByVisible">
+            <summary>
+            获取全部可用并可见的权限资源数据表.
+            </summary>
+            <returns></returns>
+        </member>
+        <!-- 对于成员“T:Botwave.Security.ILoginValidator”忽略有格式错误的 XML 注释 -->
+        <!-- 对于成员“M:Botwave.Security.ILoginValidator.Validate(System.String,System.String,Botwave.Security.Domain.UserInfo)”忽略有格式错误的 XML 注释 -->
+        <member name="T:Botwave.Security.DefaultAuthService">
+            <summary>
+            用户身份认证服务的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.IAuthService">
+            <summary>
+            用户身份验证服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.IAuthService.Login(System.String,System.String)">
+            <summary>
+            用户登录.
+            </summary>
+            <param name="userName">登录用户名.</param>
+            <param name="password">登录密码.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.IAuthService.TrustedLogin(System.String)">
+            <summary>
+            信任的用户登录.
+            </summary>
+            <param name="userName">登录用户名.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.IAuthService.Logout(System.String)">
+            <summary>
+            用户登出(注销).
+            </summary>
+            <param name="userName">登出用户名.</param>
+        </member>
+        <member name="F:Botwave.Security.DefaultAuthService.loginValidator">
+            <summary>
+            减少已引用此组件的相关修改,先初始化
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.DefaultAuthService.Login(System.String,System.String)">
+            <summary>
+            登录认证.
+            </summary>
+            <param name="userName"></param>
+            <param name="password"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.DefaultAuthService.TrustedLogin(System.String)">
+            <summary>
+            可信的登录认证.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.DefaultAuthService.Logout(System.String)">
+            <summary>
+            注销(登出).
+            </summary>
+            <param name="userName"></param>
+        </member>
+        <member name="M:Botwave.Security.DefaultAuthService.HandleAppEvent(Botwave.Events.AppEvent)">
+            <summary>
+            处理 AppEvent 对象.
+            </summary>
+            <param name="appEvent"></param>
+        </member>
+        <member name="P:Botwave.Security.DefaultAuthService.UserService">
+            <summary>
+            用户服务接口.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.DefaultAuthService.ResourceService">
+            <summary>
+            权限资源服务接口.
+            </summary>
+        </member>
+        <!-- 对于成员“P:Botwave.Security.DefaultAuthService.LoginValidator”忽略有格式错误的 XML 注释 -->
+        <member name="P:Botwave.Security.DefaultAuthService.ApplicationContext">
+            <summary>
+            应用程序上下文.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Domain.UserInfo">
+            <summary>
+            用户信息类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Domain.UserInfo.#ctor">
+            <summary>
+            默认构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Domain.UserInfo.#ctor(System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="userName"></param>
+            <param name="password"></param>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.UserId">
+            <summary>
+            用户 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.UserName">
+            <summary>
+            用户名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.RealName">
+            <summary>
+            用户真实姓名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Password">
+            <summary>
+            用户密码.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Email">
+            <summary>
+            电子邮箱.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Mobile">
+            <summary>
+            手机号码.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Tel">
+            <summary>
+            电话号码.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.EmployeeId">
+            <summary>
+            用户的员工ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Type">
+            <summary>
+            用户类型.0:内部; 1:外部.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Status">
+            <summary>
+            用户状态.0:正常; -1:禁用.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.DpId">
+            <summary>
+            用户所属的部门 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Ext_Int">
+            <summary>
+            扩展字段(int 类型).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Ext_Decimal">
+            <summary>
+            扩展字段(decimal 类型).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Ext_Str1">
+            <summary>
+            扩展字段 1(string 类型).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Ext_Str2">
+            <summary>
+            扩展字段 2(string 类型).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Ext_Str3">
+            <summary>
+            扩展字段 3(string 类型).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.CreatedTime">
+            <summary>
+            创建时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.LastModTime">
+            <summary>
+            最近一次的修改时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.Creator">
+            <summary>
+            创建人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.LastModifier">
+            <summary>
+            最近一次的修改人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.UserInfo.DpFullName">
+            <summary>
+            用户所在部门的全名.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Web.UserControlBase">
+            <summary>
+            用户控件基础类.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.UserControlBase.CurrentUser">
+            <summary>
+            当前登录用户.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.UserControlBase.CurrentUserName">
+            <summary>
+            获取当前登录用户名.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Web.Controls.MenuListItemCollection">
+            <summary>
+            菜单列表项控件集合.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuListItemCollection.#ctor(System.Web.UI.Control)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="owner"></param>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuListItemCollection.Add(System.Web.UI.Control)">
+            <summary>
+            新增列表项.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuListItemCollection.AddAt(System.Int32,System.Web.UI.Control)">
+            <summary>
+            新增列表项到知道索引位置.
+            </summary>
+            <param name="index"></param>
+            <param name="item"></param>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuListItemCollection.Item(System.Int32)">
+            <summary>
+            获取指定索引位置的列表项.
+            </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.Web.LogWriterFactory">
+            <summary>
+            日志记录工厂对象类.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.LogWriterFactory.Writer">
+            <summary>
+            获取或设置记录对象类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.LogoutEventListener">
+            <summary>
+            登出事件监听类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.LogoutEventListener.HandleApplicationEvent(System.Object,Spring.Context.ApplicationEventArgs)">
+            <summary>
+            处理应用程序事件.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="T:Botwave.Security.Domain.EntityPermission">
+            <summary>
+            记录实体级别权限类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Domain.EntityPermission.#ctor">
+            <summary>
+            默认构造方法.创建 EntityPermissions 实例对象.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.EntityPermission.Id">
+            <summary>
+            实体权限 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.EntityPermission.EntityType">
+            <summary>
+            实体类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.EntityPermission.EntityId">
+            <summary>
+            实体 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.EntityPermission.PermissionType">
+            <summary>
+            权限类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.EntityPermission.PermissionValue">
+            <summary>
+            权限值.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Service.IRoleService">
+            <summary>
+            角色服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.InsertRole(Botwave.Security.Domain.RoleInfo)">
+            <summary>
+            新增角色.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.UpdateRole(Botwave.Security.Domain.RoleInfo)">
+            <summary>
+            更新角色.
+            </summary>
+            <param name="item"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.DeleteById(System.Guid)">
+            <summary>
+            删除指定角色编号的角色.
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.GetRoleCountByParentId(System.Guid)">
+            <summary>
+            获取指定父角色编号的子角色列表.
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.GetRoleById(System.Guid)">
+            <summary>
+            获取指定角色编号的角色信息.
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.GetRoleByName(System.String)">
+            <summary>
+            获取知道角色名称的角色.
+            </summary>
+            <param name="roleName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.GetRolesByEnabled">
+            <summary>
+            获取可用的角色列表.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.GetRolesTableByEnabeld">
+            <summary>
+            获取可用的角色数据表.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.GetRolesByParentId(System.Guid)">
+            <summary>
+            获取指定父角色编号的子角色列表.
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.GetRolesByUserId(System.Guid)">
+            <summary>
+            获取指定用户编号的角色列表.
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.RecycleRoles(System.Guid,System.Collections.Generic.IList{System.Guid})">
+            <summary>
+            回收指定用户列表的指定角色.
+            </summary>
+            <param name="roleId"></param>
+            <param name="userIds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.InsertUserRoles(System.Guid,System.Collections.Generic.IList{System.Guid})">
+            <summary>
+            为指定用户分配指定角色列表.
+            </summary>
+            <param name="userId"></param>
+            <param name="roleIds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.InsertUserRoles(System.Collections.Generic.IList{System.Guid},System.Guid)">
+            <summary>
+            为指定用户列表分配指定角色.
+            </summary>
+            <param name="userIds"></param>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IRoleService.InsertRoleResources(System.Guid,System.Collections.Generic.IList{System.String})">
+            <summary>
+            为指定角色分配指定权限资源列表.
+            </summary>
+            <param name="roleId"></param>
+            <param name="resourceIds"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.Service.IAuthorizeService">
+            <summary>
+            用户授权服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Service.IAuthorizeService.InsertAuthorization(Botwave.Security.Domain.AuthorizationInfo)">
+            <summary>
+            新增授权信息.
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Botwave.Security.Service.IAuthorizeService.UpdateAuthorization(System.Int32,System.Boolean)">
+            <summary>
+            启用或者停止授权.
+            </summary>
+            <param name="authorizationId"></param>
+            <param name="isEnabled"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IAuthorizeService.GetAuthorizationsByPager(System.Guid,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            分页获取指定授权人编号的授权记录.
+            </summary>
+            <param name="fromUserId"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.LoginUser">
+            <summary>
+            登录用户.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.LoginUser.#ctor">
+            <summary>
+            默认构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.LoginUser.#ctor(Botwave.Security.Domain.UserInfo)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="user">用户信息对象.</param>
+        </member>
+        <member name="M:Botwave.Security.LoginUser.#ctor(Botwave.Security.Domain.UserInfo,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="user">用户信息对象.</param>
+            <param name="resources">允许访问资源数组.</param>
+        </member>
+        <member name="M:Botwave.Security.LoginUser.#ctor(System.Guid,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="userId"></param>
+            <param name="userName"></param>
+            <param name="realName"></param>
+            <param name="resources">允许访问资源数组.</param>
+        </member>
+        <member name="M:Botwave.Security.LoginUser.HasAllResources(System.String[])">
+            <summary>
+            检查用户对指定资源数组参数中的全部资源是否具有访问权限.
+            </summary>
+            <param name="requiredResources"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.LoginUser.HasAnyResources(System.String[])">
+            <summary>
+            检查用户对指定资源数组参数中的任一资源是否具有访问权限.
+            </summary>
+            <param name="requiredResources"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.LoginUser.GetProperty(System.String)">
+            <summary>
+            获取指定属性值.
+            </summary>
+            <param name="propertyName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.UserId">
+            <summary>
+            用户 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.UserName">
+            <summary>
+            用户名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.RealName">
+            <summary>
+            用户真实姓名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.DpId">
+            <summary>
+            部门Id.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.Tel">
+            <summary>
+            固定电话.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.Mobile">
+            <summary>
+            用户手机号码.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.Email">
+            <summary>
+            用户电子邮箱.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.Resources">
+            <summary>
+            允许访问资源键名字典(用户拥有的访问资源字典).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginUser.Properties">
+            <summary>
+            附加信息.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.LoginHelper">
+            <summary>
+            登录辅助类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginHelper.CacheManagerLongTime">
+            <summary>
+            长时间缓存管理者名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginHelper.CacheManagerLoginUser">
+            <summary>
+            用户登陆信息缓存管理者名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginHelper.AnonymousName">
+            <summary>
+            匿名用户名.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginHelper.cache">
+            <summary>
+            缓存器.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginHelper.IsCookie">
+            <summary>
+            是否启用 cookie 存储用户名.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginHelper.UserCookieKey">
+            <summary>
+            当前用户 Cookie 存储键名.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginHelper.UserCookieExpireMinutes">
+            <summary>
+            当前用户 Cookie 过期分钟数.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.GetUserCache">
+            <summary>
+            获取用户的登录缓存.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.InsertUserCache(Botwave.Security.LoginUser)">
+            <summary>
+            插入用户的登录缓存.
+            </summary>
+            <param name="user"></param>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.RemoveUserCache">
+            <summary>
+            清除用户登录缓存数据.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.GetUserNameFromCookie">
+            <summary>
+            从 Cookie 中获取当前登录用户名.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.SetUserNameToCookie(System.String)">
+            <summary>
+            设置用户 Cookie(Cookie 中包含用户名)，用于实现模拟登录.
+            </summary>
+            <param name="userName"></param>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.InsertCache(System.String,Botwave.Security.LoginUser)">
+            <summary>
+            新增登录用户信息到缓存中.
+            </summary>
+            <param name="cacheKey"></param>
+            <param name="user"></param>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.GetCache(System.String)">
+            <summary>
+            获取指定键名的用户缓存信息.
+            </summary>
+            <param name="cacheKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.LoginHelper.RemoveCache(System.String)">
+            <summary>
+            移除指定键名的用户缓存.
+            </summary>
+            <param name="cacheKey"></param>
+        </member>
+        <member name="P:Botwave.Security.LoginHelper.UserService">
+            <summary>
+            用户服务接口.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginHelper.ResourceService">
+            <summary>
+            权限资源服务接口.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginHelper.IsLoginUser">
+            <summary>
+            判断用户是否登陆
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginHelper.UserName">
+            <summary>
+            获取当前用户的用户名称.
+            如果未登陆则返回 anonymous.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.LoginHelper.User">
+            <summary>
+            当前登录用户信息
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Web.PageBase">
+            <summary>
+            页面基础类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Web.PageBase.WriteExceptionLog(System.String,System.String)">
+            <summary>
+             记录异常日志
+            </summary>
+            <param name="operation"></param>
+            <param name="description"></param>
+        </member>
+        <member name="M:Botwave.Security.Web.PageBase.WriteExceptionLog(System.String,System.String,System.String)">
+            <summary>
+             记录异常日志
+            </summary>
+            <param name="operation"></param>
+            <param name="exception"></param>
+            <param name="description"></param>
+        </member>
+        <member name="M:Botwave.Security.Web.PageBase.WriteNomalLog(System.String,System.String)">
+            <summary>
+            记录正常日志
+            </summary>
+            <param name="operation"></param>
+            <param name="description"></param>
+        </member>
+        <member name="M:Botwave.Security.Web.PageBase.WriteExLog(System.String,System.String,System.String)">
+            <summary>
+            记录异常日志
+            </summary>
+            <param name="userName">操作用户</param>
+            <param name="operation">异常名称</param>
+            <param name="description">描述</param>
+        </member>
+        <member name="M:Botwave.Security.Web.PageBase.WriteExLog(System.String,System.String,System.String,System.String)">
+            <summary>
+            记录异常日志
+            </summary>
+            <param name="userName">操作用户</param>
+            <param name="operation">操作名称</param>
+            <param name="exception">异常名称</param>
+            <param name="description">描述</param>
+        </member>
+        <member name="M:Botwave.Security.Web.PageBase.WriteNomalLog(System.String,System.String,System.String)">
+            <summary>
+            记录正常日志
+            </summary>
+            <param name="userName">操作用户</param>
+            <param name="operation">操作名称</param>
+            <param name="description">描述</param>
+        </member>
+        <member name="P:Botwave.Security.Web.PageBase.CurrentUser">
+            <summary>
+            当前登录用户.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.PageBase.CurrentUserName">
+            <summary>
+            获取当前登录用户名.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Web.Controls.MenuView">
+            <summary>
+            菜单视图控件.
+            <example>作为其他列表项菜单控件的基础类.使用方式如:Botwave.XQP.Web.Controls.MoreMenuView
+            <code>
+            public class MoreMenuView:MenuView
+            {
+                /* 主要通过重写这个方法来呈现不同样式的菜单控件. */
+                public override void RenderControl(HtmlTextWriter writer)
+                { }
+            }
+            </code>
+            </example>
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuView.CreateControlCollection">
+            <summary>
+            创建子控件.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuView.OnInit(System.EventArgs)">
+            <summary>
+            初始化.
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuView.InitilizeRender">
+            <summary>
+            初始化呈现菜单项.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuView.GetUserResources">
+            <summary>
+            获取当前用户的访问权限数组.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuView.HasResource(System.String)">
+            <summary>
+            检查当前用户是否有指定的菜单访问权限.
+            </summary>
+            <param name="menuResourceValue">指定的菜单访问权限.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuView.HasResource(System.Collections.Generic.IDictionary{System.String,System.String},System.String)">
+            <summary>
+            检查当前用户是否有指定的菜单访问权限.
+            </summary>
+            <param name="userResources"></param>
+            <param name="menuResourceValue">指定的菜单访问权限.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuView.UserResources">
+            <summary>
+            当前用户的权限资源数组.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuView.EnableTheming">
+            <summary>
+            是否启用主题.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuView.VerifyResource">
+            <summary>
+            是否验证权限资源.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Web.Controls.MenuView.Items">
+            <summary>
+            菜单项列表集合.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Web.Controls.MenuViewDesigner">
+            <summary>
+            MenuView 的设计器类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuViewDesigner.Initialize(System.ComponentModel.IComponent)">
+            <summary>
+            初始化设计器.
+            </summary>
+            <param name="component"></param>
+        </member>
+        <member name="M:Botwave.Security.Web.Controls.MenuViewDesigner.GetDesignTimeHtml">
+            <summary>
+            获取设计时的 html 字符串.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.LoginEventListener">
+            <summary>
+            登录事件监听类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.LoginEventListener.HandleApplicationEvent(System.Object,Spring.Context.ApplicationEventArgs)">
+            <summary>
+            处理应用程序事件.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="T:Botwave.Security.Configuration.SecurityConfig">
+            <summary>
+            安全配置节点.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Configuration.SecurityConfig.Default">
+            <summary>
+            默认实例对象.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Configuration.SecurityConfig.PortalValidateToken">
+            <summary>
+            Portal验证令牌.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Configuration.SecurityConfig.IsPortalLogin">
+            <summary>
+            是否Portal登录，仅针对内部用户.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Configuration.SecurityConfig.UserCookieName">
+            <summary>
+            用户名存储的 Cookie 名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Configuration.SecurityConfig.UserCookieExpireMinutes">
+            <summary>
+            用户名存储 Cookie 的过期分钟数（默认为 -1, 表示不设置过期时间）.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Configuration.SecurityConfig.IsCookie">
+            <summary>
+             是否使用 Cookie 存储用户名.false 则表示启用 session 存储.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Configuration.SecurityConfig.IsCaseSensitive">
+            <summary>
+            是否大小写敏感,用于用户登录
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Service.IDepartmentService">
+            <summary>
+            部门数据服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Service.IDepartmentService.GetDepartmentById(System.String)">
+            <summary>
+            获取指定部门编号的部门信息.
+            </summary>
+            <param name="dpId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IDepartmentService.GetDepartmentByFullName(System.String)">
+            <summary>
+            获取指定部门全名的部门信息.
+            </summary>
+            <param name="dpFullName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IDepartmentService.GetDepartmentsByParentId(System.String)">
+            <summary>
+            获取指定上级部门ID 的部门列表.
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IDepartmentService.GetDepartmentsLikeName(System.String)">
+            <summary>
+            获取指定部门名称部分文字的部门列表.
+            </summary>
+            <param name="dpName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IDepartmentService.GetAllDepartments">
+            <summary>
+            获取全部的部门信息.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.Service.IUserService">
+            <summary>
+            用户服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.InsertUser(Botwave.Security.Domain.UserInfo)">
+            <summary>
+            创建新用户.
+            </summary>
+            <param name="item"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.UpdateUser(Botwave.Security.Domain.UserInfo)">
+            <summary>
+            更新用户信息.
+            </summary>
+            <param name="item"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.ChangePassword(System.String,System.String,System.String)">
+            <summary>
+            修改用户密码.
+            </summary>
+            <param name="userName"></param>
+            <param name="oldPassword"></param>
+            <param name="newPassword"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.DeleteByUserId(System.Guid)">
+            <summary>
+            删除指定用户编号的用户信息.
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.UserIsExists(System.String)">
+            <summary>
+            检查用户名是否已经存在.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUserByUserId(System.Guid)">
+            <summary>
+            获取指定用户ID 的用户信息.
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUserByUserName(System.String)">
+            <summary>
+            获取指定用户名的用户信息.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUserByEmployeeId(System.String)">
+            <summary>
+            获取指定员工 ID 的用户信息.
+            </summary>
+            <param name="employeeId">员工 ID.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUserByRealName(System.String,System.String)">
+            <summary>
+            获取指定用户真实姓名与所在部门全名的用户信息.
+            </summary>
+            <param name="realName">用户真实姓名.</param>
+            <param name="dpFullName">部门全名.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUsersByDpId(System.String)">
+            <summary>
+            获取指定部门编号的用户列表.
+            </summary>
+            <param name="dpId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUsersLikeName(System.String)">
+            <summary>
+            获取匹配指定部分用户名或者姓名的用户列表.
+            </summary>
+            <param name="prefixName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUsersLikeDpId(System.String)">
+            <summary>
+            获取匹配指定部分部门编号的用户列表.
+            </summary>
+            <param name="dpId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUserCountLikeDpId(System.String)">
+            <summary>
+            获取匹配指定部分部门编号的用户数.
+            </summary>
+            <param name="dpId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUsersByPager(System.String,System.String,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            分页获取用户列表.
+            </summary>
+            <param name="keywords"></param>
+            <param name="dpId"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Service.IUserService.GetUsersByPager(System.String,System.Nullable{System.Guid},System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            分页获取用户列表.
+            </summary>
+            <param name="keywords"></param>
+            <param name="roleId"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.LoginStatus">
+            <summary>
+            登录返回状态.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginStatus.Unknown">
+            <summary>
+            未知.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginStatus.Success">
+            <summary>
+            成功.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginStatus.AccountNotFound">
+            <summary>
+            帐号不存在.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginStatus.AccountDisabled">
+            <summary>
+            帐号被禁用.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginStatus.InvalidPassword">
+            <summary>
+            密码无效.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.LoginStatus.InvalidValidateToken">
+            <summary>
+            验证令牌不合法.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.LoginStatusHelper">
+            <summary>
+            登录状态辅助类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.LoginStatusHelper.ToDescription(Botwave.Security.LoginStatus)">
+            <summary>
+            将登录状态转换为文字描述.
+            </summary>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.Web.EmptyLogWriter">
+            <summary>
+            日志记录空实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Web.ILogWriter">
+            <summary>
+            日志记录类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Web.ILogWriter.WriteNomalLog(System.String,System.String,System.String)">
+            <summary>
+            记录正常日志.
+            </summary>
+            <param name="userName">操作用户.</param>
+            <param name="operation">操作名称.</param>
+            <param name="description">描述.</param>
+        </member>
+        <member name="M:Botwave.Security.Web.ILogWriter.WriteExLog(System.String,System.String,System.String)">
+            <summary>
+            记录异常日志.
+            </summary>
+            <param name="userName">操作用户.</param>
+            <param name="operation">操作名称.</param>
+            <param name="description">描述.</param>
+        </member>
+        <member name="M:Botwave.Security.Web.ILogWriter.WriteExLog(System.String,System.String,System.String,System.String)">
+            <summary>
+            记录异常日志.
+            </summary>
+            <param name="userName">操作用户.</param>
+            <param name="operation">操作名称.</param>
+            <param name="exception">异常名称.</param>
+            <param name="description">描述.</param>
+        </member>
+        <member name="M:Botwave.Security.Web.EmptyLogWriter.WriteNomalLog(System.String,System.String,System.String)">
+            <summary>
+            记录正常日志.
+            </summary>
+            <param name="userName">操作用户.</param>
+            <param name="operation">操作名称.</param>
+            <param name="description">描述.</param>
+        </member>
+        <member name="M:Botwave.Security.Web.EmptyLogWriter.WriteExLog(System.String,System.String,System.String)">
+            <summary>
+            记录异常日志.
+            </summary>
+            <param name="userName">操作用户.</param>
+            <param name="operation">操作名称.</param>
+            <param name="description">描述.</param>
+        </member>
+        <member name="M:Botwave.Security.Web.EmptyLogWriter.WriteExLog(System.String,System.String,System.String,System.String)">
+            <summary>
+            记录异常日志.
+            </summary>
+            <param name="userName">操作用户.</param>
+            <param name="operation">操作名称.</param>
+            <param name="exception">异常名称.</param>
+            <param name="description">描述.</param>
+        </member>
+        <member name="T:Botwave.Security.Domain.RoleInfo">
+            <summary>
+            角色信息类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Domain.RoleInfo.#ctor">
+            <summary>
+            默认构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Domain.RoleInfo.#ctor(System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="roleName"></param>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.RoleId">
+            <summary>
+            角色 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.ParentId">
+            <summary>
+            父角色 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.IsInheritable">
+            <summary>
+            是否可继承的. true 则表示可继承, false 则表示父子角色只是用于层次性.
+            默认值为 false.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.RoleName">
+            <summary>
+            角色名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.Comment">
+            <summary>
+            备注信息.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.BeginTime">
+            <summary>
+            角色启用时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.EndTime">
+            <summary>
+            角色使用终止时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.Creator">
+            <summary>
+            创建人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.LastModifier">
+            <summary>
+            最后更新人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.CreatedTime">
+            <summary>
+            创建时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.LastModTime">
+            <summary>
+            最后更新时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.RoleInfo.SortOrder">
+            <summary>
+            排序序号.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Domain.ResourceInfo">
+            <summary>
+            访问资源信息类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Domain.ResourceInfo.#ctor">
+            <summary>
+            构造方法.创建 Resources 实例对象.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.ResourceInfo.ResourceId">
+            <summary>
+            资源 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.ResourceInfo.ParentId">
+            <summary>
+            父资源 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.ResourceInfo.Type">
+            <summary>
+            资源类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.ResourceInfo.Name">
+            <summary>
+            资源名称(功能名称).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.ResourceInfo.Alias">
+            <summary>
+            资源别名(用于界面显示，如:中文).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.ResourceInfo.Enabled">
+            <summary>
+            资源是否可用.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.ResourceInfo.Visible">
+            <summary>
+            资源在界面上的可见性.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Domain.Department">
+            <summary>
+            部门信息类.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.DpId">
+            <summary>
+            部门 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.DpName">
+            <summary>
+            部门名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.ParentDpId">
+            <summary>
+            部门的上级部门 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.DpFullName">
+            <summary>
+            部门的全名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.DpLevel">
+            <summary>
+            部门的等级级别.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.DeptOrderNo">
+            <summary>
+            部门排序号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.IsTmpDp">
+            <summary>
+            是否为临时部门.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.Type">
+            <summary>
+            部门类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.Creator">
+            <summary>
+            创建人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.LastModifier">
+            <summary>
+            最后更新人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.CreatedTime">
+            <summary>
+            创建时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Domain.Department.LastModTime">
+            <summary>
+            最后更新时间.
+            </summary>
+        </member>
+    </members>
+</doc>

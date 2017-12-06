@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>用户登录</title>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/public.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/font/iconfont.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/css/login.css" />
+    <script src="~/Content/Javascript/jquery-1.8.3.min.js"></script>
+    <script src="~/Content/Javascript/md5.js"></script>
+    <script src="~/Content/Javascript/base64.js"></script>
+    <!--[if lte IE 8]>
+        <script src="/Content/Javascript/ieBetter.js"></script>
+        <script>
+          document.createElement('ng-include');
+          document.createElement('ng-pluralize');
+          document.createElement('ng-view');
+
+          // Optionally these for CSS
+          document.createElement('ng:include');
+          document.createElement('ng:pluralize');
+          document.createElement('ng:view');
+        </script>
+    <![endif]-->
+    <script src="~/Content/Javascript/angular/angular1.2.28.js"></script>
+
+    <script>
+        var CurPath = '@Request.ApplicationPath'; //获取站点下的当前路径
+      
+        if (CurPath == "\/")
+            CurPath = "../";
+
+        var app = angular.module('LoginApp', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('LoginController', ['$scope', 'LoginService', function ($scope, LoginService) {
+            $scope.user = { UserName: "", Password: "" };
+            $scope.result = { Message: "", IsSuccess: true, data: "" };
+            $scope.nameKeyDown = function ($event) {
+                if ($event.keyCode == 13) {
+                
+                    $("#inpPWD").focus();
+                    return false;
+                }
+            }
+            $scope.pwdKeyDown=function($event) {
+                if ($event.keyCode == 13) {
+                    $scope.Login();
+                    return false;
+                }
+            }
+            $scope.Login = function () {
+                $scope.LoginForm.submitted = false;
+                var ident = '';
+                if ($scope.LoginForm.$valid) {
+                    var user = { UserName: "", Password: ""};
+                    user.Password = md5('@ViewBag.CodeKey') + $scope.user.Password + '@ViewBag.CodeKey';
+                    user.Password = base64_encode(user.Password);
+                    user.UserName = base64_encode($scope.user.UserName);
+                    ident = $("input[name='radio']:checked").val();
+                    var postData = {
+                        user:user,
+                        ident: ident
+                }
+                    LoginService.Login(postData).error(function (response) {
+                        $scope.result.Message = response;
+                      
+                    })
+                    .success(function (response) {
+                        $scope.result = response;
+                        if ($scope.result.IsSuccess) {
+                          
+                                window.location.href = CurPath+$scope.result.data;
+                        }
+                       
+                    });
+                }
+                else {
+                    $scope.LoginForm.submitted = true;
+                }             
+            };
+           
+
+        }]);
+        //业务类
+        app.factory('LoginService', ['$http', function ($http) {
+            var serive = {};
+            serive.Login = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/chkLogin',
+                    data: postData
+                });
+            };
+
+            return serive;
+
+        }]);
+
+    </script>
+</head>
+
+<body style="background:#fafafa;">
+    <div class="login-warp">
+        <a href="javascript:void(0);" class="login-logo"><img src="~/Content/images/login_logo.png" alt="" /></a>
+        <div class="login-bg">
+            <div>
+                <img src="~/Content/images/login_bg.jpg" />
+            </div>
+        </div>
+        <div class="login-right" >
+            <div class="login-content">
+                <div class="login-title"><img src="~/Content/images/login_title.png" alt="" /></div>
+                <div class="login-infor">
+                    <form  ng-app="LoginApp" ng-controller="LoginController" name="LoginForm" novalidate>
+                        <table cellpadding="0" cellspacing="0">
+                            <tr>
+                                <th>登录名：</th>
+                                <td>
+                                    <input type="text" class="input-1" name="UserName" ng-model="user.UserName" required ng-keydown="nameKeyDown($event);" />
+                                    
+                                </td>
+                                <td><span style="color:red" ng-show="(LoginForm.UserName.$dirty || LoginForm.UserName.$pristine)  && LoginForm.submitted">
+    <span ng-show="LoginForm.UserName.$error.required">* 用户名是必须的。</span>
+</span></td>
+
+                            </tr>
+                            <tr>
+                                <th>口&nbsp;&nbsp;&nbsp;令：</th>
+                                <td>
+                                    <input type="password" id="inpPWD" class="input-1" name="Password" ng-model="user.Password" required ng-keydown="pwdKeyDown($event)"/>
+                                   
+                                </td>
+                                <td><span style="color:red" ng-show="(LoginForm.Password.$dirty || LoginForm.Password.$pristine)  && LoginForm.submitted">
+    <span ng-show="LoginForm.Password.$error.required">* 密码是必须的。</span>
+</span></td>
+                            </tr>
+                            <tr>
+                                <th>&nbsp;</th>
+                                <td><div class="div-1"><span><input type="radio" name="radio" value="统一认证" />&nbsp;统一认证</span> <span class="current"><input type="radio" name="radio" checked="checked" value="本地认证" />&nbsp;本地认证</span></div></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>&nbsp;</th>
+                                <td>
+                                    <div class="div-2">
+                                        <span ng-hide="result.IsSuccess"> {{result.Message}}</span>
+                                        <a href="javascript:void(0);"   ng-click="Login()" class="a-1">用户登录</a>
+                                        <a href="javascript:void(0);" class="a-2">忘记密码</a>
+                                    </div>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="~/Content/Javascript/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript">
+    //window.onresize=function(){ location=location };
+	$(document).ready(function(){
+	  var h2=$(window).height();
+	  $(".login-bg div img").height(h2);
+	  $(".login-warp").height(h2);
+	  var h3=$(window).height()-$(".login-content").height();
+	  $(".login-content").css("margin-top",h3/2);
+	});
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/public.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/font/iconfont.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/css/main.css" />
+    <link href="~/Content/Javascript/blackbox/css/blackbox.css" rel="stylesheet" />
+    <!--[弹出层]-->
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog-custom-width.css" rel="stylesheet" />
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog-theme-default.css" rel="stylesheet" />
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog-theme-plain.css" rel="stylesheet" />
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog.css" rel="stylesheet" />
+
+    <link href="~/Content/css/tree-control.css" rel="stylesheet" />
+    <link href="~/Content/css/tree-control-attribute.css" rel="stylesheet" />
+    <link href="~/Content/css/Drop-Down.css" rel="stylesheet" />
+    <!--[弹出层end]-->
+    @RenderSection("Css", required: false)
+    
+
+    <script type="text/javascript" src="~/Content/Javascript/jquery-1.8.3.min.js"></script>
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <!--[if lte IE 8]>
+        <script src="/Content/Javascript/ieBetter.js"></script>
+        <script>
+          document.createElement('ng-include');
+          document.createElement('ng-pluralize');
+          document.createElement('ng-view');
+
+          // Optionally these for CSS
+          document.createElement('ng:include');
+          document.createElement('ng:pluralize');
+          document.createElement('ng:view');
+        </script>
+    <![endif]-->
+    @*<script type="text/javascript" src="~/Content/Javascript/comm.js"></script>*@
+    <script type="text/javascript" src="~/Content/Javascript/DatePicker/WdatePicker.js"></script>
+    <script src="~/Content/Javascript/blackbox/js/jquery.blackbox.js"></script>
+    <script src="~/Content/Javascript/angular/angular1.2.28.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/app/tm.paginationlist.js"></script>
+
+    <script>
+        var CurPath = '@Request.ApplicationPath'; //获取站点下的当前路径
+        if (CurPath == "/")
+            CurPath = "../";
+        var box = new BlackBox({ 'coverOnParent': true });
+        var postData;//请求页面参数变量
+         
+        /*获取表单键值对Json对象*/
+        $.fn.formtojsonObj = function () {
+            var o = {};
+            var a = $(this).serializeArray();
+            $.each(a, function (i, item) {
+                if (o[item.name] !== undefined) {
+                    if (!o[item.name].push) {
+                        o[item.name] = [o[item.name]];
+                    }
+                    o[item.name].push(item.value || '');
+                } else {
+                    o[item.name] = item.value || '';
+                }
+            });
+            return o;
+        }
+        /*获取表单键值对Json字符串*/
+        $.fn.formtojsonStr = function () {
+            var o = {};
+            var a = $(this).serializeArray();
+            $.each(a, function (i, item) {
+                if (o[item.name] !== undefined) {
+                    if (!o[item.name].push) {
+                        o[item.name] = [o[item.name]];
+                    }
+                    o[item.name].push(item.value || '');
+                } else {
+                    o[item.name] = item.value || '';
+                }
+            });
+            return JSON.stringify(o);
+        }
+
+        //获取数组arr中的某个属性值，返回数组
+        function getAttrByArr(arr, attr) {
+            var result = [];
+            if (arr != null)
+                $.each(arr, function (i, item) {
+                    result.push(item[attr]);
+                });
+            return result;
+        }
+
+        //深度克隆
+        function deepClone(obj) {
+            var result, oClass = isClass(obj);
+            //确定result的类型
+            if (oClass === "Object") {
+                result = {};
+            } else if (oClass === "Array") {
+                result = [];
+            } else {
+                return obj;
+            }
+            for (key in obj) {
+                var copy = obj[key];
+                if (isClass(copy) == "Object") {
+                    result[key] = arguments.callee(copy);//递归调用
+                } else if (isClass(copy) == "Array") {
+                    result[key] = arguments.callee(copy);
+                } else {
+                    result[key] = obj[key];
+                }
+            }
+            return result;
+        }
+        //返回传递给他的任意对象的类
+        function isClass(o) {
+            if (o === null) return "Null";
+            if (o === undefined) return "Undefined";
+            return Object.prototype.toString.call(o).slice(8, -1);
+        }
+
+
+        $('#content').fadeIn("slow");
+       
+    </script>
+    @RenderSection("Scripts", required: false)
+
+</head>
+<body>
+
+    <section id="content"  >
+        @RenderBody()
+    </section>
+</body>
+</html>

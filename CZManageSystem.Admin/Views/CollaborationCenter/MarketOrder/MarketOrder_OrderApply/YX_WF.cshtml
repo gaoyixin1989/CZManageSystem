@@ -1,0 +1,161 @@
+﻿
+@{
+    ViewBag.Title = "休假申请编辑页_WF";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script>
+
+
+        var app = angular.module('CreateOrUpdate', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', '$timeout', function ($scope, BusinessService, $filter, $timeout) {
+            var ApplyID = '@ViewData["ApplyID"]';
+            $scope.curObj = {
+                Apply: {
+                }
+            }
+
+
+            var getCurData = false;
+            var getData = function () {
+                BusinessService.getDataByID(ApplyID).success(function (response) {
+                    $scope.curObj = response;
+
+
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () {
+                    getCurData = true;
+                });
+            }
+
+            //获取当前数据
+            if (ApplyID != null && ApplyID.toString().length > 0) {
+                getData();
+            }
+            else {
+                getCurData = true;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.getDataByID = function (id) {//根据ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_OrderApply/GetDataByID?id=' + id
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .WF_Table {
+            width: 100%;
+            border: 1px solid #EAEAEA;
+            border-width: 1px 0px 0px 1px;
+            border-collapse: collapse;
+        }
+
+            .WF_Table tr th {
+                background: white;
+                padding: 7px;
+                font-weight: bold;
+                border: 1px solid #EAEAEA;
+                border-width: 0px 1px 1px 0px;
+                text-align: center;
+            }
+
+            .WF_Table tr td {
+                padding: 5px;
+                border: 1px solid #EAEAEA;
+                border-width: 0px 1px 1px 0px;
+                width: 34%;
+            }
+
+            .WF_Table tr th {
+                background: #F4F4F4;
+                width: 15%;
+            }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div>
+            <table class="WF_Table">
+                <tr><td colspan="4" style="color:blue;">基本信息</td></tr>
+                <tr>
+                    <th>标题：</th>
+                    <td colspan="3" ng-bind="curObj.Apply.Title"></td>
+                </tr>
+                <tr>
+                    <th>单号：</th>
+                    <td ng-bind="curObj.Apply.SerialNo"></td>
+                    <th>发起人：</th>
+                    <td ng-bind="curObj.Apply.RealName"></td>
+                </tr>
+                <tr>
+                    <th>营销方案:</th>
+                    <td ng-bind="curObj.Apply.MarketText"></td>
+                    <th>终端机型:</th>
+                    <td ng-bind="curObj.Apply.EndTypeText"></td>
+                </tr>
+                <tr>
+                    <th>目标客户号码:</th>
+                    <td ng-bind="curObj.Apply.CustomPhone"></td>
+                    <th>客户名称:</th>
+                    <td ng-bind="curObj.Apply.CustomName"></td>
+                </tr>
+                <tr>
+                    <th>身份证号:</th>
+                    <td ng-bind="curObj.Apply.CustomPersonID"></td>
+                    <th>联系电话:</th>
+                    <td ng-bind="curObj.Apply.CustomOther"></td>
+                </tr>
+                <tr>
+                    <th>联系地址:</th>
+                    <td ng-bind="curObj.Apply.CustomAddr"></td>
+                    <th>可用号码:</th>
+                    <td ng-bind="curObj.Apply.UseNumber"></td>
+                </tr>
+                <tr>
+                    <th>SIM卡号:</th>
+                    <td ng-bind="curObj.Apply.SIMNumber"></td>
+                    <th>IMEI码:</th>
+                    <td ng-bind="curObj.Apply.IMEI"></td>
+                </tr>
+                <tr>
+                    <th>基本套餐:</th>
+                    <td ng-bind="curObj.Apply.SetmealText"></td>
+                    <th>捆绑业务:</th>
+                    <td ng-bind="curObj.Apply.BusinessText"></td>
+                </tr>
+                <tr>
+                    <th>项目编号:</th>
+                    <td ng-bind="curObj.Apply.ProjectID"></td>
+                    <th>备注：</th>
+                    <td colspan="3" ng-bind="curObj.Apply.Remark"></td>
+                </tr>
+                <tr>
+                    <th>优惠费用(元):</th>
+                    <td ng-bind="curObj.Apply.PlanPay"></td>
+                    <th>实收费用(元)：</th>
+                    <td colspan="3" ng-bind="curObj.Apply.MustPay"></td>
+                </tr>
+            </table>
+        </div>
+
+    </form>
+</div>
+<!--公告编辑 end--->

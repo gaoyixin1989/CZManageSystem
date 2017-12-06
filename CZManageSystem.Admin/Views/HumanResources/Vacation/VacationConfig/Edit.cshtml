@@ -1,0 +1,182 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var ID = '@ViewData["ID"]';
+            $scope.vacationconfig = {};
+            $scope.VacationList = [];
+
+            BusinessService.GetDropList().success(function (response) {
+                $scope.VacationList = response.VacationList;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            //-----------------------------
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.vacationconfig = response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.vacationconfig.ID = ID;
+                    var postData = { vacationconfig: $scope.vacationconfig }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'VacationConfig/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+          
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationConfig/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationConfig/GetByID?ID=' + ID
+
+                });
+            };
+            serive.GetDropList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationConfig/GetDropList'
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+
+                <tr>
+                    <th>假期名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="VacationName" required ng-model="vacationconfig.VacationName" style="width:222px;">
+                                    <option ng-repeat="x in VacationList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                                </select>
+                               
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.VacationName.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请输入假期名称</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>假期天数：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="SpanTime" number ng-model="vacationconfig.SpanTime" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.SpanTime.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.SpanTime.$error.required">请输入假期天数</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->
+

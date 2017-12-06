@@ -1,0 +1,314 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <script>
+        var loadComData1 = false;
+        var loadComData2 = false;
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+
+            $scope.curObj = {
+                State: '在用',
+                SN:''
+            };
+
+            //获取所属单位
+            BusinessService.getDictListByName('所属单位').success(function (response) {
+                $scope.dictCorpType = response.items;
+                $timeout(function () {
+                    if (!$scope.curObj.CorpId && !!response.defaultvalue) {
+                        $scope.curObj.CorpId = response.defaultvalue;
+                    }
+                }, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { loadComData1 = true; });
+
+            var loadCurData = function () {
+                $timeout(function () {
+                    if (loadComData1) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            $scope.curObj = response;
+                            $scope.curObj.CorpID = $scope.curObj.CorpID;
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+
+            var id = '@ViewData["Id"]';
+            if (id != null && id.toString().length > 0) {
+                loadCurData();
+            }
+            else {
+                //获取自动司机编号
+                BusinessService.getAutoSn().success(function (response) {
+                    if (response.IsSuccess) {
+                        $scope.curObj.SN = response.data;
+                    }
+
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' })
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'DriverFiles/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.alert("网络出错！", { icon: 'error' })
+                    });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            
+         
+            //选择部门（管理单位）
+            $scope.editDept = function (depts) {
+                var iframeId = 'dept_edit';
+                var iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + depts;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择部门',
+                        width: 530,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.curObj.DeptName_text = getAttrByArr(result, 'id').join(",");
+                                    $scope.curObj.DeptName = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //选择用户（管理人）
+            $scope.editUser = function (users) {
+                var iframeId = 'user_edit';
+                var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + users;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择用户',
+                        width: 760,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.curObj.Name_text = getAttrByArr(result, 'id').join(",");
+                                    $scope.curObj.Name = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DriverFiles/DriverFilesInfo',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DriverFiles/DriverFilesDataByID?Id=' + id
+                });
+            };
+            serive.getAutoSn = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DriverFiles/getAutoSn'
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>所属单位：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="CorpId" required ng-model="curObj.CorpId" style="width:222px;">
+                                <option ng-repeat="x in dictCorpType" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CorpId.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择所属单位</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>司机编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="SN" ng-model="curObj.SN" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.SN.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SN.$error.required">请输入司机编号</span>
+                                <span ng-show="editForm.SN.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>司机名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="Name" ng-model="curObj.Name" required class="cell-input" />
+                        <input type="text" ng-model="curObj.Name" class="cell-input" readonly ng-click="editUser(curObj.Name_text)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Name.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Name.$error.required">请选择司机名</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>手机号码：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="200" name="Mobile" ng-model="curObj.Mobile" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Mobile.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Mobile.$error.required">请输入手机号码</span>
+                                <span ng-show="editForm.Mobile.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="DeptName" ng-model="curObj.DeptName" required class="cell-input" />
+                        <input type="text" ng-model="curObj.DeptName" required class="cell-input" readonly ng-click="editDept(curObj.DeptName_text)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DeptName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DeptName.$error.required">请选择部门</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>开始时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="CarAge" name="CarAge" date-Picker dateFmt="yyyy-MM-dd" ng-model="curObj.CarAge" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>生日：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="Birthday" name="Birthday" date-Picker dateFmt="yyyy-MM-dd" ng-model="curObj.Birthday" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../DriverFiles/index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

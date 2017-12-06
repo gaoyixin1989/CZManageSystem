@@ -1,0 +1,275 @@
+﻿
+@{
+    ViewBag.Title = "耗材补录归档信息——流程中使用";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+
+        //判断耗材的库存量是否大于等于退库量，满足要求则返回true
+        function checkConsumableAmount_ForMakeup() {
+            var appElement = document.querySelector('[ng-controller=CreateController]');
+            var $scope = angular.element(appElement).scope();
+            var mm = false;
+            mm = $scope.checkConsumableAmount_ForMakeup();
+            return mm;
+        }
+
+        function addJsCroll(elememt) {
+            if ($(elememt).length > 0) {
+                $(elememt).jscroll({
+                    W: "8px",
+                    BgUrl: "",
+                    Bg: "#f4f4f4",
+                    Bar: {
+                        //Pos: "bottom",
+                        Bd: { Out: "#f4f4f4", Hover: "#f4f4f4" },
+                        Bg: { Out: "#0085d1", Hover: "#03a3fe", Focus: "#03a3fe" }
+                    },
+                    Btn: { btn: false }
+                });
+            }
+        }
+
+
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+
+            var MakeupID = '@ViewData["MakeupID"]';
+            $scope.curObj = {
+                makeupData: {},
+                detailDatas: {},
+                sumbitUser: {}
+            }
+
+            //获取当前数据
+            if (MakeupID != null && MakeupID.toString().length > 0) {
+
+                BusinessService.getDataByID(MakeupID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            //获取耗材退库明细信息
+            box.load("GetListData_MakeupDetail");
+            BusinessService.GetListData_MakeupDetail({ MakeupID: MakeupID }).success(function (response) {
+                box.ready("GetListData_MakeupDetail");
+                $scope.ConsumableData = response.items;
+            }).error(function (err) {
+                box.ready("GetListData_MakeupDetail");
+                //alert("网络出错！");
+                box.alert("网络出错！", { icon: 'error' });
+            });
+            
+            //判断耗材的库存量是否大于等于退库量，满足要求则返回true
+            $scope.checkConsumableAmount_ForMakeup = function () {
+                var isSuccess = false;
+                $.ajax({
+                    url: CurPath + 'Consumable/CheckConsumableAmount_ForMakeup?id=' + MakeupID,
+                    //data: JSON.stringify(postData),
+                    type: 'POST',
+                    async: false,
+                    contentType: 'application/json;charset=utf-8',
+                    success: function (response) {
+                        if (response.IsSuccess) {
+                            isSuccess = true;
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "提交失败", { icon: 'error' });
+                        }
+                    },
+                    error: function () {
+                        box.alert("网络出错！", { icon: 'error' })
+                    }
+                });
+
+                return isSuccess;
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/Save_Makeup',
+                    data: postData
+                });
+            };
+            serive.sumbit = function (postData) {//提交
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/Sumbit_Makeup',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/GetDataByID_Makeup?id=' + id
+                });
+            };
+
+            serive.GetListData_MakeupDetail = function (postData) {//获取耗材退库明细信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/GetListData_MakeupDetail',
+                    data: postData
+                });
+            };
+
+            return serive;
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            //scope.$emit('ngRepeatFinished');
+                            addJsCroll(element.parents('.jscroll'));
+                        });
+                    }
+                }
+            };
+        });
+
+    </script>
+    <style>        
+        .public-table-main {
+            padding-top: 10px;
+            padding-bottom: 0px;
+        }
+
+        .ui-label label {
+            margin-right: 10px;
+            line-height: 30px;
+            float: left;
+        }
+
+        .showMulti {
+            /*background-color: #F9F9F9;*/
+        }
+        .WF_Table{width:100%;border: 1px solid #EAEAEA;border-width: 1px 0px 0px 1px;border-collapse:collapse;}
+        .WF_Table tr th{background:white;padding:7px;font-weight: bold;border: 1px solid #EAEAEA;border-width: 0px 1px 1px 0px;text-align: center;}
+        .WF_Table tr td{padding:5px;border: 1px solid #EAEAEA;border-width: 0px 1px 1px 0px; width:35%;}
+        .WF_Table tr th {background:#F4F4F4; width:15%;}
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div>
+            <table class="WF_Table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <th>标题：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="Title" ng-model="curObj.makeupData.Title" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Title.$error.required">请输入标题</span>
+                                    <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="width:20%">退库单号：</th>
+                    <td style="width:30%">{{curObj.makeupData.State==0?'(提交时自动生成)':curObj.makeupData.Series}}</td>
+                    <th style="width:10%">所在部门：</th>
+                    <td style="width:30%" ng-bind="curObj.sumbitUser.DeptName"></td>
+                </tr>
+                <tr>
+                    <th>申请人：</th>
+                    <td ng-bind="curObj.sumbitUser.RealName"></td>
+                    <th>手机号码：</th>
+                    <td ng-bind="curObj.sumbitUser.Mobile"></td>
+                </tr>
+                <tr>
+                    <th>耗材使用人：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input style="display:none;" type="text" name="UsePerson" ng-model="curObj.makeupData.UsePerson" required class="cell-input" />
+                            <input type="text" ng-model="curObj.makeupData.UsePerson_Text" class="cell-input" readonly />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.UsePerson.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.UsePerson.$error.required">请选择耗材使用人</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>退库原因：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:550px;" name="Content" ng-model="curObj.makeupData.Content" required ng-maxlength="200" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Content.$error.required">请输入退库原因</span>
+                                    <span ng-show="editForm.Content.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="public-table-main">
+            <div class="jscroll" style="height:230px;">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th style="display:none;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                        <th>耗材类别</th>
+                        <th>耗材名称</th>
+                        <th>耗材品牌</th>
+                        <th>耗材型号</th>
+                        <th>适用设备</th>
+                        <th>单位</th>
+                        <th>是否低值</th>
+                        <th>数量</th>
+                    </tr>
+                    <tr ng-repeat="emp in ConsumableData" on-finish-render-filters>
+                        <td style="display:none;"><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                        <td ng-bind="emp.Type"></td>
+                        <td ng-bind="emp.Name"></td>
+                        <td ng-bind="emp.Trademark"></td>
+                        <td ng-bind="emp.Model"></td>
+                        <td ng-bind="emp.Equipment"></td>
+                        <td ng-bind="emp.Unit"></td>
+                        <td>{{emp.IsValue=='0'?'否':'是'}}</td>
+                        <td ng-bind="emp.Count"></td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

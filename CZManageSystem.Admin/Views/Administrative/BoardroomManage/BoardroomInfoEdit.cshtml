@@ -1,0 +1,392 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <script>
+        var loadComData1 = false;
+        var loadComData2 = false;
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+
+            $scope.curObj = {
+                State: '在用'
+            };
+
+            //获取所属单位
+            BusinessService.getDictListByName('所属单位').success(function (response) {
+                $scope.dictCorpType = response.items;
+                $timeout(function () {
+                    if (!$scope.curObj.CorpID && !!response.defaultvalue) {
+                        $scope.curObj.CorpID = response.defaultvalue;
+                    }
+                }, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { loadComData1 = true; });
+
+            //获取会议室设备
+            BusinessService.getDictListByName('会议室设备').success(function (response) {
+                $scope.dictEquip = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { loadComData2 = true; });
+
+            var loadCurData = function () {
+                $timeout(function () {
+                    if (loadComData1 && loadComData2) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            $scope.curObj = response;
+                            $scope.curObj.CorpID = $scope.curObj.CorpID;
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+
+            var id = '@ViewData["BoardroomID"]';
+            if (id != null && id.toString().length > 0) {
+                loadCurData();
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    //if ((!!$scope.curObj.StartTime) && (!!$scope.curObj.EndTime) && ($scope.curObj.StartTime >= $scope.curObj.EndTime))
+                    //{//两个值都存在时，结束时间不能小于开始时间
+                    //    box.alert("使用时间的结束时间必须大于开始时间！", { icon: 'warning' });
+                    //    return;
+                    //}
+                    //if (((!!$scope.curObj.StartTime) || (!!$scope.curObj.EndTime)) && !((!!$scope.curObj.StartTime) && (!!$scope.curObj.EndTime)))
+                    //{//两个时间要么都填，要么都不填
+                    //    box.alert("使用时间不能只填一个时间！", { icon: 'warning' });
+                    //    return;
+                    //}
+                    
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'BoardroomManage/BoardroomInfo';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.alert("网络出错！", { icon: 'error' })
+                    });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //选择部门（管理单位）
+            $scope.editDept = function (depts) {
+                var iframeId = 'dept_edit';
+                var iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + depts;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择部门',
+                        width: 530,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.curObj.ManagerUnit = getAttrByArr(result, 'id').join(",");
+                                    $scope.curObj.ManagerUnit_text = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //选择用户（管理人）
+            $scope.editUser = function (users) {
+                var iframeId = 'user_edit';
+                var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + users;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择用户',
+                        width: 760,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.curObj.ManagerPerson = getAttrByArr(result, 'id').join(",");
+                                    $scope.curObj.ManagerPerson_text = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //选择设备
+            $scope.selectEquip = function ($event, value) {
+                var isChecked = $event.target.checked;
+                if ($scope.curObj.Equip == null) $scope.curObj.Equip = '';
+                if (isChecked) {
+                    if ($scope.curObj.Equip.indexOf(value) < 0)
+                        $scope.curObj.Equip += ($scope.curObj.Equip.length == 0 ? "" : ",") + value;
+                }
+                else {
+                    $scope.curObj.Equip = ',' + $scope.curObj.Equip + ',';
+                    if (($scope.curObj.Equip).indexOf(',' + value + ',') >= 0) {
+                        $scope.curObj.Equip = $scope.curObj.Equip.replace(',' + value + ',', ',');
+                        $scope.curObj.Equip = $scope.curObj.Equip.substring(1, $scope.curObj.Equip.length - 1);
+                    }
+                }
+
+            }
+            //检查设备是否选中
+            $scope.checkEquip = function (value) {
+                if ($scope.curObj.Equip == null) $scope.curObj.Equip = '';
+                if ((',' + $scope.curObj.Equip + ',').indexOf(',' + value + ',') >= 0)
+                    return true;
+                else
+                    return false;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/SaveBoardroomInfo',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/GetBoardroomInfoDataByID?BoardroomID=' + id
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            @*<tr>
+                <th>当前状态： </th>
+                <td>
+                    {{(curObj.BoardroomID!=null && curObj.BoardroomID.toString().length>0)?"编辑":"新增"}}
+                </td>
+            </tr>*@
+            <tr>
+                <th>所属单位：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="CorpID" required ng-model="curObj.CorpID" style="width:222px;">
+                                <option ng-repeat="x in dictCorpType" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CorpID.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择所属单位</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>会议室名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="Name" ng-model="curObj.Name" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Name.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Name.$error.required">请输入会议室名称</span>
+                                <span ng-show="editForm.Name.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>会议室地点：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="200" name="Address" ng-model="curObj.Address" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Address.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Address.$error.required">请输入会议室地点</span>
+                                <span ng-show="editForm.Address.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>容纳最大人数：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="ui-input">
+                            <input type="text" number min="1" precision="0" class="cell-input" ng-model="curObj.MaxMan" name="MaxMan" required />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.MaxMan.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.MaxMan.$error.required">请输入容纳最大人数</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>配备设备：</th>
+                <td>
+                    <div style="">
+                        <label ng-repeat="x in dictEquip" style="margin-right:10px;float:left;">
+                            <input type="checkbox" name="Equip" ng-value="x.value" ng-click="selectEquip($event,x.value)" ng-checked="checkEquip(x.value)" />{{x.text}}
+                        </label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>管理单位：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text"  name="ManagerUnit" ng-model="curObj.ManagerUnit" required class="cell-input" />
+                        <input type="text" ng-model="curObj.ManagerUnit_text" required class="cell-input" readonly ng-click="editDept(curObj.ManagerUnit)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ManagerUnit.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ManagerUnit.$error.required">请选择管理单位</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>管理员：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="ManagerPerson" ng-model="curObj.ManagerPerson" required class="cell-input" />
+                        <input type="text" ng-model="curObj.ManagerPerson_text" class="cell-input" readonly ng-click="editUser(curObj.ManagerPerson)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ManagerPerson.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ManagerPerson.$error.required">请选择管理员</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>状态：</th>
+                <td>
+                    <label>
+                        <input type="radio" name="State" value="在用" ng-model="curObj.State" />在用
+                    </label>
+                    <label style="margin-left:10px;">
+                        <input type="radio" name="State" value="停用" ng-model="curObj.State" />停用
+                    </label>
+                </td>
+            </tr>
+            @*<tr>
+                <th>使用时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="StartTime" name="StartTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.StartTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" id="EndTime" name="EndTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.EndTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>*@
+            <tr>
+                <th>备注信息：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark" ng-maxlength="500"></textarea>
+                        <div class="ui-tips" ng-show="editForm.failSubmited&&editForm.Remark.$invalid">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>输入文本过长</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../BoardroomManage/BoardroomInfo" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

@@ -1,0 +1,204 @@
+﻿
+@{
+    ViewBag.Title = "投资项目选择";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        var choseArr = new Array();
+        var app = angular.module('ListPage', ['tm.pagination']);
+        //控制器
+        app.controller('PageController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                //choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+
+            var selectedId = '@ViewData["selected"]';
+            var str = "";
+            $scope.isCh = function (project) {
+                if (selectedId.indexOf(project.ProjectID) >= 0) {
+                    if (str.indexOf(project.ProjectID) < 0) {
+                        choseArr.push(project);
+                        str += project.ProjectID + ",";
+                    }
+                }
+                return selectedId.indexOf(project.ProjectID) >= 0;
+
+            }
+
+            /*实现全选，多选操作*/
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+
+        }]);
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Project/GetListData_Project', postData);
+            };
+            return serive;
+        }]);
+
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=PageController]');
+            var $scope = angular.element(appElement).scope();
+            var ListPageData = $scope.ListPageData;
+            var result = [];
+            $.each(choseArr, function (i, item) {
+                result.push({
+                    ProjectID: item.ProjectID,
+                    ProjectName: item.ProjectName
+                });
+            });
+            return result;
+        }
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="PageController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    项目编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectID" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    项目名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>负责部门：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.DpCode_Text" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>项目经理：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ManagerID_Text" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>下达年份</th>
+                <th>计划任务书文号</th>
+                <th>项目编号</th>
+                <th>项目名称</th>
+                <th>起止年限</th>
+                <th>项目总投资(元)</th>
+                <th>年度项目投资(元)</th>
+                <th>项目经理</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="isCh(emp)" ng-click="chk($event,emp)" /></td>
+                <td>{{emp.Year}}</td>
+                <td>{{emp.TaskID}}</td>
+                <td>{{emp.ProjectID}}</td>
+                <td>{{emp.ProjectName}}</td>
+                <td>{{emp.BeginEnd}}</td>
+                <td>{{emp.Total}}</td>
+                <td>{{emp.YearTotal}}</td>
+                <td>{{emp.Manager_Text}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

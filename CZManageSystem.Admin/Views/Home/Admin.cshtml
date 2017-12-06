@@ -1,0 +1,74 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Head.cshtml";
+}
+@section Css{
+    <link rel="stylesheet" type="text/css" href="~/Content/css/main.css" />
+}
+@section Scripts{
+    <script type="text/javascript" src="~/Content/Javascript/comm.js"></script>
+    <script type="text/javascript" src="~/Content/Javascript/DatePicker/WdatePicker.js"></script>
+
+}
+ <!--新闻投稿--->
+<div class="main-mod">
+    <div class="main-mod-left">
+        <div class="left-nav-mod">
+           @*@{Html.RenderPartial("~/Views/Shared/_Menu.cshtml"); }*@
+            @{ List<CZManageSystem.Data.Domain.SysManger.SysMenu> menuList = ViewBag.MenuList;
+                foreach (var menu in menuList.Where(m => m.ParentId.ToString() == ViewBag.MenuId))
+                {
+                    <div class="left-nav">
+                        <span class="span-1"><i></i>@menu.MenuName<b></b></span>
+                        <ul>
+                            @foreach (var menu1 in menuList.Where(m => m.ParentId == menu.Id && m.MenuType == "页面"))
+                          {
+
+                                <li><a href="@menu1.PageUrl">@menu1.MenuName</a></li>
+
+                            }
+                        </ul>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="main-mod-right">
+        <div class="public-main-title">
+            <a href="javascript:void(0);">新闻中心</a>
+            <a href="javascript:void(0);" class="current">文章评论<b></b></a>
+        </div>
+        <iframe id="IFContent" frameborder='0' marginwidth='0' style="width:100%;min-height:470px;overflow:hidden" src='@Url.Action("Content", "Home")'></iframe>
+        
+    </div>
+
+</div>
+<!--新闻投稿 end--->
+<script type="text/javascript">
+	$(document).ready(function(){
+	    var h_r = $(".left-nav-mod").height();
+	    var w_r = $(".left-nav-mod").width();
+	    var mml_h = $(window).height() - $(".header").height() - $(".footer").height();
+	    var mml_w = $(window).width() - w_r;
+	    //$("#IFContent").css("min-width", mml_w-100);
+	  $(".main-mod").css("min-height",mml_h);
+	  var a=$(".main-mod").height();
+	  $(".main-mod-left").css("min-height",a);
+
+
+	  $(".left-nav span").click(function(){
+	    $(this).next("ul").slideToggle(
+		  function(){
+			  var h_r=$(".left-nav-mod").height();
+			  $(".main-mod-right").css("min-height", h_r);
+			  $("#IFContent").css("min-height", h_r);
+			  }
+		);
+		$(this).children("b").toggleClass("minus");
+      });
+
+
+
+	});
+</script>

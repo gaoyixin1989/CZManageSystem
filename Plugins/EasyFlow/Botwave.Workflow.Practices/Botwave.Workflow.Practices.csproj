@@ -1,0 +1,223 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3C5FCA7A-7B06-4DE3-A041-29F82F04BACB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Botwave.Workflow.Practices</RootNamespace>
+    <AssemblyName>Botwave.Workflow.Practices</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Botwave.GMCCServiceHelpers">
+      <HintPath>..\..\..\Lib\bizsdk\Botwave.GMCCServiceHelpers.dll</HintPath>
+    </Reference>
+    <Reference Include="Botwave.GmccWsProxies">
+      <HintPath>..\..\..\Lib\bizsdk\Botwave.GmccWsProxies.dll</HintPath>
+    </Reference>
+    <Reference Include="Botwave.WebServiceClients">
+      <HintPath>..\..\..\Lib\etc\Botwave.WebServiceClients.dll</HintPath>
+    </Reference>
+    <Reference Include="Common.Logging, Version=3.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Common.Logging.3.0.0\lib\net40\Common.Logging.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Common.Logging.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Common.Logging.Core.3.0.0\lib\net40\Common.Logging.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Common.Logging.Log4Net">
+      <HintPath>..\..\..\Lib\logging\Common.Logging.Log4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="IBatisNet.DataMapper">
+      <HintPath>..\..\..\Lib\ibatis\IBatisNet.DataMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NVelocity">
+      <HintPath>..\..\..\Lib\etc\NVelocity.dll</HintPath>
+    </Reference>
+    <Reference Include="Spring.Core, Version=2.0.1.45000, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Spring.Core.2.0.1\lib\net45\Spring.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SXT.SSO.Client">
+      <HintPath>..\..\..\Lib\etc\SXT.SSO.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BaseAuthService.cs" />
+    <Compile Include="BWOA\Domain\AppLeaveInfo.cs" />
+    <Compile Include="BWOA\Domain\ApplicationInfo.cs" />
+    <Compile Include="BWOA\Domain\ApplyStat.cs" />
+    <Compile Include="BWOA\Domain\DocInspectInfo.cs" />
+    <Compile Include="BWOA\Domain\PurchaseInfo.cs" />
+    <Compile Include="BWOA\Domain\RepaymentInfo.cs" />
+    <Compile Include="BWOA\Domain\SysDeployInfo.cs" />
+    <Compile Include="BWOA\Service\Impl\IBatisActivityExecutionService.cs" />
+    <Compile Include="BWOA\Service\IWorkflowExecutionService.cs" />
+    <Compile Include="BWOA\WfPlugin\ExpenseTaskAllocator.cs" />
+    <Compile Include="BWOA\WfPlugin\SendEventHandler.cs" />
+    <Compile Include="BWOA\WfPlugin\VelocityCommandRulesParser.cs" />
+    <Compile Include="BWOA\WfPlugin\WfPostOADataHandler.cs" />
+    <Compile Include="BWOA\WfPlugin\WfPostOAPendingHandler.cs" />
+    <Compile Include="CZMCC\GetUserInfo.cs" />
+    <Compile Include="CZMCC\GratuityFlowService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CZMCC\GratuityService.cs" />
+    <Compile Include="CZMCC\IGratuityService.cs" />
+    <Compile Include="CZMCC\SSOProxyHandler.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CZMCC\MessageSender.cs" />
+    <Compile Include="CZMCC\LoginValidator.cs" />
+    <Compile Include="CZMCC\Service\Impl\czWorkflowNotifyService.cs" />
+    <Compile Include="CZMCC\Service\Impl\ResourcesExecutionService.cs" />
+    <Compile Include="CZMCC\Service\Impl\StateDealWithHandler.cs" />
+    <Compile Include="CZMCC\Support\DefaultAuthService.cs" />
+    <Compile Include="CZMCC\Support\ExtendWorkflowSelectorProfile.cs" />
+    <Compile Include="CZMCC\Support\ExtendXSJYWorkflowSelectorProfile.cs" />
+    <Compile Include="CZMCC\Support\NotifyReaderService.cs" />
+    <Compile Include="CZMCC\Support\UserService.cs" />
+    <Compile Include="CZMCC\Support\WorkflowSelectorProfile.cs" />
+    <Compile Include="CZMCC\Support\WorkflowNotifyService.cs" />
+    <Compile Include="CZMCC\Support\XSJYWorkflowSelectorProfile.cs" />
+    <Compile Include="CZMCC\SSOMpHandler.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="GZMCC\LoginValidator.cs" />
+    <Compile Include="GZMCC\MessageSender.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="BaseSSOProxy.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Botwave.Core\Botwave.Core.csproj">
+      <Project>{20cf5584-39ab-4274-bada-0f50a4b6183a}</Project>
+      <Name>Botwave.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.DynamicForm\Botwave.DynamicForm.csproj">
+      <Project>{599562f2-bbd7-46d9-8f1f-8a2e9007484b}</Project>
+      <Name>Botwave.DynamicForm</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Extension.IBatisNet\Botwave.Extension.IBatisNet.csproj">
+      <Project>{f6d8e05c-ca82-4420-b267-5fc4316014d3}</Project>
+      <Name>Botwave.Extension.IBatisNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Security\Botwave.Security.csproj">
+      <Project>{ea62f6d5-bb78-4e9d-8e7a-5d50e680d939}</Project>
+      <Name>Botwave.Security</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Workflow.Core\Botwave.Workflow.Core.csproj">
+      <Project>{9a4af51f-822c-4c0d-98fc-773f9ea89cf0}</Project>
+      <Name>Botwave.Workflow.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Workflow.Extension\Botwave.Workflow.Extension.csproj">
+      <Project>{6b5fa780-7be5-4225-a4c3-7247f6c11135}</Project>
+      <Name>Botwave.Workflow.Extension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.XQP\Botwave.XQP.csproj">
+      <Project>{9B66F5E1-1C40-4D43-A6D3-72159A6C0D66}</Project>
+      <Name>Botwave.XQP</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="BWOA\Domain\vssver2.scc" />
+    <None Include="BWOA\Service\Impl\vssver2.scc" />
+    <None Include="BWOA\Service\vssver2.scc" />
+    <None Include="BWOA\WfPlugin\vssver2.scc" />
+    <None Include="GZMCC\vssver2.scc" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

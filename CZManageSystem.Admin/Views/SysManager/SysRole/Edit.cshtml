@@ -1,0 +1,247 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "角色编辑";//是
+}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[if lte IE 8]>
+        <script>
+            document.createElement('treecontrol');
+        </script>
+    <![endif]-->
+    <script>
+        var app = angular.module('Edit', ['treeControl', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EditController', ['$scope', 'CreateService', function ($scope, CreateService) {
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+            //菜单树形结构
+            $scope.dataForTheTree = [];
+            $scope.ParentId = '00000000-0000-0000-0000-000000000000';
+            CreateService.getlist().success(function (response) {
+                $scope.dataForTheTree = response;
+                $scope.showSelected = function (sel, parent) {
+                    $scope.selectedNode = sel;
+                    $scope.ParentId = sel.RoleId;
+                    $scope.ParentName = sel.RoleName;
+                    $("#RoleTree").toggle();
+                };
+            });
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#RoleTree").toggle();
+            }
+            var id = '@ViewData["id"]';
+            if (id != '00000000-0000-0000-0000-000000000000') {
+                CreateService.get(id).success(function (response) {
+                    $scope.role = response;
+                    if (response.pname != null) {
+                        $scope.ParentId = response.ParentId;
+                        $scope.ParentName = response.pname;
+                    }
+                }).error(function (response, x, m) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+
+            $scope.Save = function () {
+                $scope.RoleForm.failSubmitted = false;
+                if ($scope.RoleForm.$valid) {
+                    var postData = $scope.role;
+                    var id = '00000000-0000-0000-0000-000000000000';
+                    //$scope.ParentId = $scope.role.ParentId;
+                    if ('@ViewData["id"]' > 0) {
+                        var id = '@ViewData["id"]';
+                    }
+                    if ($scope.ParentName == "" || $scope.ParentName == undefined) {
+                        $scope.ParentId = '00000000-0000-0000-0000-000000000000';
+                    }
+                    var postData = {
+                        Id: id,
+                        RoleId: $scope.role.RoleId,
+                        RoleName: $scope.role.RoleName,
+                        ParentId: $scope.ParentId,
+                        BeginTime: $scope.role.BeginTime,
+                        EndTime: $scope.role.EndTime,
+                        SortOrder: $scope.role.SortOrder,
+                        IsInheritable: $scope.role.IsInheritable,
+                        Comment: $scope.role.Comment
+                    }
+                    CreateService.Save(postData).success(function (response) {
+                        box.alert(response.message, { icon: 'success' }, function () {
+                            window.location.href = CurPath + 'SysRole/Index';
+                        });
+
+                    });
+                }
+                else {
+                    $scope.RoleForm.failSubmitted = true;
+                }
+            };
+
+            //$scope.check = function () {
+            //    ele = $(event.target);
+            //    if (ele.val() == "") {
+            //        ele.addClass("on-error");
+            //        ele.nextAll(".must-options").toggle();
+            //        ele.nextAll(".ui-tips").toggle();
+            //    }
+            //    else {
+            //        ele.removeClass("on-error");
+            //        ele.nextAll(".must-options").hide();;
+            //        ele.nextAll(".ui-tips").hide();
+            //    }
+            //}
+        }]);
+        //业务类
+        app.factory('CreateService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.Save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/Save',
+                    data: postData
+                });
+            };
+            serive.get = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/GET?id=' + id
+                    //param: id
+                });
+            };
+            serive.getlist = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/GETList'
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<!--公告管理--->
+@*<div ng-app="Edit" ng-controller="EditController" class="public-form">
+    <form name="RoleForm">*@
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="Edit" ng-controller="EditController" name="RoleForm" novalidate>
+        <table>
+            <tr style="display:none">
+                <th>Id： </th>
+                <td ng-model="id">
+                    <div value="" ng-model="id">
+                        {{role.Id}}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+
+                <th>角色名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="RoleName" ng-model="role.RoleName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="RoleForm.RoleName.$invalid&& RoleForm.failSubmitted">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div><i class="icon-error"></i>请输入角色名。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>所属角色：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="ParentName" name="ParentName" class="cell-input" placeholder="请选择" ng-click="showTree(this)" />
+                    </div>
+                    <div class="">
+                        <treecontrol id="RoleTree" class="tree-light" style="display:none"
+                                     tree-model="dataForTheTree"
+                                     options="treeOptions"
+                                     on-selection="showSelected(node,$parentNode)">
+                            {{node.RoleName}}
+                        </treecontrol>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>开始时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="BeginTime" name="BeginTime" date-Picker ng-model="role.BeginTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        @*<strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="!RoleForm.BeginTime.$modelValue&& RoleForm.failSubmitted">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择开始时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>*@
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>结束时间： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="EndTime" name="EndTime" date-Picker ng-model="role.EndTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        @*<strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="!RoleForm.EndTime.$modelValue&& RoleForm.failSubmitted">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择结束时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>*@
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>排序： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="number" value="" class="cell-input" ng-model="role.SortOrder" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否可继承： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="checkbox" ng-model="role.IsInheritable" ng-checked="role.IsInheritable" />
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" ng-model="role.Comment">这里是备注</textarea>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="Save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysRole/Index" class="cell-btn-orange" style="width:70px; margin-right:20px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<!--公告管理 end--->

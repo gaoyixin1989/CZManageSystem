@@ -1,0 +1,161 @@
+﻿
+@{
+    ViewBag.Title = "车辆状态";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+<script src="~/Content/app/datePicker.js"></script>
+<script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('CarInfoController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                LicensePlateNum: ""
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //点击标题
+            $scope.editData = function (id) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                        return;
+                    };
+                    url = CurPath + 'CarInfo/CarInfoEdit?CarId=' + choseArr[0] + '&type=look';
+                }
+                else {
+                    url = CurPath + 'CarInfo/CarInfoEdit?CarId=' + id+ '&type=look';
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+              
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'CarInfo/GetListData', postData);
+            };
+            return serive;
+        }]);
+
+</script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="CarInfoController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    车牌号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.LicensePlateNum" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                @*<th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>*@
+                <th>所属单位</th>
+                <th>车辆编号</th>
+                <th>车牌号</th>
+                <th>车辆品牌</th>
+                <th>车辆型号</th>
+                <th>车辆类型</th>
+                <th>吨位/人数</th>
+                @*<th>购买日期</th>
+                <th>购买价</th>*@
+                <th>驾驶员</th>
+                <th>车辆状态</th>
+                <th>保险开始时间</th>
+                <th>保险结束时间</th>
+            </tr>
+            <tr ng-repeat="car in ListPageData">
+                @*<td><input type="checkbox" id="{{car.CarId}}" ng-model="x" ng-checked="x" ng-click="chk($event,car.CarId)" /></td>*@
+                <td ng-bind="car.CorpName"></td>
+                <td><a ng-click="editData(car.CarId)" ng-bind="car.SN"></a></td>
+                <td ng-bind="car.LicensePlateNum"></td>
+                <td ng-bind="car.CarBrand"></td>
+                <td ng-bind="car.CarModel"></td>
+                <td ng-bind="car.CarType"></td>
+                <td ng-bind="car.CarTonnage"></td>
+                @*<td ng-bind="car.BuyDate|date:'yyyy-MM-dd'"></td>
+                <td ng-bind="car.CarPrice"></td>*@
+                <td ng-bind="car.DriverName"></td>
+                <td ng-bind="car.StatusText"></td>
+                <td ng-bind="car.PolicyTime1|date:'yyyy-MM-dd'"></td>
+                <td ng-bind="car.PolicyTime2|date:'yyyy-MM-dd'"></td>
+            </tr>
+
+        </table>
+    </div>
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+
+    <!--content--->
+</div>
+

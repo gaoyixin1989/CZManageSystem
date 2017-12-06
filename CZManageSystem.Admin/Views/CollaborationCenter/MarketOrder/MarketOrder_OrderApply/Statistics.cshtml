@@ -1,0 +1,199 @@
+﻿
+@{
+    ViewBag.Title = "办理情况统计";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <link href="~/Content/app/AngularJsMultiSelect/isteven-multi-select.css" rel="stylesheet" />
+    <script src="~/Content/app/AngularJsMultiSelect/isteven-multi-select.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'isteven-multi-select', 'ngDialog', 'datePicker']);
+        //控制器
+        app.controller('ListController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+            };
+
+            $scope.AreaSelected = [];
+
+            //获取受理单状态信息
+            BusinessService.GetOrderStatus().success(function (response) {
+                $scope.dictOrderStatus = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            //获取“区域信息”
+            BusinessService.GetAreaData().success(function (response) {
+                $scope.dictAreaData = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+
+
+                $scope.queryBuilder.ListAreaID = [];//区域信息
+                if ($scope.AreaSelected.length > 0) {
+                    $.each($scope.AreaSelected, function (i, item) {
+                        $scope.queryBuilder.ListAreaID.push(item.ID);
+                    })
+                }
+
+                BusinessService.list($scope.queryBuilder).success(function (response) {
+                    box.ready("GetListData");
+                    //$scope.paginationConf.totalItems = response.count;
+                    $scope.StatisticsData = response;//UserData,DetailData
+
+
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+
+            GetListData();
+            $scope.query = function () {
+                GetListData();
+            }
+            
+            $scope.GetDetailCount = function (userObj, statusObj)
+            {
+                var result = '0';
+                var temp = $filter('filter')($scope.StatisticsData.DetailData, { 'Applicant': userObj.Applicant, 'OrderStatus': statusObj.OrderStatus });
+                if (temp.length > 0)
+                    result = temp[0].Count;
+                return result;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'MarketOrder_OrderApply/GetStatisticData', postData);
+            };
+            //受理单状态
+            serive.GetOrderStatus = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_OrderStatus/GetAllData'
+                });
+            };
+            //获取区域形象
+            serive.GetAreaData = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Area/GetAllData'
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ListController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>客服发起时间：</td>
+                <td style="padding-right:10px;">
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="ApplyTime_start" date-Picker ng-model="queryBuilder.ApplyTime_start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <span style="padding:0px 5px;">至</span>
+                        <input type="text" id="ApplyTime_end" date-Picker ng-model="queryBuilder.ApplyTime_end" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>邮政受理部门：</td>
+                <td>
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="dictAreaData"
+                             output-model="AreaSelected"
+                             button-label="DpName"
+                             item-label="DpName"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:150px;">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td>受理时间：</td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="DealTime_start" date-Picker ng-model="queryBuilder.DealTime_start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <span style="padding:0px 5px;">至</span>
+                        <input type="text" id="DealTime_end" date-Picker ng-model="queryBuilder.DealTime_end" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>项目编号：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectID" class="cell-input" style="width:128px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>订单类型：</td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.isJK" style="width:150px;">
+                                <option value="">请选择</option>
+                                <option value="False">普通业务</option>
+                                <option value="True">家宽业务</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>客服人员</th>
+                <th>录入量</th>
+                <th ng-repeat="a in dictOrderStatus" style="width:40px; white-space:normal;" >{{a.OrderStatus}}</th>
+            </tr>
+            <tr ng-repeat="emp in StatisticsData.UserData">
+                <td ng-bind="emp.RealName"></td>
+                <td ng-bind="emp.Count"></td>
+                <td ng-repeat="a in dictOrderStatus">{{GetDetailCount(emp,a)}}</td>
+            </tr>
+
+        </table>
+    </div>
+    <!--content--->
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+

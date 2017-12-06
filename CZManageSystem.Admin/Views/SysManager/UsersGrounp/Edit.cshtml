@@ -1,0 +1,278 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        .memberEdit tr th {
+            width: 50px;
+        }
+
+        .memberEdit tr td div {
+            max-width: 300px;
+            float: left;
+        }
+
+        .memberEdit tr td a {
+            margin-left: 15px;
+            text-decoration: underline;
+            color: #1167AB;
+        }
+
+            .memberEdit tr td a:hover {
+                color: #F30;
+            }
+    </style>
+
+}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+
+            var id = '@ViewData["id"]';
+            $scope.curObj = {};
+            $scope.users = { arrId: [], arrText: [] };
+            $scope.depts = { arrId: [], arrText: [] };
+            $scope.roles = { arrId: [], arrText: [] };
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                    var temp = $filter('filter')($scope.curObj.Members, { 'type': 'user' });
+                    $scope.users.arrId = getAttrByArr(temp, 'id');
+                    $scope.users.arrText = getAttrByArr(temp, 'text');
+
+                    temp = $filter('filter')($scope.curObj.Members, { 'type': 'dept' });
+                    $scope.depts.arrId = getAttrByArr(temp, 'id');
+                    $scope.depts.arrText = getAttrByArr(temp, 'text');
+
+                    temp = $filter('filter')($scope.curObj.Members, { 'type': 'role' });
+                    $scope.roles.arrId = getAttrByArr(temp, 'id');
+                    $scope.roles.arrText = getAttrByArr(temp, 'text');
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+
+
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    postData.Members = null;
+                    postData.userIds = $scope.users.arrId;
+                    postData.deptIds = $scope.depts.arrId;
+                    postData.roleIds = $scope.roles.arrId;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'UsersGrounp/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.alert('网络出错！', { icon: 'error' });
+                    });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                var strUrl = "";
+                var data = {};
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.depts.arrId.join(",");
+                        strUrl = '../UsersGrounp/SelectDepts';
+                        data = { selectedId: $scope.depts.arrId.join(",") };
+                    } break;
+                    case 'role': {
+                        title = '角色';
+                        iframeSrc = '../UsersGrounp/SelectRoles?selectedId=' + $scope.roles.arrId.join(",");
+                        strUrl = '../UsersGrounp/SelectRoles';
+                        data = { selectedId: $scope.roles.arrId.join(",") };
+                    } break;
+                    case 'user': {
+                        title = '用户';
+                        iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.users.arrId.join(",");
+                        strUrl = '../UsersGrounp/SelectUsers';
+                        data = { selectedId: $scope.users.arrId.join(",") };
+                        wWidth = 760;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup('',//iframeStr,
+                    {
+                        url: strUrl,
+                        iframeData: data,
+                        iframeId: iframeId,
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.depts.arrId = getAttrByArr(result, 'id');
+                                            $scope.depts.arrText = getAttrByArr(result, 'text');
+                                        } break;
+                                        case 'role': {
+                                            $scope.roles.arrId = getAttrByArr(result, 'id');
+                                            $scope.roles.arrText = getAttrByArr(result, 'text');
+                                        } break;
+                                        case 'user': {
+                                            $scope.users.arrId = getAttrByArr(result, 'id');
+                                            $scope.users.arrText = getAttrByArr(result, 'text');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'UsersGrounp/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'UsersGrounp/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>群组名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="GroupName" ng-model="curObj.GroupName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.GroupName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.GroupName.$error.required">请输入群组名称</span>
+                                <span ng-show="editForm.GroupName.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>群组成员：</th>
+                <td>
+                    <table class="memberEdit">
+                        <tr style="display:none;">
+                            <th style="width:50px;">部门：</th>
+                            <td>
+                                <input type="text" ng-model="depts.arrText" class="cell-input" readonly="readonly" ng-click="editMember('dept')" />
+
+                                @*<div class="divOverflow" ng-mouseenter="showTitle($event)">{{depts.arrText.join("，")}}</div>
+                                <a ng-click="editMember('dept')">编辑</a>*@
+                            </td>
+                        </tr>
+                        <tr style="display:none;">
+                            <th style="width:50px;">角色：</th>
+                            <td>
+                                <input type="text" ng-model="roles.arrText" class="cell-input" readonly="readonly" ng-click="editMember('role')" />
+
+                                @*<div class="divOverflow" ng-mouseenter="showTitle($event)">{{roles.arrText.join("，")}}</div>
+                                <a ng-click="editMember('role')">编辑</a>*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="width:50px;">用户：</th>
+                            <td>
+                                <input type="text" ng-model="users.arrText" class="cell-input" readonly="readonly" ng-click="editMember('user')"/>
+
+                                @*<div class="divOverflow" ng-mouseenter="showTitle($event)">{{users.arrText.join("，")}}</div>
+                                <a ng-click="editMember('user')">编辑</a>*@
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark"></textarea>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../UsersGrounp/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

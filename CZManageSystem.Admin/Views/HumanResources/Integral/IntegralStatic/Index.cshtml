@@ -1,0 +1,308 @@
+﻿
+@{
+    ViewBag.Title = "积分统计";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('CourseIntegralDetailController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+                DpId: "",
+                EmployeeId: "",
+                RealName: "",
+                Year: ''
+            };
+            //获取周期类型
+            //BusinessService.getDictListByName('年').success(function (response) {
+            //    $scope.dictYear = response.items;
+            //}).error(function (err) {
+            //    box.alert("网络出错！", { icon: 'error' });
+            //}).then(function () { });
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                queryBuilder: $scope.queryBuilder
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+                //var postData = {
+                //    pageIndex: $scope.paginationConf.currentPage,
+                //    pageSize: $scope.paginationConf.itemsPerPage,
+                //    DpId: $scope.queryBuilder.DpId,
+                //    EmployeeId: $scope.queryBuilder.EmployeeId,
+                //    RealName: $scope.queryBuilder.RealName,
+                //    Year: $scope.queryBuilder.Year
+                //}
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.DeptId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.DpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.queryBuilder.DpName = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.editData = function (YearDate, RealName) {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + "/CourseIntegral/PersonDetail?Year=" + YearDate + "&RealName=" + RealName;
+            };
+            $scope.editTData = function (YearDate, RealName) {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + "/TeachingIntegral/PersonDetail?Year=" + YearDate + "&RealName=" + RealName;
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'IntegralStatic/GetListData', postData);
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+
+
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="CourseIntegralDetailController">
+    <!--content--->
+    <div class="search-mod" style="height:30px;">
+        <table>
+            <tr>
+                <td>
+                    员工编号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EmployeeId" class="cell-input" style="width:70px;" />
+                    </div>
+                </td>
+                <td>员工姓名：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.RealName" class="cell-input" style="width:70px;" />
+                    </div>
+                </td>
+                <td>
+                    部门：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="DeptId" ng-model="queryBuilder.DpId" ng- class="cell-input" />
+                        <input type="text" name="DeptName" ng-model="queryBuilder.DpName" required class="cell-input" ng-click="editMember('dept')" />
+                        @* <input type="text" ng-model="queryBuilder.DpName" class="cell-input" style="width:120px;" />*@
+                    </div>
+                </td>
+                <td>
+                    年度：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <input type="text" ng-model="queryBuilder.Year" date-Picker datefmt="yyyy" class="cell-input" readonly style="width:70px;" />
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>员工编号</th>
+                <th>员工姓名</th>
+                <th>部门</th>
+                <th>科室</th>
+                <th>职级</th>
+                <th>年度</th>
+                <th>公司积分要求</th>
+                <th>累计总天数</th>
+                <th>累计总积分</th>
+                <th>培训总积分</th>
+                <th>授课总积分</th>
+                <th>积分完成率</th>
+                <th>积分差距</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="emp.EmployeeId"></td>
+                <td ng-bind="emp.RealName"></td>
+                <td ng-bind="emp.DpName"></td>
+                <td ng-bind="emp.DpmName"></td>
+                <td ng-bind="emp.PosiLevel"></td>
+                <td ng-bind="emp.YearDate"></td>
+                <td ng-bind="emp.NeedIntegral"></td>
+                <td ng-bind="emp.Alldays.toFixed(2)"></td>
+                <td ng-bind="emp.Integral.toFixed(2)"></td>
+                <td><a ng-bind="emp.C_Integral.toFixed(2)" ng-click="editData(emp.YearDate,emp.RealName)"></a></td>
+                <td><a ng-bind="emp.T_Integral.toFixed(2)" ng-click="editTData(emp.YearDate,emp.RealName)"></a></td>
+                @*<td><a ng-href="/CourseIntegral/PersonDetail?Year={{emp.YearDate}}&RealName={{emp.RealName}}">{{emp.C_Integral.toFixed(2)}}</a></td>*@
+                @*<td><a ng-href="/TeachingIntegral/PersonDetail?Year={{emp.YearDate}}&RealName={{emp.RealName}}">{{emp.T_Integral.toFixed(2)}}</a></td>*@
+                @*<td ng-bind="emp.T_Integral.toFixed(2)"></td>*@
+                <td ng-bind="emp.FinishPer.toFixed(2)+'%'"></td>
+                <td ng-bind="emp.Gap"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../IntegralStatic/Export?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+

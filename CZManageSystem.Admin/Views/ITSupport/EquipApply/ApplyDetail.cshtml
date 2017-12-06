@@ -1,0 +1,159 @@
+﻿
+@{
+    ViewBag.Title = "办公设备详情";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EquipApplyController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+            var ApplyId = '@ViewData["ApplyId"]';
+            $scope.apply = {};
+            if (ApplyId != null && ApplyId.toString().length > 0) {
+
+                BusinessService.GetApplyDetail(ApplyId).success(function (response) {
+                    $scope.apply = response[0];
+
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            //-------------------------------------
+         
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetApplyDetail = function (ApplyId) {
+                return $http({
+                        method: 'POST',
+                        url: CurPath + 'EquipApply/GetApplyID?ApplyId=' + ApplyId
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="CreateOrUpdate" ng-controller="EquipApplyController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>申请人：</th>
+                <td>
+                    <label>{{apply.ApplyName}}</label>
+
+                </td>
+            </tr>
+            <tr>
+                <th>所在部门：</th>
+                <td>
+                    <label>{{apply.Deptname}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td>
+                    <label>{{apply.Tel}}</label>
+                </td>
+               
+            </tr>
+            <tr>
+                <th>申请日期：</th>
+                <td>
+                    <label>{{apply.ApplyTime}}</label>
+                </td>
+
+            </tr>
+            <tr>
+                <th>主题：</th>
+                <td>
+                    <label>{{apply.ApplyTitle}}</label>
+                </td>
+
+            </tr>
+            <tr>
+               
+                <th>岗位：</th>
+                <td>
+                    <label>{{apply.Job}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>使用性质：</th>
+                <td>
+                    <label>{{apply.Nature}}</label>
+                </td>
+            </tr>
+            <tr>
+               
+                <th>流程单号：</th>
+                <td>
+                    <label>{{apply.ApplySn}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>设备类型：</th>
+                <td>
+                    <label>{{apply.EquipClass}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>设备型号：</th>
+                <td>
+                    <label>{{apply.EquipInfo}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>固定资产编码：</th>
+                <td>
+                    <label>{{apply.AssetSn}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>固定资产人：</th>
+                <td>
+                    <label>{{apply.Chief}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>使用人：</th>
+                <td>
+                    <label>{{apply.BUsername}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>申请原因：</th>
+                <td>
+                    <label>{{apply.ApplyReason}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <label>{{apply.Remark}}</label>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+

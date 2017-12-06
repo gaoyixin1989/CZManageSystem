@@ -1,0 +1,125 @@
+﻿
+@{
+    ViewBag.Title = "鉴权方式维护编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EditController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            var ID = '@ViewData["ID"]';
+            $scope.curObj = {
+            };
+            if (ID != null && ID.toString().length > 0) {
+
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'MarketOrder_Authentication/Index';
+                            });
+                        }
+                        else {
+                            box.alert((response.Message == null || response.Message == '') ? '保存失败' : response.Message, { icon: 'error' })
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Authentication/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Authentication/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+    <style>
+        .cell-input {
+            width: 450px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="EditController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>序号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Order" ng-model="curObj.Order" number max="999999999999999" precision="0" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Order.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Order.$error.required">请输入序号</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>鉴权方式：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="100" name="Authentication" ng-model="curObj.Authentication" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Authentication.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Authentication.$error.required">请输入鉴权方式</span>
+                                <span ng-show="editForm.Authentication.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th></th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue " style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../MarketOrder_Authentication/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

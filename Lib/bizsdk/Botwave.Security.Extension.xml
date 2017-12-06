@@ -1,0 +1,566 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Botwave.Security.Extension</name>
+    </assembly>
+    <members>
+        <member name="T:Botwave.Security.Extension.Web.Controls.LeftMenuView">
+            <summary>
+            左侧菜单列表项.
+            </summary>   
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.LeftMenuView.RenderControl(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            重写呈现控件的方法.
+            </summary>
+            <param name="writer"></param>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.LeftMenuView.Title">
+            <summary>
+            左侧菜单的标题.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.LeftMenuView.Target">
+            <summary>
+            菜单项的链接目标.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.LeftMenuViewDesigner">
+            <summary>
+            LeftMenuView 的设计器类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.LeftMenuViewDesigner.Initialize(System.ComponentModel.IComponent)">
+            <summary>
+            初始化.
+            </summary>
+            <param name="component"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.LeftMenuViewDesigner.GetDesignTimeHtml">
+            <summary>
+            获取设计时的 html 字符串.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.Extension.WebServices.SecurityAjaxService">
+            <summary>
+            用户安全 AJAX Web 服务.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.WebServices.SecurityAjaxService.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.WebServices.SecurityAjaxService.GetUserCompletionList(System.String,System.Int32)">
+            <summary>
+            获取指定匹配用户名或者真实姓名的用户自动完成列表.
+            </summary>
+            <param name="prefixText"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Extension.WebServices.SecurityAjaxService.GetCompletionDepartments(System.String,System.Int32)">
+            <summary>
+            获取指定匹配部门名称的部门完成列表.
+            </summary>
+            <param name="prefixText"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Extension.WebServices.SecurityAjaxService.GetUserInfo(System.String)">
+            <summary>
+            获取用户信息.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.WebServices.SecurityAjaxService.UserService">
+            <summary>
+            用户服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.WebServices.SecurityAjaxService.DepartmentService">
+            <summary>
+            部门服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.SecurityHelper">
+            <summary>
+            用户安全辅助类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.Extension.Web.SecurityHelper.Key_LoginNameCookie">
+            <summary>
+            登录名保持的 Cookie 键名.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.SecurityHelper.GetLoginName">
+            <summary>
+            获取登录用户名.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.SecurityHelper.SetLoginName(System.String)">
+            <summary>
+            设置登录用户名.
+            </summary>
+            <param name="loginName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.HttpModules.PageAclModule">
+            <summary>
+            页面访问控制 HTTP 处理模块.
+            </summary>
+        </member>
+        <member name="F:Botwave.Security.Extension.Web.HttpModules.PageAclModule.pageAcl">
+            <summary>
+            页面控制列表字典集合
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.HttpModules.PageAclModule.InitPageAcl">
+            <summary>
+            获取页面控制列表字典集合.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.HttpModules.PageAclModule.Dispose">
+            <summary>
+            销毁.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.HttpModules.PageAclModule.Init(System.Web.HttpApplication)">
+            <summary>
+             HttpModule 初始化.
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.HttpModules.PageAclModule.DoAclFilter(System.Object,System.EventArgs)">
+            <summary>
+            访问控制过滤.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.HttpModules.PageAclModule.LoginUrl">
+            <summary>
+            登录 URL.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.HttpModules.PageAclModule.ResourceService">
+            <summary>
+            系统资源服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.AccessController">
+            <summary>
+            访问控制器控件.
+            <example>设置某一块代码区域的访问控制，设控件 TagPrefix 为 bw.
+            <code>
+            <![CDATA[
+            <%@ Register TagPrefix="bw" Namespace="Botwave.Security.Extension.Web.Controls" Assembly="Botwave.Security.Extension" %>
+            
+            <bw:AccessController ID="accessController1" ResourceValue="A0001" runat="server">
+                <ContentTemplate>
+                    <asp:Button ID="button1" runat="server" Text="Button" />
+                    这时被限制访问的按钮, 需要具有 ResourceValue 属性指定的权限资源时(即"A0001")才可以访问该按钮.
+                </ContentTemplate>
+            </bw:AccessController>
+            ]]>
+            </code>
+            </example>
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.AccessController.CreateChildControls">
+            <summary>
+            重写创建子控件.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.AccessController.HasResource(System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            指定是否具有资源.
+            </summary>
+            <param name="userResources"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.AccessController.HasResource(System.Collections.Generic.IDictionary{System.String,System.String},System.String)">
+            <summary>
+            检查当前用户是否有指定的菜单访问权限.
+            </summary>
+            <param name="userResources"></param>
+            <param name="menuResourceValue">指定的菜单访问权限.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.AccessController.ResourceValue">
+            <summary>
+            访问的资源值.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.AccessController.ContentTemplate">
+            <summary>
+            内容模板.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.AccessController.UserResources">
+            <summary>
+            是否验证权限资源.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.WebServices.SecurityService">
+            <summary>
+            用户安全 Web 服务.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.WebServices.SecurityService.#ctor">
+            <summary>
+            默认构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.WebServices.SecurityService.GetResourcesByUser(System.String,System.String)">
+            <summary>
+            获取指定用户名以及资源前缀的用户权限资源.
+            返回用户权限资源编号的字符串列表.
+            </summary>
+            <param name="userName">指定用户名.</param>
+            <param name="resourcePrefix">显示的资源前缀.</param>
+            <returns>返回用户权限资源编号的字符串列表.</returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.WebServices.SecurityService.ResourceService">
+            <summary>
+            权限资源服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.ComplexHtml">
+            <summary>
+            复杂 HTML 控件类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable">
+            <summary>
+            HTML 复选框表格类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase">
+            <summary>
+            HTML 元素生成基础类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.#ctor(System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="text"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="id"></param>
+            <param name="name"></param>
+            <param name="text"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.Build">
+            <summary>
+            生成 HTML.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.BuildAttributes(System.Collections.Specialized.NameValueCollection)">
+            <summary>
+            生成属性字符串.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.Id">
+            <summary>
+            控件 ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.Name">
+            <summary>
+            控件名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.Text">
+            <summary>
+            显示文本.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.Value">
+            <summary>
+            值.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.CssClass">
+            <summary>
+            样式类.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.HtmlBuilderBase.Attributes">
+            <summary>
+            属性集合.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.Build">
+            <summary>
+            生成.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.RepeatColumns">
+            <summary>
+            重复列数.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.ItemName">
+            <summary>
+            复选框项的名称(Name).
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.ItemIdPrefix">
+            <summary>
+            复选框项 ID 的前缀.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.ItemCssClass">
+            <summary>
+            复选框项的样式类.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.ItemSelectedCssClass">
+            <summary>
+            复选框被选中的样式类.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.EmptyCell">
+            <summary>
+            空单元格字显示字符串.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxTable.Groups">
+            <summary>
+            复选框组列表.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup">
+            <summary>
+             HTML 复选框控件组.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.#ctor(System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="text"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.#ctor(System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="text"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.BuildTable(System.IO.TextWriter,System.Int32,System.String,System.String,System.String,System.String)">
+            <summary>
+            绑定为表格形式.
+            </summary>
+            <param name="writer"></param>
+            <param name="repeateColumns"></param>
+            <param name="itemName"></param>
+            <param name="itemIdPrefix"></param>
+            <param name="itemCssClass"></param>
+            <param name="itemSelectedCssClass"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.BuildTable(System.IO.TextWriter,System.Int32,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            绑定为表格形式.
+            </summary>
+            <param name="writer"></param>
+            <param name="repeateColumns"></param>
+            <param name="itemName"></param>
+            <param name="itemIdPrefix"></param>
+            <param name="itemCssClass"></param>
+            <param name="itemSelectedCssClass"></param>
+            <param name="emptyCell"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.GetGroupText">
+            <summary>
+            获取组文本.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.GroupIndex">
+            <summary>
+            组索引.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.RowName">
+            <summary>
+            行("tr")名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.RowIdPrefix">
+            <summary>
+            行("tr") ID 的前缀.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.RowVisible">
+            <summary>
+            行("tr")的可视性.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBoxGroup.Items">
+            <summary>
+            复选框集合.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBox">
+            <summary>
+            HTML 复选框控件.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBox.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBox.#ctor(System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="text"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBox.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="id"></param>
+            <param name="name"></param>
+            <param name="text"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBox.Build">
+            <summary>
+            生成控件 HTML.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBox.Index">
+            <summary>
+            索引.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.ComplexHtml.CheckBox.Checked">
+            <summary>
+            是否被选中.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.MoreMenuView">
+            <summary>
+            顶部菜单栏"更多"菜单视图控件.
+            <example>菜单访问控制控件，设控件 TagPrefix 为 bw.
+            <code>
+            <![CDATA[
+            <%@ Register TagPrefix="bw" Namespace="Botwave.XQP.Web.Controls" Assembly="Botwave.XQP" %>
+            
+            <bw:MoreMenuView ID="moreMenu1" VerifyResource="true" runat="server">
+                <bw:MenuListItem ID="MenuListItem0" runat="server" Text="用户管理" NavigateUrl="Admin/Membership/ListUser.aspx" ResourceValue="A001" />
+                <bw:MenuListItem ID="MenuListItem1" runat="server" Text="流程设计" NavigateUrl="Workflow/WorkflowDeploy.aspx" ResourceValue="A004"/>
+                <bw:MenuListItem ID="MenuListItem2" runat="server" Text="权限管理" NavigateUrl="Admin/Membership/ListRole.aspx" ResourceValue="A002" />
+            </bw:MoreMenuView>
+            ]]>
+            </code>
+            </example>
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuView.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuView.RenderControl(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            重写呈现控件.
+            </summary>
+            <param name="writer"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuView.Render(System.Web.UI.HtmlTextWriter,Botwave.Security.Web.Controls.MenuListItem,System.String,System.String)">
+            <summary>
+            输出菜单列表中一项.
+            </summary>
+            <param name="writer"></param>
+            <param name="item"></param>
+            <param name="itemBackImage"></param>
+            <param name="itemHoverImage"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuView.RenderScript(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            输出菜单脚本.
+            </summary>
+            <param name="writer"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuView.GetScript(System.Int32)">
+            <summary>
+            获取脚本.
+            </summary>
+            <param name="height"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuView.GetPopupHeight">
+            <summary>
+            获取弹出对话框的高度.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.MoreMenuView.PopupBackImage">
+            <summary>
+            弹出框的背景图片.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.MoreMenuView.PopupItemImage">
+            <summary>
+            菜单项的图片.
+            </summary>
+        </member>
+        <member name="P:Botwave.Security.Extension.Web.Controls.MoreMenuView.PopupItemHoverImage">
+            <summary>
+            菜单项的悬浮图片.
+            </summary>
+        </member>
+        <member name="T:Botwave.Security.Extension.Web.Controls.MoreMenuViewDesigner">
+            <summary>
+            MoreMenuView 的设计器类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuViewDesigner.Initialize(System.ComponentModel.IComponent)">
+            <summary>
+            初始化.
+            </summary>
+            <param name="component"></param>
+        </member>
+        <member name="M:Botwave.Security.Extension.Web.Controls.MoreMenuViewDesigner.GetDesignTimeHtml">
+            <summary>
+            获取设计时的 html 字符串.
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

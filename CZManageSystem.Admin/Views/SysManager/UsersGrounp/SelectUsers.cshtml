@@ -1,0 +1,372 @@
+﻿
+@{
+    ViewBag.Title = "用户选择";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <link href="~/Content/css/tree-control.css" rel="stylesheet" />
+    <link href="~/Content/css/tree-control-attribute.css" rel="stylesheet" />
+    <link href="~/Content/css/Drop-Down.css" rel="stylesheet" />
+    <style>
+        body {
+            min-width: 760px;
+        }
+
+        .listSelect {
+            position:relative;
+            width: 220px;
+            height: 300px;
+            overflow: auto;
+            border: 1px solid #eaeaea;
+            background-color: #fff;
+            margin: 0px 10px 10px 0px;
+            float: left;
+            outline: none;
+        }
+
+        .btnDiv a {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+    <!--[if lte IE 8]>
+        <script>
+            document.createElement('treecontrol');
+        </script>
+    <![endif]-->
+
+    <script>
+        var selectedId = '@ViewData["selectedId"]';
+        var startDeptId = '@ViewData["startDeptId"]';
+        var selectedIds = [];
+        var startDeptIds = [];
+        if (selectedId != null && selectedId != '') {
+            selectedIds = selectedId.split(',');
+        }
+        if (startDeptId != null && startDeptId != '') {
+            startDeptIds = startDeptId.split(',');
+        }
+
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=Controller]');
+            var $scope = angular.element(appElement).scope();
+            var result = [];
+            $.each($scope.selectedData, function (i, item) {
+                result.push({
+                    id: item.UserId,
+                    UserName: item.UserName,
+                    text: item.RealName,                    
+                    Mobile:item.Mobile
+                });
+            });
+            return result;
+        }
+
+        function GetIdList(obj) {
+            idList.push(obj.DpId)
+            if (obj.children != undefined)
+                for (var i = 0; i < obj.children.length; i++) {
+                    this.GetIdList(obj.children[i]);
+                }
+        }
+
+        //获取部门数据
+        function GetData() {
+            box.load("GetAllSysDeptment");
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10,
+                ids: startDeptIds
+            };
+            $.ajax({
+                url: CurPath + '/SysDeptment/GetDeptDataStartFromID',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("GetAllSysDeptment");
+                    list = data.items;
+                },
+                error: function () {
+                    box.ready("GetAllSysDeptment");
+                }
+            });
+        }
+
+        //查询用户数据
+        function GetAllSysUser() {
+            box.load("GetAllSysUser");
+            $.ajax({
+                url: CurPath + '/SysUser/GetshortUserData_Inner',
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("GetAllSysUser");
+                    allUsers = data.items;
+                },
+                error: function () {
+                    box.ready("GetAllSysUser");
+                    box.alert("网络出错！", { icon: 'error' });
+                }
+            });
+        }
+
+
+        var app = angular.module('ListPage', ['tm.pagination', 'treeControl']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+
+            $scope.selectedData = [];
+            $scope.userForSelect = [];
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+
+
+            var tree;
+
+            GetData();
+            GetAllSysUser();
+
+            $scope.selectedData = $filter('filter')(allUsers, function (obj) {
+                return selectedIds.indexOf(obj.UserId) > -1;
+            });
+
+            var rawTreeData = list;
+            var myTreeData = getTree(rawTreeData, 'DpId', 'ParentDpId');
+            $scope.dataForTheTree = [];
+            //$scope.tree_data = myTreeData;
+            $scope.my_tree = tree = {};
+            $scope.dataForTheTree = myTreeData;
+            $scope.tree_data = function (sel, parent) {
+                $scope.selectedNode = sel;
+                idList = [];
+                GetIdList(sel);
+                $scope.userForSelect = $filter('filter')(allUsers, function (obj) {
+                    return idList.indexOf(obj.DpId) > -1;
+                });
+
+            };
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#menuTree").toggle();
+            }
+            $scope.my_tree_handler = function (branch) {
+            }
+
+            //将数据列表转换为树结构
+            function getTree(data, primaryIdName, parentIdName) {
+                if (!data || data.length == 0 || !primaryIdName || !parentIdName)
+                    return [];
+
+                var tree = [],
+                    rootIds = [],
+                    item = data[0],
+                    primaryKey = item[primaryIdName],
+                    treeObjs = {},
+                    parentId,
+                    parent,
+                    len = data.length,
+                    i = 0;
+
+                angular.forEach(data, function (curObj) {
+                    treeObjs[curObj[primaryIdName]] = curObj;
+                });
+
+                while (i < len) {
+                    item = data[i++];
+                    primaryKey = item[primaryIdName];
+                    //treeObjs[primaryKey] = item;
+                    parentId = item[parentIdName];
+                    parent = treeObjs[parentId];
+                    if (!!parent) {
+                        if (parent.children) {
+                            if (parent.children.indexOf(item) < 0)
+                                parent.children.push(item);
+                        } else {
+                            parent.children = [item];
+                        }
+                    } else {
+                        rootIds.push(primaryKey);
+                    }
+                }
+
+                for (var i = 0; i < rootIds.length; i++) {
+                    tree.push(treeObjs[rootIds[i]]);
+                };
+                return tree;
+            }
+
+            //选择用户
+            //$scope.selectUser = function (obj) {
+            //    if ($scope.selectedData.indexOf(obj) < 0) {
+            //        $scope.selectedData.push(obj);
+            //    }
+            //}
+            $scope.selectUser = function ($event) {
+                var selectedIndex = (!isNaN($event.target.index)) ? $event.target.index : $event.target.selectedIndex;
+                if (selectedIndex < 1) return;
+                var obj = $scope.userForSelect[selectedIndex - 1];
+                //if ($scope.selectedData.indexOf(obj) < 0) {
+                if ($filter('filter')($scope.selectedData, { 'UserId': obj.UserId }).length <= 0) {
+                    $scope.selectedData.push(obj);
+                }
+            }
+
+            //添加选择
+            $scope.addData = function () {
+                var values = $('#userForSelect').val();
+                var datas = $filter('filter')($scope.userForSelect, function (obj) {
+                    return values.indexOf(obj.UserId) > -1;
+                });
+                $.each(datas,function (i, item) {
+                    //if ($scope.selectedData.indexOf(item) < 0) {
+                    if ($filter('filter')($scope.selectedData, { 'UserId': item.UserId }).length <= 0) {
+                        $scope.selectedData.push(item);
+                    }
+                });
+
+            }
+
+            //全选按钮
+            $scope.addAll = function () {
+                $.each($scope.userForSelect, function (i, item) {
+                    //if ($scope.selectedData.indexOf(item) < 0) {
+                    if ($filter('filter')($scope.selectedData, { 'UserId': item.UserId }).length <= 0) {
+                        $scope.selectedData.push(item);
+                    }
+                });
+            }
+
+            //删除选择
+            $scope.delData = function () {
+                var values = $('#selectedData').val();
+                $scope.selectedData = $filter('filter')($scope.selectedData, function (obj) {
+                    return values.indexOf(obj.UserId) < 0;
+                });
+            }
+
+            //清空选择
+            $scope.cleanData = function () {
+                $scope.selectedData = [];
+            }
+
+            //取消选择
+            //$scope.cancelData = function (obj) {
+            //    var i = $scope.selectedData.indexOf(obj);
+            //    if (i >= 0) {
+            //        $scope.selectedData.splice(i, 1);
+            //    }
+            //}
+            $scope.cancelData = function ($event) {
+                var selectedIndex = (!isNaN($event.target.index)) ? $event.target.index : $event.target.selectedIndex;
+                if (selectedIndex < 1) return;
+                var obj = $scope.selectedData[selectedIndex - 1];
+                var i = $scope.selectedData.indexOf(obj);
+                if (i >= 0) {
+                    $scope.selectedData.splice(i, 1);
+                }
+            }
+
+            $scope.query = function () {
+                $scope.userForSelect = allUsers;
+
+                var temp = list;
+                if ($scope.DpName != null && $scope.DpName != '') {
+                    temp = $filter('filter')(list, function (obj) {
+                        return obj.DpName.indexOf($scope.DpName) > -1;//DpFullName
+                    });
+
+                    var tempDeptIds = getAttrByArr(temp, 'DpId');
+                    $scope.userForSelect = $filter('filter')($scope.userForSelect, function (obj) {
+                        return tempDeptIds.indexOf(obj.DpId) > -1;
+                    });
+                }
+                $scope.dataForTheTree = getTree(temp, 'DpId', 'ParentDpId');
+                $scope.my_tree = tree = {};
+
+
+                if ($scope.UserName != null && $scope.UserName != '') {
+                    $scope.userForSelect = $filter('filter')($scope.userForSelect, function (obj) {
+                        return (obj.UserName.indexOf($scope.UserName) > -1) || (obj.RealName.indexOf($scope.UserName) > -1);
+                    });
+                }
+            }
+
+        }]);
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.list = function (postData) {
+                return $http.post(CurPath + '/SysUser/GetshortUserData_Inner', postData);
+            };
+            return serive;
+        }]);
+    </script>
+}
+
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="ListPage" ng-controller="Controller">
+
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    部门名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="DpName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    用户：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="UserName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="public-table-main" style="position: relative; min-height:302px;">
+        <div class="listSelect">
+            <treecontrol id="menuTree" class="tree-light" style="position:relative;"
+                         tree-model="dataForTheTree"
+                         options="treeOptions"
+                         on-selection="tree_data(node,$parentNode)">
+                {{node.DpName}}
+            </treecontrol>
+        </div>
+        <select id="userForSelect" class="listSelect" size="20" multiple @*ng-dblclick="selectUser($event)"*@ ng-click="selectUser($event)">
+            <option>--------------请选择--------------</option>
+            <option ng-repeat="x in userForSelect" @*ng-dblclick="selectUser(x)"*@ value="{{x.UserId}}">{{x.UserName+'--'+x.RealName}}</option>
+        </select>
+        <div style="float:left; height:300px;margin-right:10px;">
+            <div class="btnDiv">
+                <a ng-click="addAll()">全选</a>
+                <a ng-click="addData()">添加</a>
+                <a ng-click="delData()">删除</a>
+                <a ng-click="cleanData()">清空</a>
+            </div>
+        </div>
+        <select id="selectedData" class="listSelect" size="20" multiple ng-dblclick="cancelData($event)">
+            <option>--------------已选择--------------</option>
+            <option ng-repeat="x in selectedData" @*ng-dblclick="cancelData(x)"*@ value="{{x.UserId}}">{{x.UserName+'--'+x.RealName}}</option>
+        </select>
+    </div>
+</div>

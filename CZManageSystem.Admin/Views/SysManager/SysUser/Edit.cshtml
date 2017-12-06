@@ -1,0 +1,310 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "CreateOrUpdate";
+}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+    <!--[if lte IE 8]>
+        <script>
+            document.createElement('treecontrol');
+            document.createElement('treeitem');
+        </script>
+    <![endif]-->
+
+    <script>
+        var list = list || [];
+        function GetData() {
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10
+            };
+            $.ajax({
+                url: CurPath + 'SysDeptment/GetAllSysDeptment',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    list = data.items;
+                }
+            });
+        }
+        var app = angular.module('CreateOrUpdate', ['treeControl', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'CreateService', function ($scope, CreateService) {
+            //--------------------------
+            $scope.deptment = {};
+            $scope.user = {};
+            var tree;
+            GetData();
+            var rawTreeData = list;
+            var deptment = { Name: '', ParentDpId: '', DpFullName: '' };
+            var myTreeData = getTree(rawTreeData, 'DpId', 'ParentDpId');
+            $scope.dataForTheTree = [];
+            $scope.my_tree = tree = {};
+            $scope.dataForTheTree = myTreeData;
+            $scope.showSelected = function (sel, parent) {
+                $scope.selectedNode = sel;
+                $scope.deptment.Name = sel.DpName;
+                $scope.deptment.ParentDpId = sel.DpId;
+                $scope.user.Dpname = sel.DpName;
+                $scope.user.DpId = sel.DpId;
+                $scope.showTree();
+            };
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#DepTree").toggle();
+            }
+            function getTree(data, primaryIdName, parentIdName) {
+                if (!data || data.length == 0 || !primaryIdName || !parentIdName)
+                    return [];
+
+                var tree = [],
+                    rootIds = [],
+                    item = data[0],
+                    primaryKey = item[primaryIdName],
+                    treeObjs = {},
+                    parentId,
+                    parent,
+                    len = data.length,
+                    i = 0;
+
+                angular.forEach(data, function (curObj) {
+                    treeObjs[curObj[primaryIdName]] = curObj;
+                });
+
+                while (i < len) {
+                    item = data[i++];
+                    primaryKey = item[primaryIdName];
+                    //treeObjs[primaryKey] = item;
+                    parentId = item[parentIdName];
+                    parent = treeObjs[parentId];
+
+                    if (parent) {
+
+                        if (parent.children) {
+                            parent.children.push(item);
+                        } else {
+                            parent.children = [item];
+                        }
+                    } else {
+                        rootIds.push(primaryKey);
+                    }
+                }
+
+                for (var i = 0; i < rootIds.length; i++) {
+                    tree.push(treeObjs[rootIds[i]]);
+                };
+                return tree;
+            }
+            //------------------------------
+            var id = '@ViewData["id"]';
+            if (id != "00000000-0000-0000-0000-000000000000") {
+
+                CreateService.get(id).success(function (response) {
+                    $scope.user = response;
+                    $scope.user.UserType = ($scope.user.UserType==1?true:false);
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.createOrSave = function () {
+                $scope.userForm.failSubmited = false;
+                if ($scope.userForm.$valid) {
+                    $scope.user.UserType = ($scope.user.UserType? 1 : 0);
+                    var postData = $scope.user;
+                    CreateService.createOrSave(postData).success(function (response) {
+                        if (response.status == 0) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'SysUser/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.message, { icon: 'error' });
+                        }
+                    });
+                }
+                else { $scope.userForm.failSubmited = true; }
+            };
+        }]);
+        //业务类
+        app.factory('CreateService', ['$http', function ($http) {
+            var serive = {};
+            serive.createOrSave = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysUser/Save',
+                    data: postData
+                });
+            };
+            serive.get = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysUser/GET/' + id
+                    //param: id
+                });
+            };
+
+            return serive;
+            //return {
+            //    list: function (postData) {
+            //        return list(postData);
+            //    }
+            //}
+        }]);
+    </script>
+}
+<!--用户管理--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="userForm">
+        <table>
+            @*<tr>
+                    <th>当前状态： </th>
+                    <td ng-model="id">
+                        <div value="" ng-model="id">
+                            {{user.UserId!='00000000-0000-0000-0000-000000000000'?'编辑':'新增'}}
+                        </div>
+                    </td>
+                </tr>*@
+            <tr>
+                <th>用户名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="UserName" ng-model="user.UserName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="userForm.UserName.$invalid&&userForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="userForm.UserName.$error.required"><i class="icon-error"></i>请输入用户名。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>真实姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="RealName" ng-model="user.RealName" required class="cell-input">
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="userForm.RealName.$invalid&&userForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="userForm.RealName.$error.required"><i class="icon-error"></i>请输入真实姓名。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DpId" ng-model="user.DpId" required style="display:none" />
+                        <input type="text" ng-model="user.Dpname" class="cell-input" placeholder="请选择" ng-click="showTree(this)" />
+                        
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="userForm.DpId.$invalid&&userForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="userForm.DpId.$error.required"><i class="icon-error"></i>请选择部门。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                    <div class="">
+                        <treecontrol id="DepTree" class="tree-light" style="display:none"
+                                     tree-model="dataForTheTree"
+                                     options="treeOptions"
+                                     on-selection="showSelected(node, $parentNode)">
+                            {{node.DpName}}
+                        </treecontrol>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否在岗： </th>
+                <td>
+                    <div>
+                        <input type="checkbox" ng-model="user.UserType" ng-checked="user.UserType" />
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>入职日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="JoinTime" name="JoinTime" required date-Picker ng-model="user.JoinTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="userForm.JoinTime.$invalid&&userForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入入职日期</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>电话号码： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" ng-model="user.Tel" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>手机号码： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" ng-model="user.Mobile" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>电子邮件： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="email" value="" name="email" ng-model="user.Email" class="cell-input" placeholder="如：my@139.com" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>打卡IP： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" ng-model="user.CheckIP" class="cell-input" placeholder="如：10.223.22.12" />
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" ng-model="user.Ext_Str2">这里是备注</textarea>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    @*<a ng-click="createOrSave()" class="cell-btn-blue" style="width:70px; margin-right:20px;" ng-disabled="$scope.userForm.$invalid">保存</a>*@
+                    @*<a ng-click="userForm.$invalid||createOrSave()" class="cell-btn-orange" style="width:70px;">保存</a>*@
+                    <a ng-click="createOrSave()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysUser/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告管理 end--->

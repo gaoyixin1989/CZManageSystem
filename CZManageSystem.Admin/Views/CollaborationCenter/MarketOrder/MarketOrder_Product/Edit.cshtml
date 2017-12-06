@@ -1,0 +1,165 @@
+﻿
+@{
+    ViewBag.Title = "商品维护维护编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EditController', ['$scope', 'BusinessService', '$timeout', function ($scope, BusinessService, $timeout) {
+
+            var ID = '@ViewData["ID"]';
+            $scope.curObj = {
+            };
+
+            var getCurData = false;
+            var getData = function () {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+
+            //获取当前数据
+            if (ID != null && ID.toString().length > 0) {
+                getData();                
+            }
+            else {
+                getCurData = true;
+            }
+
+            var setConfigureData = function () {
+                $timeout(function () {
+                    if (getCurData) {
+                        //获取“商品机型”
+                        BusinessService.getEndTypeDict().success(function (response) {
+                            $scope.dictEndType = response.items;
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        setConfigureData();
+                    }
+                }, 100);
+            }
+            setConfigureData();//设置相关的配置信息
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'MarketOrder_Product/Index';
+                            });
+                        }
+                        else {
+                            box.alert((response.Message == null || response.Message == '') ? '保存失败' : response.Message, { icon: 'error' })
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Product/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MarketOrder_Product/GetDataByID/' + id
+                });
+            };
+
+            serive.getEndTypeDict = function () {
+                return $http.post(CurPath + 'MarketOrder_EndType/GetListData', {});
+            };
+
+            return serive;
+        }]);
+    </script>
+    <style>
+        .cell-input {
+            width: 450px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="EditController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>商品序号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="ProductID" ng-model="curObj.ProductID" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ProductID.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ProductID.$error.required">请输入商品序号</span>
+                                <span ng-show="editForm.ProductID.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>商品机型：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="ProductTypeID" required ng-model="curObj.ProductTypeID" style="width:222px;">
+                                <option ng-repeat="x in dictEndType" value="{{x.ID}}">{{x.EndType}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ProductTypeID.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择服务名称</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>商品说明：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark" style="height:80px;"></textarea>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th></th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue " style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../MarketOrder_Product/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

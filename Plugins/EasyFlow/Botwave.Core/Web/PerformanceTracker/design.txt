@@ -1,0 +1,18 @@
+﻿目标：
+跟踪HttpRequest请求的处理情况，以便于对系统/功能模块/页面的处理性能进行分析
+
+需要能够配置：
+请求的资源类型，如*.aspx
+需要记录的最小处理时间(毫秒)，如1000
+
+Botwave.PerformanceTracker.MatchPattern
+Botwave.PerformanceTracker.MinCostInterval
+Botwave.PerformanceTracker.CacheSize
+
+
+实体Tracking_Performance：
+Id				标识		(int, pk, identity(1,1))
+Resource		请求的资源	(nvarchar(255))
+Arguments		请求参数	(nvarchar(1024))
+ActionTime		执行时间	(datetime)
+CostInterval	耗费时间	(int)

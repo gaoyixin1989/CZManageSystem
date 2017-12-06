@@ -1,0 +1,1547 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@ViewBag.Title</title>
+
+    <!--[弹出层]-->
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog-custom-width.css" rel="stylesheet" />
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog-theme-default.css" rel="stylesheet" />
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog-theme-plain.css" rel="stylesheet" />
+    <link href="~/Content/Javascript/ngDialog/css/ngDialog.css" rel="stylesheet" />
+
+    <link href="~/Content/css/tree-control.css" rel="stylesheet" />
+    <link href="~/Content/css/tree-control-attribute.css" rel="stylesheet" />
+    <link href="~/Content/css/Drop-Down.css" rel="stylesheet" />
+    <!--[弹出层end]-->
+    <link rel="stylesheet" type="text/css" href="~/Content/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/css/public.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/font/iconfont.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/css/index.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/css/kalendar.css" />
+    <link href="~/Content/Javascript/blackbox/css/blackbox.css" rel="stylesheet" />
+    <script type="text/javascript">
+
+        //获取系统时间，将时间以指定格式显示到页面。
+        function systemTime() {
+            //获取系统时间。
+            var dateTime = new Date();
+            var hh = dateTime.getHours();
+            var mm = dateTime.getMinutes();
+            var ss = dateTime.getSeconds();
+
+            //分秒时间是一位数字，在数字前补0。
+            mm = extra(mm);
+            ss = extra(ss);
+
+            //将时间显示到ID为time的位置，时间格式形如：19:18:02
+            document.getElementById("time").innerHTML = hh + ":" + mm + ":" + ss;
+            //每隔1000ms执行方法systemTime()。
+            setTimeout("systemTime()", 1000);
+        }
+
+        //补位函数。
+        function extra(x) {
+            //如果传入数字小于10，数字前补一位0。
+            if (x < 10) {
+                return "0" + x;
+            }
+            else {
+                return x;
+            }
+        }
+    </script>
+
+    <script type="text/javascript" src="~/Content/Javascript/jquery-1.8.3.min.js"></script>
+    <!--[if lte IE 8]>
+        <script src="/Content/Javascript/ieBetter.js"></script>
+        <script>
+          document.createElement('ng-include');
+          document.createElement('ng-pluralize');
+          document.createElement('ng-view');
+
+          // Optionally these for CSS
+          document.createElement('ng:include');
+          document.createElement('ng:pluralize');
+          document.createElement('ng:view');
+        </script>
+    <![endif]-->
+    <script type="text/javascript" src="~/Content/Javascript/kalendar.js"></script>
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/Javascript/blackbox/js/jquery.blackbox.js"></script>
+    <script src="~/Content/Javascript/angular/angular1.2.28.js"></script>
+    <script src="~/Content/app/tm.paginationlist.js"></script>
+    <script type="text/javascript" src="~/Content/Javascript/highcharts.js"></script>
+    <script type="text/javascript" src="~/Content/Javascript/DatePicker/WdatePicker.js"></script>
+
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script type="text/javascript" charset="utf-8">
+        function addJsCroll(elememt) {
+            if ($(elememt).length > 0) {
+                $(elememt).jscroll({
+                    W: "8px",
+                    BgUrl: "",
+                    Bg: "#f4f4f4",
+                    Bar: {
+                        //Pos: "bottom",
+                        Bd: { Out: "#f4f4f4", Hover: "#f4f4f4" },
+                        Bg: { Out: "#0085d1", Hover: "#03a3fe", Focus: "#03a3fe" }
+                    },
+                    Btn: { btn: false }
+                });
+            }
+            /*滚动条*/
+            //if ($(".jscroll").length > 0) {
+            //    $(".jscroll").jscroll({
+            //        W: "8px",
+            //        BgUrl: "",
+            //        Bg: "#f4f4f4",
+            //        Bar: {
+            //            //Pos: "bottom",
+            //            Bd: { Out: "#f4f4f4", Hover: "#f4f4f4" },
+            //            Bg: { Out: "#0085d1", Hover: "#03a3fe", Focus: "#03a3fe" }
+            //        },
+            //        Btn: { btn: false }
+            //    });
+            //}
+        }
+
+        var box = new BlackBox({ 'coverOnParent': true });
+        var CurPath = '@Request.ApplicationPath'; //获取站点下的当前路径
+        if (CurPath == "\/")
+            CurPath = "../";
+        function AutoScroll(obj) {
+            $($(obj).find("ul")[0]).animate({
+                marginTop: "-30px"
+            },
+            500,
+            function () {
+                $(this).css({
+                    marginTop: "0px"
+                }).find("li:first").appendTo(this);
+            });
+        }
+        var GetLength = function (str) {
+            ///<summary>获得字符串实际长度，中文2，英文1</summary>
+
+            ///<param name="str">要获得长度的字符串</param>
+
+            var realLength = 0, len = str.length, charCode = -1;
+            for (var i = 0; i < len; i++) {
+                charCode = str.charCodeAt(i);
+                if (charCode >= 0 && charCode <= 128) realLength += 1;
+                else realLength += 2;
+            }
+            return realLength;
+        };
+
+        var pageParamList = [];//保存用户访问页面最近一次查询条件
+        //var pageParam = { pageUrl: 'SysUser/Index', postData: null };
+        //pageParamList.push(pageParam);
+
+        $(function () {
+            
+            //$rootScope.pageParam = { pageUrl: '', postData: [] };
+            ///根据页面路径获取户访问页面最近一次查询条件，取到后清掉，保证每个页面仅一条记录。
+            getPageParam = function (pageUrl) {
+                var postData = null;
+                $.each(pageParamList, function (i, obj) {
+                    if (obj.pageUrl == pageUrl) {
+                        postData = obj.postData;
+                        pageParamList.splice(i, 1);//消掉
+                        return postData;
+                    }
+                });
+                return postData;
+            }
+
+            //alert(GetLength('…'));
+            setInterval('AutoScroll(".newsbox")', 5000);
+
+            $('.public-layer-lab ul li a').bind('click', function () {
+                if ((!$(this).attr('class')) || $(this).attr('class').indexOf('current') < 0) {
+                    var linkDiv = $(this).attr('linkDiv');
+                    var linkDiv_old = $(this).parent().parent().find('.current').attr('linkDiv');
+                    $(this).parent().parent().find('.current').removeClass('current');
+                    $(this).addClass('current');
+                    $('#' + linkDiv_old).hide();
+                    $('#' + linkDiv).show();
+                    $('#' + linkDiv).find('.divOverflow').mouseenter();
+
+                }
+            });
+            $('.main-mod').hide();
+            $('.midpage').fadeIn("slow");;
+            //var h1 = $(".right01").height() + $(".right02").height() + $(".right03").height() + $(".right04").height() + 40;
+            //$(".warp").css("min-height", h1);
+
+            /// 计算菜单高度
+            var h_r = $(".left-nav-mod").height();
+            var w_r = $(".left-nav-mod").width();
+            var mml_h = $(window).height() - $(".header").height() - $(".footer").height();
+
+            var mml_w = $(window).width() - w_r;
+            if (mml_h < 500) {
+                $(".main-mod").css("height", 500);
+                $(".main-mod-left").css("height", 500);
+                //$(".main-mod-left").css("height", 300);
+
+            }
+            else {
+                //$("#IFContent").css("min-width", mml_w-100);
+                $(".main-mod").css("height", mml_h);
+                var a = $(".main-mod").height();
+                $(".main-mod-left").css("height", a);
+                //$(".main-mod-left").css("height", 300);
+
+            }
+
+
+            //$(".left-nav  span").click(function () {
+            //    $(this).next("ul").slideToggle(
+            //      function () {
+            //          var h_r = $(".main-mod-left").height();
+            //          $(".main-mod-right").css("min-height", h_r);
+            //          $("#IFContent").css("min-height", h_r);
+            //      }
+            //    );
+            //    $(this).children("b").toggleClass("minus");
+            //});
+
+
+            var tw_t = mml_h * 1 / 2 - 20;
+            $(".towards").css("top", tw_t);
+            $(".towards").css("left", '172px');
+
+            $(".towards").toggle(function () {
+                $(this).html("<div>&gt;</div>");
+                $(".main-mod-left").animate({ width: '0px', overflow: 'hidden' });
+                $(".main-mod-right").animate({ 'margin-left': '0px' });
+                $(this).animate({ left: '-1px' });
+                $(".main-mod").removeClass("main-mod-bg");
+            }, function () {
+                $(this).html("<div>&lt;</div>");
+                $(".main-mod-left").animate({ width: '180px', overflow: 'visible' });
+                $(".main-mod-right").animate({ 'margin-left': '180px' }, function () { $(".main-mod").addClass("main-mod-bg"); });
+                $(this).animate({ left: '172px' });
+            });
+
+        });
+        ////
+
+        var app = angular.module('HomeApp', ['tm.pagination', 'ngDialog']);
+
+
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+
+        app.controller('HomeController', ['$scope', '$rootScope', '$filter', '$timeout', 'MenuService', 'ngDialog', function ($scope, $rootScope, $filter, $timeout, MenuService, ngDialog) {
+            var isMenu = true;
+            var MenuName = "";
+            var PageUrl = "";
+            
+            
+            $scope.isFirst = true;
+            $scope.MenuId = 0;
+            $scope.menulist = [];
+            $scope.result = { Message: "", IsSuccess: true, data: "" };
+            $scope.curPageName = "用户管理";
+            $scope.Selected = function (id, openfirst) {
+                if (openfirst != true) openfirst = false;
+                if ($(".public-main-title a").length <= 0)
+                    openfirst = true;
+
+                var menu = { Menuid: '', MenuName: '', PageUrl: '', Child: [] };
+                $scope.menulist.push(menu);
+                $scope.MenuId = id;
+
+                if (id == 0)//id=0是默认是首页。
+                {
+                    if (!$scope.isFirst)
+                        $scope.ReLoadData();//点击首页时，刷新数据
+                    $scope.isFirst = true;
+                    $('.main-mod').hide();
+                    $(".midpage").fadeIn("slow");
+
+                }
+                else {
+                    $scope.isFirst = false;
+                    $('.main-mod').fadeIn("slow");
+                    $('.midpage').hide();
+                    var postdata = { Id: $scope.MenuId };
+                    box.load("GetMenuList");
+                    MenuService.GetMenuList(postdata)
+                        .error(function (response) {
+                            box.ready("GetMenuList");
+                            $scope.result = response;
+                        })
+                        .success(function (response) {
+                            box.ready("GetMenuList");
+                            $scope.result = response;
+                            if ($scope.result.IsSuccess) {
+                                $scope.menulist = $scope.result.data;
+
+                                if (openfirst) {///默认打开第一个
+                                    $timeout(function () {
+
+                                        var temp1 = $scope.menulist;
+                                        var temp2 = $(".left-nav span:first");
+                                        while (temp1.length > 0) {
+                                            $(temp2[0]).click();
+                                            temp1 = temp1[0].Child;
+                                            temp2 = $(temp2[0]).next("ul").children("li:first").children("a");
+                                        }
+
+                                    }, 100);
+
+                                }
+                            }
+
+                        });
+
+                }
+
+            };
+            //<!--[弹出层]-->
+
+            var rootMsg = function (msg) {
+                var dialog = ngDialog.open({
+                    template: '<p>' + msg + '</p>',
+                    plain: true,
+                    closeByDocument: false,
+                    closeByEscape: false
+                });
+                setTimeout(function () {
+                    dialog.close();
+                }, 2000);
+            };
+
+            $scope.ChcekingInDialog = function () {
+
+                var dialog = ngDialog.open({
+                    title: '考勤',
+                    template: 'ChcekingInId',
+                    controller: 'ChcekingInController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    bodyClassName: '',
+                    disableAnimation: true,
+                    width: 600,
+                    height: 280,
+                    top: -60
+                });
+                dialog.closePromise.then(function (data) {
+
+                });
+            };
+            $scope.DinningOrderInDialog = function () {
+
+                var dialog = ngDialog.openConfirm({
+                    title: '订餐',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../OrderMeal/Order'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 850,
+                    height: 500,
+                    top: -60,
+                    preCloseCallback: function () {
+
+                    }
+                });
+                dialog.closePromise.then(function (data) {
+
+                });
+            };
+            //<!--[弹出层end]-->
+            //点击菜单列表
+            $scope.leftNavClick = function ($event) {
+                var curElement = $event.target;
+                $(".left-nav  ul").not($(curElement).next("ul")).hide();
+                $(".left-nav  span").not($(curElement)).children("b").removeClass("minus");
+
+                $(curElement).next("ul").slideToggle(function () {
+                    addJsCroll($(curElement).parents('.jscroll'));
+                    mml_h2 = $(window).height() - $(".header").height() - $(".footer").height();
+                    if ($(curElement).parents('.jscroll').find(".jscroll-c").height() >= mml_h2) {
+                        $(curElement).parents('.jscroll').find(".jscroll-e").show();
+                    }
+                });
+                $(curElement).children("b").toggleClass("minus");
+                $(".left-nav  span").not($(curElement)).removeClass('current');
+                $(curElement).toggleClass('current');
+            }
+
+            ///打开页面
+            $scope.openIFPage = function (menu) {
+                if ($("iframe").filter("#" + menu.MenuId + "").length > 0) {
+                    $("iframe").filter("#" + menu.MenuId + "").attr('src', menu.PageUrl);
+                }
+                else {
+                    if ($(".public-main-title a").length >= 8) {
+                        box.alert("选项卡已达到上限，请先关闭一些菜单！", { icon: 'info' });
+                        return;
+                    }
+                    $('.public-main-title a.current').removeClass('current');
+                    var tab = "<a onclick='change(this,\"" + menu.MenuId + "\")' target=" + menu.MenuId + " class='current'>" + menu.MenuName + "<b style=' position:absolute;' onclick='closeTab(this,\"" + menu.MenuId + "\")'></b> </a>";
+                    var ifcontent = " <iframe id=" + menu.MenuId + " name=" + menu.MenuId + " frameborder='0' marginwidth='0' style='width:100%;min-height:470px;overflow:hidden;' src=" + menu.PageUrl + "></iframe>";
+                    $(".public-main-title").append(tab);
+                    $(".main-mod-right").append(ifcontent);
+                }
+
+                var chose = $(".public-main-title  a[target='" + menu.MenuId + "']");
+                chose.addClass("current");
+                $(".public-main-title a").not(chose).removeClass("current");
+                $(".public-main-title a").not(chose).children().show();
+                $("iframe").not($("iframe").filter("#" + menu.MenuId + "")).hide();
+                $("iframe").filter("#" + menu.MenuId + "").show();
+
+            };
+
+            //跳转到工作台打开页面
+            $scope.openPageUnderWorkBench = function (url, name, id) {
+                $scope.openIFPage({ MenuId: id, MenuName: name, PageUrl: url });
+                $scope.Selected(77, false);
+            }
+
+            //获取代办工作列表-----------------
+            $scope.paginationConf_dbgz = {
+                currentPage: 1,
+                itemsPerPage: 8
+            };
+            var GetList_dbgz = function () {
+                //待办工作
+                var postData_dbgz = {
+                    pageIndex: $scope.paginationConf_dbgz.currentPage,
+                    pageSize: $scope.paginationConf_dbgz.itemsPerPage
+                }
+                box.load("GetList_dbgz");
+                MenuService.GetList_dbgz(postData_dbgz).success(function (response) {
+                    box.ready("GetList_dbgz");
+                    $scope.paginationConf_dbgz.totalItems = response.count;
+                    $scope.ListData_dbgz = response.items;
+                }).error(function (err) {
+                    box.ready("GetList_dbgz");
+                    $scope.paginationConf_dbgz.totalItems = 0;
+                    $scope.ListData_dbgz = [];
+                    //box.alert("网络出错:GetList_dbgz！", { icon: 'error' });
+                });
+            }
+
+            //获取已办工作列表-----------------
+            $scope.paginationConf_ybgz = {
+                currentPage: 1,
+                itemsPerPage: 8
+            };
+            var GetList_ybgz = function () {
+                //已办工作
+                var postData_ybgz = {
+                    pageIndex: $scope.paginationConf_ybgz.currentPage,
+                    pageSize: $scope.paginationConf_ybgz.itemsPerPage
+                }
+                box.load("GetList_ybgz");
+                MenuService.GetList_ybgz(postData_ybgz).success(function (response) {
+                    box.ready("GetList_ybgz");
+                    $scope.paginationConf_ybgz.totalItems = response.count;
+                    $scope.ListData_ybgz = response.items;
+                }).error(function (err) {
+                    box.ready("GetList_ybgz");
+                    $scope.paginationConf_ybgz.totalItems = 0;
+                    $scope.ListData_ybgz = [];
+                    //box.alert("网络出错:GetList_ybgz！", { icon: 'error' });
+                });
+            }
+
+            //获取我的工单列表-----------------
+            $scope.paginationConf_wdgd = {
+                currentPage: 1,
+                itemsPerPage: 8
+            };
+            var GetList_wdgd = function () {
+                //我的工单
+                var postData_wdgd = {
+                    pageIndex: $scope.paginationConf_wdgd.currentPage,
+                    pageSize: $scope.paginationConf_wdgd.itemsPerPage
+                }
+                box.load("GetList_wdgd");
+                MenuService.GetList_wdgd(postData_wdgd).success(function (response) {
+                    box.ready("GetList_wdgd");
+                    $scope.paginationConf_wdgd.totalItems = response.count;
+                    $scope.ListData_wdgd = response.items;
+                }).error(function (err) {
+                    box.ready("GetList_wdgd");
+                    $scope.paginationConf_wdgd.totalItems = 0;
+                    $scope.ListData_wdgd = [];
+                    //box.alert("网络出错:GetList_wdgd！", { icon: 'error' });
+                });
+            }
+
+
+            //-----------------------------
+            //待阅已阅
+            $scope.paginationConf_dyxx = {
+                currentPage: 1,
+                itemsPerPage: 8
+            };
+            var GetList_dyxx = function () {
+                //待阅信息
+                var postData_dyxx = {
+                    pageIndex: $scope.paginationConf_dyxx.currentPage,
+                    pageSize: $scope.paginationConf_dyxx.itemsPerPage
+                }
+                box.load("GetList_dyxx");
+                MenuService.GetList_dyxx(postData_dyxx).success(function (response) {
+                    box.ready("GetList_dyxx");
+                    $scope.paginationConf_dyxx.totalItems = response.count;
+                    $scope.ListData_dyxx = response.items;
+                }).error(function (err) {
+                    box.ready("GetList_dyxx");
+                    $scope.paginationConf_dyxx.totalItems = 0;
+                    $scope.ListData_dyxx = [];
+                    //box.alert("网络出错:GetList_dyxx！", { icon: 'error' });
+                });
+
+
+            }
+
+
+            //---------已阅------------
+            $scope.paginationConf_yyxx = {
+                currentPage: 1,
+                itemsPerPage: 8
+            };
+            var GetList_yyxx = function () {
+                //已阅信息
+                var postData_yyxx = {
+                    pageIndex: $scope.paginationConf_yyxx.currentPage,
+                    pageSize: $scope.paginationConf_yyxx.itemsPerPage
+                }
+                box.load("GetList_yyxx");
+                MenuService.GetList_yyxx(postData_yyxx).success(function (response) {
+                    box.ready("GetList_yyxx");
+                    $scope.paginationConf_yyxx.totalItems = response.count;
+                    $scope.ListData_yyxx = response.items;
+                }).error(function (err) {
+                    box.ready("GetList_yyxx");
+                    $scope.paginationConf_yyxx.totalItems = 0;
+                    $scope.ListData_yyxx = [];
+                    //box.alert("网络出错:GetList_yyxx！", { icon: 'error' });
+                });
+            }
+
+            //-----------------------------
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf_dbgz.currentPage + paginationConf_dbgz.itemsPerPage', GetList_dbgz);//待办工作
+            $scope.$watch('paginationConf_ybgz.currentPage + paginationConf_ybgz.itemsPerPage', GetList_ybgz);//已办工作
+            $scope.$watch('paginationConf_wdgd.currentPage + paginationConf_wdgd.itemsPerPage', GetList_wdgd);//我的工单
+            $scope.$watch('paginationConf_dyxx.currentPage + paginationConf_dyxx.itemsPerPage', GetList_dyxx);//待阅信息
+            $scope.$watch('paginationConf_yyxx.currentPage + paginationConf_yyxx.itemsPerPage', GetList_yyxx);//已阅信息
+
+            //获取常用流程和收藏流程数据-------------------
+            $scope.GetFavoriteList = function () {
+                box.load("GetFavoriteList0");
+                MenuService.GetFavoriteList({ type: 0 }).success(function (response) {
+                    box.ready("GetFavoriteList0");
+                    $scope.ListFavoriteData0 = response.items;//常用流程
+                }).error(function (err) {
+                    box.ready("GetFavoriteList0");
+                    $scope.ListFavoriteData0 = [];
+                    //box.alert("网络出错:GetFavoriteList0！", { icon: 'error' });
+                });
+
+                box.load("GetFavoriteList1");
+                MenuService.GetFavoriteList({ type: 1 }).success(function (response) {
+                    box.ready("GetFavoriteList1");
+                    $scope.ListFavoriteData1 = response.items;//收藏流程
+                }).error(function (err) {
+                    box.ready("GetFavoriteList1");
+                    $scope.ListFavoriteData1 = [];
+                    //box.alert("网络出错:GetFavoriteList1！", { icon: 'error' });
+                });
+            }
+            $scope.GetFavoriteList();
+
+
+
+            //获取常用链接和收藏链接数据--------------
+            $scope.GetFriendLinkList = function () {
+                box.load("GetFriendLinkList0");
+                MenuService.GetFriendLinkList({ type: 0 }).success(function (response) {
+                    box.ready("GetFriendLinkList0");
+                    $scope.ListFriendLinkData0 = response.items;//常用链接
+                }).error(function (err) {
+                    box.ready("GetFriendLinkList0");
+                    $scope.ListFriendLinkData0 = [];
+                    //box.alert("网络出错:GetFriendLinkList0！", { icon: 'error' });
+                });
+
+                box.load("GetFriendLinkList1");
+                MenuService.GetFriendLinkList({ type: 1 }).success(function (response) {
+                    box.ready("GetFriendLinkList1");
+                    $scope.ListFriendLinkData1 = response.items;//收藏链接
+                }).error(function (err) {
+                    box.ready("GetFriendLinkList1");
+                    $scope.ListFriendLinkData1 = [];
+                    //box.alert("网络出错:GetFriendLinkList1！", { icon: 'error' });
+                });
+            }
+            $scope.GetFriendLinkList();
+
+            $scope.GetSysNotice_ValidData = function () {
+                box.load("GetSysNotice_ValidData");
+                MenuService.GetSysNotice_ValidData({ type: 0 }).success(function (response) {
+                    box.ready("GetSysNotice_ValidData");
+                    $scope.ListNoticeData = response.items;//公告
+                }).error(function (err) {
+                    box.ready("GetSysNotice_ValidData");
+                    $scope.ListNoticeData = [];
+                    //box.alert("网络出错:GetSysNotice_ValidData！", { icon: 'error' });
+                });
+            }
+            $scope.GetSysNotice_ValidData();
+
+            //隐藏-------------
+            $scope.close = function ($event) {
+                ele = $($event.target);
+                ele.parents('.public-layer').hide();
+                return;
+            };
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+            //设置表格中标题宽度
+            $scope.setTitleWidth = function (id) {
+                var mm = $('#' + id).find('.public-table').width() - 500;
+                //ele = $event.target;
+                return { "width": mm + "px" };
+            }
+
+            //版本信息
+            $scope.ShowVersion = function () {
+                box.popup(""//"<iframe id='iframe_log' frameborder='0' marginwidth='0' style='width:100%;min-height:470px;overflow:hidden;' src='../SysVersion/Index'></iframe>"
+                    , {
+                        title: '版本更新信息',
+                        url: "../SysVersion/Info",
+                        width: 400,//窗口宽度，默认400
+                        height: 400//窗口高度，默认400
+                    });
+            }
+            //密码设置
+            $scope.SetPasswd = function () {
+                box.popup("",
+                    {
+                        title: '修改密码',
+                        url: "../MyCenter/Passwd",
+                        width: 500,//窗口宽度，默认400
+                        height: 300//窗口高度，默认400
+                    });
+            }
+            //流程收藏
+            $scope.SetFavorite = function () {
+                box.popup("",
+                    {
+                        title: '流程收藏',
+                        url: "../SysFavorite/Index?type=1",
+                        width: 700,//窗口宽度，默认400
+                        height: 500//窗口高度，默认400
+                    });
+            }
+            //链接收藏
+            $scope.SetFavoriteLink = function () {
+                box.popup("",
+                    {
+                        title: '链接收藏',
+                        url: "../SysFavoriteLink/Index",
+                        width: 700,//窗口宽度，默认400
+                        height: 500//窗口高度，默认400
+                    });
+            }
+
+            //日程安排-----------------start-------------------------------
+            $scope.allScheduleMonthData = [];
+            $scope.selectedDateStr = '';
+            $scope.selectedScheduleData = [];
+            $scope.selectedYear;
+            $scope.selectedMonth;
+            //获取日程月数据
+            var GetScheduleMonthData = function (year, month) {
+                if (!!year) { $scope.selectedYear = year; }
+                if (!!month) { $scope.selectedMonth = month; }
+                var postData = { year: $scope.selectedYear, month: $scope.selectedMonth };
+                MenuService.GetScheduleMonthData(postData).success(function (response) {
+                    $scope.allScheduleMonthData = response.items;
+                    kalendar_event('resetData', { data: response.items, time: 'Time', text: 'Content' });
+                    SelectScheduleDate($scope.selectedDateStr);
+                }).error(function (err) {
+                    $scope.allScheduleMonthData = [];
+                    SelectScheduleDate($scope.selectedDateStr);
+                    //box.alert("网络出错：GetScheduleMonthData！", { icon: 'error' });
+                });
+            }
+            //日程编辑
+            editScheduleDay = function (date) {
+                box.popup(
+                           "",
+                           {
+                               title: '日程安排(' + date + ')',
+                               url: "../Schedule/DayInfo?date=" + date,
+                               width: 650,//窗口宽度，默认400
+                               height: 300//窗口高度，默认400
+                           },
+                           function (r) {
+                               GetScheduleMonthData();
+                           }
+                   );
+            }
+            var SelectScheduleDate = function (date) {
+                if (!date)
+                    date = $filter('date')(new Date(), 'yyyy-MM-dd');
+                $scope.selectedDateStr = date;
+
+                $scope.selectedScheduleData = []
+                $.each($scope.allScheduleMonthData, function (i, item) {
+                    if (item.dateTime.Format('yyyy-MM-dd') == $scope.selectedDateStr) {
+                        $scope.selectedScheduleData.push(item);
+                    }
+                });
+
+                var strHtml = '<span class="rc-top">' + date + '<a href="javascript:void(0);"  onclick="editScheduleDay(\'' + date + '\')">编辑日程</a></span>';
+                strHtml += '<div id="jscroll_rc" class="rc-content jscroll" >';
+                strHtml += '<table id="tableSchedule" cellpadding="0" cellspacing="0">';
+                $.each($scope.selectedScheduleData, function (i, item) {
+                    strHtml += '<tr><th><span>' + $filter('date')(item.Time, 'HH:mm') + '<i></i></span></th><td><div>' + item.Content + '</div></td></tr>';
+                });
+                strHtml += '</table></div>';
+                $("#rc").html(strHtml);//tableSchedule
+                var mm = $('#rc').parent().height() - $('#rl').height() - 27;
+                $('#rc div.rc-content').height(mm);
+
+                addJsCroll($('#jscroll_rc'));
+            }
+
+
+
+            GetScheduleMonthData();
+
+            kalendar_event('yearmonthChange', function (year, month) {
+                GetScheduleMonthData(year, month);
+            });
+            kalendar_event('dayOnClick', function (date) {
+                SelectScheduleDate(date);
+            });
+
+            //日程安排-----------------end-------------------------------
+
+            //构建菜单html
+            $scope.clickMenu = function ($event, menu) {
+                if (menu.MenuType == '页面') {
+                    $scope.openIFPage(menu);
+                }
+                else {
+                    var curElement = $event.target;
+                    $(".left-nav  ul").not($(curElement).parents("ul")).not($(curElement).next("ul")).hide();
+                    $(".left-nav  span").not($(curElement).parents(".left-nav").children("span")).removeClass('current');
+                    $(".left-nav  span").not($(curElement).parents(".left-nav").children("span")).children("b").removeClass("minus");
+
+                    $(curElement).next("ul").slideToggle(function () {
+                        addJsCroll($(curElement).parents('.jscroll'));
+                        mml_h2 = $(window).height() - $(".header").height() - $(".footer").height();
+                        if ($(curElement).parents('.jscroll').find(".jscroll-c").height() >= mml_h2) {
+                            $(curElement).parents('.jscroll').find(".jscroll-e").show();
+                        }
+                    });
+
+                    if ($(curElement).parents(".left-nav").children("span").html() == $(curElement).html()) {
+                        $(curElement).children("b").toggleClass("minus");
+                        $(curElement).toggleClass('current');
+                    }
+
+                }
+            }
+
+            //刷新首页上的数据
+            $scope.ReLoadData = function () {
+                GetList_dbgz();//待办工作
+                GetList_ybgz();//已办工作
+                GetList_wdgd();//我的工单
+                GetList_dyxx();//待阅信息
+                GetList_yyxx();//已阅信息
+                $scope.GetFavoriteList();//常用流程和收藏流程
+                GetScheduleMonthData();//日程安排
+                $scope.GetFriendLinkList();//常用链接和收藏链接
+                $scope.GetSysNotice_ValidData();//公告
+            }
+
+        }]);
+        app.controller('ChcekingInController', ['$scope', '$rootScope', '$filter', '$timeout', 'MenuService', 'ngDialog', function ($scope, $rootScope, $filter, $timeout, MenuService, ngDialog) {
+            $scope.ListData = [];
+            $scope.ChcekInfo = { UserId: '', AtDate: '', OffDate: '', DoTime: '', OffTime: '', RotateDaysOffFlag: '', CheckIP: '', AttendanceId: '', Minute: '' };
+
+            var GetChcekingIn = function () {
+                box.load("loadding");
+                MenuService.getChckingIn().success(function (response) {
+                    if (response.IsSuccess)
+                        $scope.ListData = response.data;
+                    else {
+
+                    }
+                    box.ready("loadding");
+                }).error(function (response) {
+                    //$scope.result = response;
+                    box.ready("loadding");
+                });
+            };
+            GetChcekingIn();
+            var mgsDialog = function (msg, isTrue) {
+                var c = ' blackbox_icon_success';
+                if (!isTrue)
+                    c = ' blackbox_icon_error';
+                template = '<div  class="msg_icon' + c + '"><p>' + msg + '</p> </div>';
+                var dialog = ngDialog.open({
+                    template: template,
+                    plain: true,
+                    closeByDocument: false,
+                    closeByEscape: false,
+                    showClose: false,
+                    title: '信息提示',
+                    disableAnimation: true,
+                    width: 400,
+                    height: 140
+                });
+                setTimeout(function () {
+                    dialog.close();
+                }, 2000);
+            }
+            $scope.save = function (id, isDoTime) {
+                box.load("loadding");
+                var data = { id: id, isDoTime: isDoTime };
+                MenuService.saveChckingIn(data).success(function (response) {
+                    GetChcekingIn();
+                    if (response.IsSuccess) {
+                        mgsDialog('签到成功！', true);
+                    }
+                    else {
+                        mgsDialog('签到失败！' + response.Message, false);
+                    }
+                    box.ready("loadding");
+                }).error(function (response) {
+                    mgsDialog('加载出错！', false);
+                    box.ready("loadding");
+                });
+            };
+            //写一个方法获取当前时间()
+            $scope.SetTimer = function () {
+                //angularJs的特性，需要手动把变化映射到html元素上面
+                $scope.$apply(function () {
+                    var now = new Date();
+                    $scope.time = now.Format('yyyy-MM-dd HH:mm:ss');
+                });
+            };
+            //每隔1秒刷新一次时间
+            $scope.SetTimerInterval = setInterval($scope.SetTimer, 1000);
+
+        }]);
+        app.factory('MenuService', ['$http', function ($http) {
+            var serive = {};
+            serive.getChckingIn = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CheckAttendance/GetChckingIn'
+                });
+            };
+            serive.saveChckingIn = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CheckAttendance/SaveChckingIn',
+                    data: postData
+                });
+            };
+            serive.GetMenuList = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetMenuList',
+                    data: postData
+                });
+            };
+            serive.GetList_wdgd = function (postData) {//获取我的工单数据列表
+
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetList_wdgd',
+                    data: postData
+                });
+            };
+            serive.GetList_ybgz = function (postData) {//获取已办工作数据列表
+
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetList_ybgz',
+                    data: postData
+                });
+            };
+            serive.GetList_dbgz = function (postData) {//获取代办工作数据列表
+
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetList_dbgz',
+                    data: postData
+                });
+            };
+            serive.GetList_dyxx = function (postData) {//获取待阅信息列表
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetList_dyxx',//待阅信息
+                    data: postData
+                });
+            };
+            serive.GetList_yyxx = function (postData) {//获取待阅信息列表
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetList_yyxx',//待阅信息
+                    data: postData
+                });
+            };
+            serive.GetScheduleMonthData = function (postData) {//获取一个月的日程数据列表
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetScheduleMonthData',
+                    data: postData
+                });
+            };
+            serive.GetFavoriteList = function (postData) {//获取“常用流程”和“收藏流程”信息,type:0为常用流程，1为收藏流程
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetFavoriteList',
+                    data: postData
+                });
+            };
+            serive.GetFriendLinkList = function (postData) {//获取“常用链接(友情链接)”和“收藏链接”信息,type:0为常用链接，其他为收藏链接
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetFriendLinkList',
+                    data: postData
+                });
+            };
+            serive.GetSysNotice_ValidData = function (postData) {//获取有效的公告信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Home/GetSysNotice_ValidData',
+                    data: postData
+                });
+            };
+            return serive;
+
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            //scope.$emit('ngRepeatFinished');
+                            addJsCroll(element.parents('.jscroll'));
+                        });
+                    }
+                }
+            };
+        });
+
+        var isChange = true;
+        function change(event, id) {
+            if (isChange == false) {
+                isChange = true;
+                return;
+            }
+            $(".public-main-title a").not(event).removeClass("current");
+            $(event).addClass("current");
+            $("iframe").not($("iframe").filter("#" + id + "")).hide();
+            $("iframe").filter("#" + id + "").show();
+        }
+        function closeTab(event, id) {
+            if ($(".public-main-title a").length == 2) {
+                $(".public-main-title a").not($(event).parent()).children().hide();
+            }
+            if ($(event).parent().attr("class") == "current") {
+                var ifram = $(event).parent().prev();
+                ifram = ifram.length != 0 ? ifram : $(event).parent().next();
+                ifram.addClass("current");
+                $("iframe").filter("#" + ifram.attr("target") + "").toggle();
+            }
+            $(event).parent().remove();
+            $("iframe").filter("#" + id + "").remove();
+            isChange = false;
+        }
+
+        Date.prototype.Format = function (fmt) { //author: meizz
+            var o = {
+                "M+": this.getMonth() + 1, //月份
+                "d+": this.getDate(), //日
+                "H+": this.getHours(), //小时
+                "m+": this.getMinutes(), //分
+                "s+": this.getSeconds(), //秒
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+                "S": this.getMilliseconds() //毫秒
+            };
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (var k in o)
+                if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        }
+
+    </script>
+
+    <style>
+        .public-layer .close-btn {
+            display: none;
+        }
+    </style>
+</head>
+
+<body ng-app="HomeApp" ng-controller="HomeController" style="background-color:#F8F7F7;">
+    <!--header-->
+    <div class="header">
+        <div class="header-top">
+            <a href="javascript:void(0);" class="header-top-left"><img src="~/Content/images/title_bg.png" alt="" /></a>
+            <div class="header-top-right">
+                <a href="javascript:void(0);" onclick="window.location.replace('../Home/LogOut')" class="a-2" title="退出"></a>
+                <a href="javascript:void(0);" ng-click="ShowVersion()" class="a-1" title="版本信息"></a>
+                @*<a href="javascript:void(0);" ng-click="Selected(0)" title="首页" class="a-1"></a>*@
+                <div class="a-0">
+                    <i class="i-1"></i>
+                    <div class="sz-list">
+                        <div>
+                            <i></i>
+                            <ul>
+                                <li><a href="javascript:void(0);" ng-click="SetPasswd()">密码设置</a></li>
+                                <li><a href="javascript:void(0);" ng-click="SetFavorite()">流程收藏</a></li>
+                                <li><a href="javascript:void(0);" ng-click="SetFavoriteLink()">链接收藏</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                @if (@ViewBag.DeptName == "")
+                {
+                    <span>@ViewBag.RealName</span>
+                }
+                else
+                {
+                    <span>@ViewBag.RealName-@ViewBag.DeptName</span>
+                }
+
+            </div>
+        </div>
+
+        <div class="header-bottom">
+            <a href="javascript:void(0);" class="logo"><img src="~/Content/images/logo.png" alt="" /></a>
+            <div class="main-nav">
+                <ul>
+                    <li ng-class="{current:MenuId==0}"><a href="javascript:void(0);" ng-click="Selected(0)"><b class="b-0"></b>首页</a></li>
+                    @*@if (((List<CZManageSystem.Data.Domain.SysManger.SysMenu>)ViewBag.MenuList).Exists(m => m.MenuName == "工作台"))
+                        {
+                            <li ng-class="{current:MenuId==77}"><a href="javascript:void(0);" ng-click="Selected(77)"><b class="b-2"></b>工作台</a></li>
+                        }
+
+                        @if (((List<CZManageSystem.Data.Domain.SysManger.SysMenu>)ViewBag.MenuList).Exists(m => m.MenuName == "系统管理"))
+                        {
+                            <li ng-class="{current:MenuId==25}"><a href="javascript:void(0);" ng-click="Selected(25)"><b class="b-8"></b>系统管理</a></li>
+                        }*@
+
+                    @foreach (CZManageSystem.Data.Domain.SysManger.SysMenu item in ViewBag.MenuList)
+                    {
+                        <li ng-class="{current:MenuId==@item.Id}"><a href="javascript:void(0);" ng-click="Selected(@item.Id,true)"><b class="b-@item.Id"></b>@item.MenuName</a></li>
+                    }
+
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="m-t"></div>
+    <div class="main-mod contain" ng-hide="isFirst" style="display:none;">
+        <div class="towards">&lt;</div>
+        <div class="main-mod-left">
+            <div style="height:100%;width:1px; position:absolute; z-index:5; border-left:1px solid #D5D5D5;"></div>
+            <div style="height:100%;width:1px; position:absolute; left:170px; z-index:5; border-right:1px solid #D5D5D5;"></div>
+            <div style="height:100%;width:100%;" class="jscroll">
+                <div class="left-nav-mod" style="width:172px;">
+                    <div class="left-nav" ng-repeat="menu in menulist">
+                        <span class="span-{{$index+1}}" ng-click="clickMenu($event,menu)"><i></i>{{menu.MenuName}}<b></b></span>
+                        <ul class="firstUL" ng-if="menu.Child.length">
+                            <li ng-repeat="menu in menu.Child">
+                                <a href="javascript:void(0);" ng-click="clickMenu($event,menu)">{{menu.MenuName}}</a>
+                                <ul ng-if="menu.Child.length">
+                                    <li ng-repeat="menu in menu.Child">
+                                        <a href="javascript:void(0);" ng-click="clickMenu($event,menu)">{{menu.MenuName}}</a>
+                                        <ul ng-if="menu.Child.length">
+                                            <li ng-repeat="menu in menu.Child">
+                                                <a href="javascript:void(0);" ng-click="clickMenu($event,menu)">{{menu.MenuName}}</a>
+                                                <ul ng-if="menu.Child.length">
+                                                    <li ng-repeat="menu in menu.Child">
+                                                        <a href="javascript:void(0);" ng-click="clickMenu($event,menu)">{{menu.MenuName}}</a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="main-mod-right">
+            <div class="public-main-title" style="height:30px">
+                @*<a href="javascript:void(0);">新闻中心<b></b></a>*@
+                @*<a id="tab" href="javascript:void(0);" class="current">{{curPageName}}</a>*@
+            </div>
+            @*<iframe id="IFContent" frameborder='0' marginwidth='0' style="width:100%;min-height:470px;overflow:hidden;" src=''></iframe>*@
+
+        </div>
+
+    </div>
+    <div class="midpage">
+        <!--index main-->
+        <div class="warp contain" ng-show="isFirst">
+            <div class="index-left">
+                <div class="public-layer">
+                    <div class="public-layer-lab">
+                        <ul>
+                            <li><a href="javascript:void(0);" class="current" linkDiv="dbgz"><i class="i-1"></i>待办工作</a></li>
+                            <li><a href="javascript:void(0);" linkDiv="ybgz"><i class="i-2"></i>已办工作</a></li>
+                            <li><a href="javascript:void(0);" linkDiv="wdgd"><i class="i-3"></i>我的工单</a></li>
+                        </ul>
+                        <a href="javascript:void(0);" class="close-btn" ng-click="close($event)"></a>
+                    </div>
+                    <div id="dbgz">
+                        <div class="public-layer-content">
+                            <div class="public-table">
+                                <table cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                                    <tr>
+                                        <th width="50px">序号</th>
+                                        <th width="150px">发起人</th>
+                                        <th>标题</th>
+                                        <th width="150px">当前步骤</th>
+                                        <th width="150px">创建时间</th>
+                                    </tr>
+                                    <tr ng-repeat="job in ListData_dbgz">
+                                        <td ng-bind="$index+1"></td>
+                                        <td>
+                                            <div ng-bind="job.CreatorName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a ng-if="job.TrackingType==0" href="javascript:void(0);" ng-click='openPageUnderWorkBench("../Plugins/EasyFlow/contrib/workflow/pages/process.aspx?&aiid="+job.ActivityInstanceId,"待办工作",job.ActivityInstanceId)'>
+                                                <div ng-style="setTitleWidth('dbgz')" style="margin:auto; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                                    {{job.Title}}
+                                                </div>
+                                            </a>
+
+                                            <a ng-if="job.TrackingType==1" href="javascript:void(0);" ng-click='openPageUnderWorkBench( "../Vote/Voting?id="+job.ExternalEntityId,"待办工作",job.ActivityInstanceId)'>
+                                                <div ng-style="setTitleWidth('dbgz')" style="margin:auto; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                                    {{job.Title}}
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div ng-bind="job.ActivityName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td ng-bind="job.StartedTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <tm-pagination conf="paginationConf_dbgz"></tm-pagination>
+                            </div>
+                            <div style="clear:both;"></div>
+                        </div>
+                    </div>
+                    <div id="ybgz" style="display:none;">
+                        <div class="public-layer-content">
+                            <div class="public-table">
+                                <table cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                                    <tr>
+                                        <th width="50px">序号</th>
+                                        <th width="150px">发起人</th>
+                                        <th>标题</th>
+                                        <th width="150px">当前步骤</th>
+                                        <th width="150px">办理时间</th>
+                                    </tr>
+                                    <tr ng-repeat="job in ListData_ybgz">
+                                        <td ng-bind="$index+1"></td>
+                                        <td>
+                                            <div ng-bind="job.CreatorName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a ng-if="job.TrackingType==0" href="javascript:void(0);" ng-click='openPageUnderWorkBench("../Plugins/EasyFlow/contrib/workflow/pages/workflowView.aspx?wiid="+job.WorkflowInstanceId,"已办工作",job.WorkflowInstanceId)'>
+                                                <div ng-style="setTitleWidth('ybgz')" style="margin:auto; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                                    {{job.Title}}
+                                                </div>
+                                            </a>
+
+                                            <a ng-if="job.TrackingType==1" href="javascript:void(0);" ng-click='openPageUnderWorkBench( "../Vote/Voting?id="+job.ExternalEntityId+"&isView=true","待办工作",job.ActivityInstanceId)'>
+                                                <div ng-style="setTitleWidth('ybgz')" style="margin:auto; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                                    {{job.Title}}
+                                                </div>
+                                            </a>
+                                        </td>
+
+                                        <td>
+                                            <div ng-bind="job.CurrentActivityNames" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td ng-bind="job.finishedtime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <tm-pagination conf="paginationConf_ybgz"></tm-pagination>
+                            </div>
+                            <div style="clear:both;"></div>
+                        </div>
+                    </div>
+                    <div id="wdgd" style="display:none;">
+                        <div class="public-layer-content">
+                            <div class="public-table">
+                                <table cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                                    <tr>
+                                        <th width="50px">序号</th>
+                                        <th width="150px">发起人</th>
+                                        <th>标题</th>
+                                        <th width="150px">当前步骤</th>
+                                        <th width="150px">办理时间</th>
+                                    </tr>
+                                    <tr ng-repeat="job in ListData_wdgd">
+                                        <td ng-bind="$index+1"></td>
+                                        <td>
+                                            <div ng-bind="job.CreatorName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="javascript:void(0);" ng-click='openPageUnderWorkBench("../Plugins/EasyFlow/contrib/workflow/pages/workflowView.aspx?wiid="+job.WorkflowInstanceId,"我的工单",job.WorkflowInstanceId)'>
+                                                <div ng-style="setTitleWidth('wdgd')" style="margin:auto; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                                    {{job.Title}}
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div ng-bind="job.CurrentActivityNames" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td ng-bind="job.finishedtime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <tm-pagination conf="paginationConf_wdgd"></tm-pagination>
+                            </div>
+                            <div style="clear:both;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="public-layer">
+                    <div class="public-layer-lab">
+                        <ul>
+                            <li><a href="javascript:void(0);" class="current" linkDiv="dyxx"><i class="i-4"></i>待阅信息</a></li>
+                            <li><a href="javascript:void(0);" linkDiv="yyxx"><i class="i-5"></i>已阅信息</a></li>
+                        </ul>
+                        <a href="javascript:void(0);" class="close-btn" ng-click="close($event)"></a>
+                    </div>
+                    <div id="dyxx">
+                        <div class="public-layer-content">
+                            <div class="public-table">
+                                <table cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                                    <tr>
+                                        <th width="50px">序号</th>
+                                        <th width="150px">发起人</th>
+                                        <th>标题</th>
+                                        <th width="150px">当前步骤</th>
+                                        <th width="150px">创建时间</th>
+                                    </tr>
+                                    <tr ng-repeat="msg in ListData_dyxx">
+                                        <td ng-bind="$index+1"></td>
+                                        <td>
+                                            <div ng-bind="msg.CreatorName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="javascript:void(0);" ng-click='openPageUnderWorkBench("../Plugins/EasyFlow/contrib/workflow/pages/workflowview.aspx?type=review&aiid="+msg.ActivityInstanceId,"待阅信息",msg.ActivityInstanceId)'>
+                                                <div ng-style="setTitleWidth('dyxx')" style="margin:auto; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                                    {{msg.Title}}
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div ng-bind="msg.ActivityName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td ng-bind="msg.StartedTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <tm-pagination conf="paginationConf_dyxx"></tm-pagination>
+                            </div>
+                            <div style="clear:both;"></div>
+                        </div>
+                    </div>
+                    <div id="yyxx" style="display:none;">
+                        <div class="public-layer-content">
+                            <div class="public-table">
+                                <table cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                                    <tr>
+                                        <th width="50px">序号</th>
+                                        <th width="150px">发起人</th>
+                                        <th>标题</th>
+                                        <th width="150px">当前步骤</th>
+                                        <th width="150px">阅读时间</th>
+                                    </tr>
+                                    <tr ng-repeat="msg in ListData_yyxx">
+                                        <td ng-bind="$index+1"></td>
+                                        <td>
+                                            <div ng-bind="msg.CreatorName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="javascript:void(0);" ng-click='openPageUnderWorkBench("../plugins/easyflow/contrib/workflow/pages/Process.aspx?aiid="+msg.ActivityInstanceId,"已阅信息",msg.ActivityInstanceId)'>
+                                                <div ng-style="setTitleWidth('yyxx')" style="margin:auto; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                                    {{msg.Title}}
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div ng-bind="msg.ActivityName" style="margin:auto; width:140px; padding-right:5px;" class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            </div>
+                                        </td>
+                                        <td ng-bind="msg.ReviewTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <tm-pagination conf="paginationConf_yyxx"></tm-pagination>
+                            </div>
+                            <div style="clear:both;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:2px;">
+                    <ul>
+                        <li class="tow-li">
+                            <div class="public-layer the-content first-div">
+                                <div class="public-layer-title"><i class="i-1"></i>常用流程<a href="javascript:void(0);" class="close-btn" ng-click="close($event)"></a></div>
+                                <div class="public-layer-content jscroll" style="height:165px;overflow: hidden;position: relative;padding: 0px;">
+                                    <div class="public-li">
+                                        <ul>
+                                            <li ng-repeat="exp in ListFavoriteData0" on-finish-render-filters=on-finish-render-filters>
+                                                <a href="javascript:void(0);" ng-click="openPageUnderWorkBench('/plugins/easyflow/contrib/workflow/pages/start.aspx?wid='+exp.WorkflowId,exp.WorkflowName,exp.WorkflowId)">
+                                                    <b></b>
+                                                    <div class="divOverflow" ng-mouseenter="showTitle($event)" style="margin-left:15px;margin-right:1px;">{{exp.WorkflowName}}</div>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <div style="clear:both;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="tow-li">
+                            <div class="public-layer the-content">
+                                <div class="public-layer-title"><i class="i-2"></i>收藏流程<a href="javascript:void(0);" class="close-btn" ng-click="close($event)"></a></div>
+                                <div class="public-layer-content jscroll" style="height:165px;overflow: hidden;position: relative;padding: 0px;">
+                                    <div class="public-li">
+                                        <ul>
+                                            <li ng-repeat="exp in ListFavoriteData1" on-finish-render-filters=on-finish-render-filters>
+                                                <a href="javascript:void(0);" ng-click="openPageUnderWorkBench('/plugins/easyflow/contrib/workflow/pages/start.aspx?wid='+exp.WorkflowId,exp.WorkflowName,exp.WorkflowId)">
+                                                    <b></b>
+                                                    <div class="divOverflow" ng-mouseenter="showTitle($event)" style="margin-left:15px;margin-right:1px;">{{exp.WorkflowName}}</div>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <div style="clear:both;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="index-right">
+                <div class="public-layer right01">
+                    <div class="public-layer-title"><i class="i-3"></i>日程安排<a href="javascript:void(0);" ng-click="close($event)"></a></div>
+                    <div class="public-layer-content" style="height:480px;">
+                        <div id="rl"></div>
+                        <div class="rc" id="rc">
+                            @*<span class="rc-top">2015-01-01<a href="javascript:void(0);">编辑日程</a></span>
+                                <div class="rc-content jscroll" style="">
+                                    <table id="tableSchedule" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <th><span>13:40<i></i></span></th>
+                                            <td>
+                                                <div>今日例会</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="public-layer right02">
+                    <div class="public-layer-title"><i class="i-4"></i>便捷登记<a href="javascript:void(0);" class="close-btn" ng-click="close($event)"></a></div>
+                    <div class="public-layer-content">
+                        <div class="my-attendance">
+                            <ul>
+                                <li>
+                                    <span><i class="i-1"></i><a ng-click="ChcekingInDialog()">考勤登记</a></span>
+                                </li>
+
+                                <li>
+                                    <span><i class="i-2"></i><a ng-click="DinningOrderInDialog()">订餐登记</a></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="public-layer right03">
+                    <div class="public-layer-title"><i class="i-5"></i>常用链接<a href="javascript:void(0);" class="close-btn" ng-click="close($event)"></a></div>
+                    <div class="public-layer-content jscroll" style="height:132px;overflow: hidden;position: relative;padding: 0px;">
+                        <div class="link-li">
+                            <ul>
+                                <li ng-repeat="exp in ListFriendLinkData0" on-finish-render-filters=on-finish-render-filters>
+                                    <a ng-href="{{exp.LinkUrl}}" target="_blank">
+                                        <div class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            {{exp.LinkName}}
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="public-layer right04">
+                    <div class="public-layer-title"><i class="i-6"></i>收藏链接<a href="javascript:void(0);" class="close-btn" ng-click="close($event)"></a></div>
+                    <div class="public-layer-content jscroll" style="height:165px;overflow: hidden;position: relative;padding: 0px;">
+                        <div class="link-li">
+                            <ul>
+                                <li ng-repeat="exp in ListFriendLinkData1" on-finish-render-filters=on-finish-render-filters>
+                                    <a ng-href="{{exp.FavoriteLinkUrl}}" target="_blank">
+                                        <div class="divOverflow" ng-mouseenter="showTitle($event)">
+                                            {{exp.FavoriteLinkName}}
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--index main end-->
+        <div style="clear:both;"></div>
+        <div class="mod-note contain" style="width:1022px;">
+            <div class="bg"></div>
+            <div class="wrap">
+                <i class="icon"></i>
+                <span style="position:absolute;left:30px;line-height:40px;color:#1167ab;">公告</span>
+                <div class="newsbox" style="left:70px;width:90%;">
+                    <ul>
+                        <li ng-repeat="exp in ListNoticeData">
+                            <a ng-href="../SysNotice/ShowNotice?id={{exp.NoticeId}}" target="_blank">
+                                <div style="margin-right:20px; float:left; max-width:200px;" class="divOverflow" ng-mouseenter="showTitle($event)">{{exp.Title}}</div>
+                                <div style="margin-right:10px;" class="divOverflow" ng-mouseenter="showTitle($event)">{{exp.Content}}</div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <!--<a href="关于我们/平台公告.html" class="more">更多&gt;&gt;</a>-->
+            </div>
+        </div>
+    </div>
+    <div class="footer contain">
+        <p>
+            <span>中国移动通信集团广东有限公司潮州分公司</span><span>版权所有</span>
+            <span>广东网金控股股份有限公司</span><span>技术支持</span>
+        </p>
+
+    </div>
+
+    <script type="text/ng-template" id="ChcekingInId">
+
+        <div class="public-table-main">
+            <div style="text-align :center;padding :5px;height :50px ;font-size :25px">
+                当前时间：<span style="color :#0085d1">{{time}}</span>
+            </div>
+            @*  {UserId:'', AtDate:'', OffDate:'', DoTime:'', OffTime:'', RotateDaysOffFlag:'', CheckIP:'', AttendanceId:'', Minute:''}
+
+
+            *@
+          
+            <table>
+                <tr>
+                    <th style="text-align :center !important ">时间段</th>
+                    <th style="text-align :center !important " colspan="2">上班时间</th>
+                    <th style="text-align :center !important " colspan="2">下班时间</th>
+                </tr>
+                <tr ng-repeat="exp in ListData">
+                    <td ng-bind="exp.TimeQuantum"></td>
+                    <td>{{exp.AtDate|date:'yyyy-MM-dd'+' '+exp.DoTime}}</td>
+                    <td>
+                        <a ng-click="save(exp.AttendanceId,true)" ng-if="exp.IsDo" style="color :#0085d1">签到</a>
+                        <span ng-if="exp.RotateDaysOffFlag==1" style="color :#4cff00">您正在轮休！</span>
+                        <span ng-if="exp.DoFlag==2" style="color :#4cff00">您正在休假！</span>
+                        <span ng-if="DoTime!=''&&exp.RotateDaysOffFlag!=1&&!exp.IsDo&&!exp.IsDoReallyTime" style="color :#ff0000">无法签到</span>
+                        <span ng-if="DoTime==''&& exp.RotateDaysOffFlag!=1" style="color :#4cff00">正常休息</span>
+                        <span ng-if="exp.RotateDaysOffFlag!=1&&!exp.IsDo&&exp.IsDoReallyTime" style="color :#4cff00">已签到</span>
+                    </td>
+                    @*<td ng-bind="exp.OffDate|date:'yyyy-MM-dd'+' '+exp.OffTime"></td>*@
+                    <td>{{exp.AtDate|date:'yyyy-MM-dd'+' '+exp.OffTime}}</td>
+                    <td>
+                        <a ng-click="save(exp.AttendanceId,false)" ng-if="exp.IsOff" style="color :#0085d1">签到</a>
+                        <span ng-if="exp.RotateDaysOffFlag==1" style="color :#4cff00">您正在轮休！</span>
+                        <span ng-if="exp.DoFlag==2" style="color :#4cff00">您正在休假！</span>
+                        <span ng-if="OffTime!=''&& exp.RotateDaysOffFlag!=1&&!exp.IsOff&&!exp.IsOffReallyTime" style="color :#ff0000">无法签到</span>
+                        <span ng-if="OffTime==''&& exp.RotateDaysOffFlag!=1" style="color :#4cff00">正常休息</span>
+                        <span ng-if="exp.RotateDaysOffFlag!=1&&!exp.IsOff&&exp.IsOffReallyTime" style="color :#4cff00">已签到</span>
+                    </td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </script>
+
+
+
+</body>
+
+</html>

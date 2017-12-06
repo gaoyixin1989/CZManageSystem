@@ -1,0 +1,62 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            var ProjectID = '@ViewData["ProjectID"]';
+            $scope.curObj = {};
+
+            //获取当前数据
+            var getCurData = false;
+            if (ProjectID != null && ProjectID.toString().length > 0) {
+                BusinessService.getDataByID(ProjectID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //根据id获取投资项目信息
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Project/GetDataByProjectID?ProjectID=' + id
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    table{width:680px;}
+    table th{text-align:right;vertical-align:top;}
+    table td{text-align:left;vertical-align:top;padding-right:50px;}
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr><th style="width:100px;">下达年份：</th><td ng-bind="curObj.Year" style="width:130px;"></td><th style="width:100px;">计划任务书文号：</th><td ng-bind="curObj.TaskID" style="width:350px;"></td></tr>
+            <tr><th>项目编号：</th><td ng-bind="curObj.ProjectID"></td><th>项目名称：</th><td ng-bind="curObj.ProjectName"></td></tr>
+            <tr><th>起止年限：</th><td ng-bind="curObj.BeginEnd"></td><th>项目总投资(元)：</th><td ng-bind="curObj.Total"></td></tr>
+            <tr><th>年度项目投资(元)：</th><td ng-bind="curObj.YearTotal"></td><th>年度建设内容：</th><td ng-bind="curObj.Content"></td></tr>
+            <tr><th>要求完成时限：</th><td ng-bind="curObj.FinishDate"></td><th>负责专业室：</th><td ng-bind="curObj.DpCode_Text"></td></tr>
+            <tr><th>室负责人：</th><td ng-bind="curObj.User_Text"></td><th>项目经理：</th><td ng-bind="curObj.Manager_Text"></td></tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

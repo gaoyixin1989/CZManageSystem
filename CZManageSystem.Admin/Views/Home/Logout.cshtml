@@ -1,0 +1,49 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>退出登录</title>
+    <script>
+        var i = 5;  
+        function remainTime(){  
+            if(i==0){  
+                ReLogin()
+              }  
+            i--;  
+            setTimeout("remainTime()",1000);  
+        }  
+       remainTime();  
+
+       function ReLogin() {
+           window.location.href = '../Home/Login';
+          
+       }
+    </script>
+    <style type="text/css">
+      
+         .divTitle {
+            /*width:500px;
+            height:100px;*/
+            background:  rgba(0, 0, 0, 0) url("../../Content/images/提示脸.png")  no-repeat 10px 20px;
+            position:absolute;left:30%;top:30%;
+        }
+        .divConten {
+            margin-left:100px;
+        }
+    </style>
+</head>
+<body >
+    <div class="divTitle"> 
+        <div class="divConten">
+            <h1><span>您已退出综合管理平台</span></h1>
+            <h4><a href="javascript:ReLogin();">重新登录</a></h4>
+        </div>   
+    </div>
+</body>
+</html>

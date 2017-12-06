@@ -1,0 +1,730 @@
+﻿@{
+    ViewBag.Title = "会议室申请信息编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <script>
+        var type = '@ViewData["type"]';
+        var workflowName = '@ViewData["workflowName"]';
+        $(function () {
+            if (type == 'edit') {
+                $('.ForJudge').remove();
+                $('.editWithout').hide();
+            }
+            else {
+                $('.ForEdit').remove();
+            }
+        })
+
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+            $scope.aftersubmitConf = {
+                //workflowName: ''
+            };
+            $scope.wfDataReady = false;
+
+            $scope.curObj = {
+                ISTVMeeting: false,//是否电视会议
+                Fugle: '普通会议'//领导参加情况
+            };
+            $scope.EquipSelected = [];//选中设备情况
+
+            //获取“申请”流程提交后的下一个步骤和执行人信息
+            box.load("wf");
+            BusinessService.getWFStepAfterSumbit().success(function (response) {
+                box.ready("wf");
+                $scope.WFStepAfterSumbitInfo = response;
+                $scope.wfDataReady = true;
+            }).error(function (err) {
+                box.ready("wf");
+                $scope.wfDataReady = true;
+                box.alert("网络出错！", { icon: 'error' });
+            });
+            //
+
+            //重置步骤信息
+            $scope.resetWfSetpData = function () {
+                $timeout(function () {
+                    if ($scope.wfDataReady) {
+                        if ($scope.curObj.ISTVMeeting) {
+                            $scope.aftersubmitConf.StepData = $scope.WFStepAfterSumbitInfo;
+                        }
+                        else {
+                            var temp = deepClone($scope.WFStepAfterSumbitInfo);
+                            $.each(temp.items, function (i, item) {
+                                item.CC_ReviewValidateType = false;
+                            })
+                            $scope.aftersubmitConf.StepData = temp;
+                        }
+                        $scope.$apply();
+                    }
+                    else {
+                        $scope.resetWfSetpData();
+                    }
+                }, 100);
+            }
+            $scope.resetWfSetpData();
+
+            //监视“是否电视会议”
+            $scope.$watch(function () {
+                return $scope.curObj.ISTVMeeting;
+            }, $scope.resetWfSetpData);
+
+            //获取会议室资料信息
+            BusinessService.GetBoardroomInfoListData_short().success(function (response) {
+                $scope.BoardroomInfoList = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+
+
+            //获取会议室设备
+            BusinessService.getDictListByName('会议室设备').success(function (response) {
+                $scope.dictEquip = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            //服务质量
+            BusinessService.getDictListByName('服务质量评价').success(function (response) {
+                $scope.JudgeServiceQualityDict = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            //环境卫生
+            BusinessService.getDictListByName('环境卫生评价').success(function (response) {
+                $scope.JudgeEnvironmentalDict = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+
+            var id = '@ViewData["id"]';
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response.item;
+                    for (var item in response.att) {
+                        $scope.curObj[item] = response.att[item];
+                    }
+                    $scope.EquipSelected = [];
+                    var arrNeedEquip = [];
+                    if ($scope.curObj.NeedEquip != null && $scope.curObj.NeedEquip.length > 0)
+                        arrNeedEquip = $scope.curObj.NeedEquip.split(',');
+                    for (var index = 0 ; index < arrNeedEquip.length; index++) {
+                        if (arrNeedEquip[index] != null && arrNeedEquip[index].length > 0) {
+                            var temp = arrNeedEquip[index].split(':');
+                            var num = 1;
+                            if (temp.length > 1 && temp[1] != '' && !isNaN(temp[1])) {
+                                num = parseInt(temp[1]);
+                            }
+                            $scope.EquipSelected.push({ name: temp[0], num: num });
+                        }
+                    }
+                    var mm = 1;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            else {
+                var BoardroomID = '@ViewData["BoardroomID"]';
+                var strDate = '@ViewData["strDate"]';
+                $scope.curObj['Room'] = BoardroomID;
+                $scope.curObj['MeetingDate'] = strDate + " 08:00";
+                $scope.curObj['EndDate'] = strDate + " 18:00";
+                $scope.curObj['BookTime'] = new Date().Format('yyyy-MM-dd HH:mm');
+
+                //获取新的申请信息
+                BusinessService.GetNewApplyInfo().success(function (response) {
+                    for (var item in response) {
+                        $scope.curObj[item] = response[item];
+                    }
+                }).error(function (err) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            //提交数据
+            $scope.submitData = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                //先保存数据，保存数据成功后执行提交操作
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    if ($scope.curObj.MeetingDate >= $scope.curObj.EndDate) {
+                        box.alert("停会议结束时间必须大于开始时间！", { icon: 'warning' });
+                        return;
+                    }
+                    if ($scope.curObj.BookTime > $scope.curObj.MeetingDate) {
+                        box.alert("订会时间不能大于会议开始时间！", { icon: 'warning' });
+                        return;
+                    }
+
+                    $scope.curObj.NeedEquip = "";
+                    $.each($scope.EquipSelected, function (i, item) {
+                        $scope.curObj.NeedEquip += ($scope.curObj.NeedEquip.length == 0 ? "" : ",") + item.name + ':' + item.num;
+                    });
+
+                    var curBoardroom = $filter('filter')($scope.BoardroomInfoList, { 'BoardroomID': $scope.curObj.Room })[0];
+                    if (curBoardroom.State == '停用') {
+                        box.alert("该会议室已经停用，请选择其他会议室！", { icon: 'warning' });
+                        return;
+                    }
+
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var postData2 = {
+                                id: response.Message,
+                                nextActivity: nextInfo.nextActivity,
+                                nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                            }
+                          
+                            box.load("submitData");
+                            BusinessService.sumbitApply(postData2).success(function (response2) {
+                                box.ready("submitData");
+                                if (response2.IsSuccess) {
+                                    box.alert("提交成功", { icon: 'success' }, function () {
+                                        window.location.href = CurPath + 'BoardroomManage/BoardroomApply_MyList';
+                                    });
+                                }
+                                else {
+                                    box.alert(response2.Message, { icon: 'error' });
+                                }
+                            }).error(function (response2) {
+                                box.ready("submitData");
+                                box.alert("网络出错！", { icon: 'error' })
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.alert("网络出错！", { icon: 'error' })
+                    });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            $scope.print = function () {
+                if ($scope.curObj.WorkflowInstanceId == null || $scope.curObj.WorkflowInstanceId.length <= 0)
+                    box.alert("没有流程实例ID，请先提交数据！", { icon: 'error' });
+                else
+                    window.open(CurPath + 'plugins/easyflow/contrib/workflow/pages/print.aspx?wiid=' + $scope.curObj.WorkflowInstanceId);
+            }
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    if ($scope.curObj.MeetingDate >= $scope.curObj.EndDate) {
+                        box.alert("停会议结束时间必须大于开始时间！", { icon: 'warning' });
+                        return;
+                    }
+                    if ($scope.curObj.BookTime > $scope.curObj.MeetingDate) {
+                        box.alert("订会时间不能大于会议开始时间！", { icon: 'warning' });
+                        return;
+                    }
+                    if ($scope.curObj.Fugle != '公司领导参加')
+                        $scope.curObj.Fugle_pro = false;
+
+                    $scope.curObj.NeedEquip = "";
+                    $.each($scope.EquipSelected, function (i, item) {
+                        $scope.curObj.NeedEquip += ($scope.curObj.NeedEquip.length == 0 ? "" : ",") + item.name + ':' + item.num;
+                    });
+
+                    
+                    var curBoardroom = $filter('filter')($scope.BoardroomInfoList, { 'BoardroomID': $scope.curObj.Room })[0];
+                    if (curBoardroom.State == '停用') {
+                        box.alert("该会议室已经停用，请选择其他会议室！", { icon: 'warning' });
+                        return;
+                    }
+
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'BoardroomManage/BoardroomApply_MyList';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.alert("网络出错！", { icon: 'error' })
+                    });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //选择用户（与会人员）
+            $scope.editUser = function (users) {
+                var iframeId = 'user_edit';
+                var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + users;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择用户',
+                        width: 760,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.curObj.JoinPeople = getAttrByArr(result, 'id').join(",");
+                                    $scope.curObj.JoinPeople_text = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //选择设备
+            $scope.selectEquip = function ($event, value) {
+                var isChecked = $event.target.checked;
+                if (isChecked) {//选中
+                    var temp = $filter('filter')($scope.EquipSelected, { 'name': value });
+                    if (temp == null || temp.length == 0) {
+                        $scope.EquipSelected.push({ name: value, num: 1 });
+                    }
+                }
+                else {//取消选中
+                    var temp = $filter('filter')($scope.EquipSelected, { 'name': value });
+                    if (temp != null && temp.length > 0) {
+                        $scope.EquipSelected.splice($scope.EquipSelected.indexOf(temp[0]), 1);
+                    }
+                }
+            }
+            //检查设备是否选中
+            $scope.checkEquip = function (value) {
+                var temp = $filter('filter')($scope.EquipSelected, { 'name': value });
+                if (temp != null && temp.length > 0)
+                    return true;
+                else
+                    return false;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getWFStepAfterSumbit = function (id) {//获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Workflow/getWFStepAfterSumbit',
+                    data: { workflowName: workflowName }
+                });
+            };
+            serive.save = function (postData) {//保存数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/SaveBoardroomApply',
+                    data: postData
+                });
+            };
+            serive.sumbitApply = function (postData) {//提交申请
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/SumbitBoardroomApply',
+                    data: postData
+                });
+            };
+
+            serive.getDataByID = function (id) {//获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/GetBoardroomApplyDataByID?id=' + id
+                });
+            };
+
+            serive.GetBoardroomInfoListData_short = function () {//获取会议室资料数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/GetBoardroomInfoListData_short'
+                });
+            };
+            serive.GetNewApplyInfo = function () {//获取新的申请信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/getNewApplyInfo'
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+
+        Date.prototype.Format = function (fmt) { //author: meizz
+            var o = {
+                "M+": this.getMonth() + 1, //月份
+                "d+": this.getDate(), //日
+                "H+": this.getHours(), //小时
+                "m+": this.getMinutes(), //分
+                "s+": this.getSeconds(), //秒
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+                "S": this.getMilliseconds() //毫秒
+            };
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (var k in o)
+                if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        }
+    </script>
+    <style>
+        .ui-label label {
+            margin-right: 10px;
+            line-height: 30px;
+            float: left;
+        }
+
+        .showMulti {
+            background-color: #F9F9F9;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <div id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController">
+        <ng-form action="" method="post" name="editForm" novalidate>
+            <table class="ForJudge">
+                <tr><th style="color:red;">评价</th></tr>
+                <tr>
+                    <th>服务质量：</th>
+                    <td>
+                        <div class="ui-input ui-label">
+                            <label>
+                                <input type="radio" value="好" ng-model="curObj.JudgeServiceQuality" />好
+                            </label>
+                            <label>
+                                <input type="radio" value="较好" ng-model="curObj.JudgeServiceQuality" />较好
+                            </label>
+                            <label>
+                                <input type="radio" value="一般" ng-model="curObj.JudgeServiceQuality" />一般
+                            </label>
+                            <label>
+                                <input type="radio" value="差" ng-model="curObj.JudgeServiceQuality" />差
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>环境卫生：</th>
+                    <td>
+                        <div class="ui-input ui-label">
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="好" ng-model="curObj.JudgeEnvironmental" />好
+                            </label>
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="较好" ng-model="curObj.JudgeEnvironmental" />较好
+                            </label>
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="一般" ng-model="curObj.JudgeEnvironmental" />一般
+                            </label>
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="差" ng-model="curObj.JudgeEnvironmental" />差
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>其他建议：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" style="width:390px;" ng-model="curObj.JudgeOtherSuggest" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr><th style="color:red;">申请信息如下</th></tr>
+            </table>
+            <table>
+                <tr class="editWithout">
+                    <th>申请人：</th>
+                    <td>
+                        <input type="hidden" name="AppPerson" ng-model="curObj.AppPerson" />
+                        <label>{{curObj.AppPerson_text}}</label>
+                    </td>
+                </tr>
+                <tr class="editWithout">
+                    <th>申请时间：</th>
+                    <td>
+                        <input type="hidden" name="AppTime" ng-model="curObj.AppTime" />
+                        <label>{{curObj.AppTime}}</label>
+                    </td>
+                </tr>
+                @*
+                    <tr>
+                        <th>所在部门：</th>
+                        <td>
+                            <input type="hidden" name="AppDept" ng-model="curObj.AppDept" />
+                            <label>{{curObj.AppDept_text}}</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>联系电话：</th>
+                        <td>
+                            <input type="hidden" name="ContactMobile" ng-model="curObj.ContactMobile" />
+                            <label>{{curObj.ContactMobile}}</label>
+                        </td>
+                    </tr>*@
+                <tr>
+                    <th>会议主题：</th>
+                    <td>
+                        <input type="hidden" name="ApplyTitle" ng-model="curObj.ApplyTitle" />
+                        <label>{{curObj.ApplyTitle}}</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th>流程单号：</th>
+                    <td>
+                        <input type="hidden" name="Code" ng-model="curObj.Code" />
+                        <label>{{curObj.Code}}</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th>会议室：</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="Room" required ng-model="curObj.Room" style="width:222px;">
+                                    <option ng-repeat="x in BoardroomInfoList" value="{{x.BoardroomID}}" ng-selected="x.BoardroomID==curObj.Room">{{x.Name}}{{x.State=='停用'?'(停用)':''}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Room.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择会议室</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>与会人数：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" number min="1" precision="0" class="cell-input" ng-model="curObj.JoinNum" name="JoinNum" required />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.JoinNum.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.JoinNum.$error.required">请输入与会人数</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>与会人员：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input style="display:none;" type="text" @*ng-maxlength="500" *@ name="JoinPeople" ng-model="curObj.JoinPeople" class="cell-input" />
+                            <input type="text" ng-maxlength="200" ng-model="curObj.JoinPeople_text" class="cell-input" readonly ng-click="editUser(curObj.JoinPeople)" />
+                            @*<div class="ui-tips" ng-show="editForm.JoinPeople.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.JoinPeople.$error.maxlength">输入文本过长</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>*@
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>开始时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="MeetingDate" name="MeetingDate" required date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.MeetingDate" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.MeetingDate.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入会议开始时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>结束时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="EndDate" name="EndDate" required date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.EndDate" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.EndDate.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入会议结束时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>订会时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="BookTime" name="BookTime" required date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.BookTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.BookTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入订会时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>领导参加情况：</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="Fugle" required ng-model="curObj.Fugle" style="width:222px;">
+                                    <option value="公司领导参加">公司领导参加</option>
+                                    <option value="外来单位领导参加">外来单位领导参加</option>
+                                    <option value="普通会议">普通会议</option>
+                                </select>
+                                <label style="float:left; margin-left:5px;" ng-show="curObj.Fugle=='公司领导参加'"><input type="checkbox" name="Fugle_pro" ng-model="curObj.Fugle_pro" />是否有省公司领导参加</label>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Fugle.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择领导参加情况</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>是否电视会议：</th>
+                    <td>
+                        <label><input type="radio" name="ISTVMeeting" ng-value='true' ng-model="curObj.ISTVMeeting" />是</label>
+                        <label style="margin-left:20px;"><input type="radio" name="ISTVMeeting" ng-value='false' ng-model="curObj.ISTVMeeting" />否</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th>所需设备：</th>
+                    <td class="showMulti">
+                        <div ng-repeat="x in dictEquip" style="float:left; white-space:nowrap;display:inline-block;  padding-bottom:3px;">
+                            <label>
+                                <input type="checkbox" name="NeedEquip" ng-value="x.value" ng-click="selectEquip($event,x.value)" ng-checked="checkEquip(x.value)" />{{x.text}}
+                            </label>
+                            <input type="text" number min="1" precision="0" class="cell-input" ng-model="(EquipSelected|filter:{'name':x.value})[0].num" ng-disabled="!checkEquip(x.value)" id="{{x.value+'_num'}}" style="width:50px;padding:0px 3px; margin-right:10px;" />
+                        </div>
+                        <div style="clear:both;" class="ui-input">
+                            <span style="float:left;line-height: 28px;">其他设备：</span>
+                            <input type="text" style="width:390px;" name="OtherEquip" ng-model="curObj.OtherEquip" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>横幅：</th>
+                    <td class="showMulti">
+                        <div class="ui-input">
+                            <span style="float:left;line-height: 28px;">内&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;容：</span>
+                            <input type="text" style="width:390px;" name="BannerContent" ng-model="curObj.BannerContent" class="cell-input" />
+                        </div>
+                        <div class="ui-input">
+                            <span style="float:left;line-height: 28px;">长&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;度：</span>
+                            <input type="text" style="float:left;width:60px;" name="BannerLength" ng-model="curObj.BannerLength" class="cell-input" />
+                            <span style="float:left;line-height: 28px; margin-left:10px;">宽度：</span>
+                            <input type="text" style="float:left;width:60px;" name="BannerWidth" ng-model="curObj.BannerWidth" class="cell-input" />
+                            <span style="float:left;line-height: 28px;margin-left:10px;">模式：</span>
+                            <input type="text" style="float:left;width:134px;" name="BannerMode" ng-model="curObj.BannerMode" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>欢迎词：</th>
+                    <td class="showMulti">
+                        <div class="ui-input">
+                            <span style="float:left;line-height: 28px;">内&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;容：</span>
+                            <input type="text" style="width:390px;" name="WelcomeContent" ng-model="curObj.WelcomeContent" class="cell-input" />
+                        </div>
+                        <div class="ui-input">
+                            <span style="float:left;line-height: 28px;">播放时间：</span>
+                            <input type="text" id="WelcoomeTime" name="WelcoomeTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.WelcoomeTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td>
+                        <div class="the-text-area">
+                            <textarea name="Remark" ng-model="curObj.Remark" ng-maxlength="500"></textarea>
+                            <div class="ui-tips" ng-show="editForm.failSubmited&&editForm.Remark.$invalid">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>输入文本过长</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr class="ForEdit">
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                        <a ng-click="submitData()" class="cell-btn-blue" style="width:70px; margin-right:20px;">提交</a>
+                        <a @*href="../BoardroomManage/BoardroomApply_MyList" *@ onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+                <tr class="ForJudge">
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="print()" class="cell-btn-blue" style="width:70px; margin-right:20px;">打印</a>
+                        <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </ng-form>
+    </div>
+</div>
+<!--公告编辑 end--->

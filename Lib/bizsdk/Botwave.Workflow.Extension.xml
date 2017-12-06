@@ -1,0 +1,2931 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Botwave.Workflow.Extension</name>
+    </assembly>
+    <members>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.SuperiorTaskAllocator">
+            <summary>
+            按组织关系/上下级关系任务分配算符.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.SuperiorTaskAllocator.GetTargetUsers(Botwave.Workflow.Allocator.TaskVariable)">
+            <summary>
+            参数说明.
+            variable.Args值说明:
+            1: 所有上级主管;
+            2: 同部门上级主管;
+            3: 直接主管;
+            4: 同部门其他人员;
+            5: 同科室其他人员;
+            6: 室审核,即同部门内所有室经理;
+            7: 部门审核,即同部门内所有部门经理;
+            8: 公司领导审核,即所有公司领导.
+            </summary>
+            <param name="variable">
+            variable.Args:
+            1: 所有上级主管;
+            2: 同部门上级主管;
+            3: 直接主管;
+            4: 同部门其他人员;
+            5: 同科室其他人员;
+            6: 室审核,即同部门内所有室经理;
+            7: 部门审核,即同部门内所有部门经理;
+            8: 公司领导审核,即所有公司领导.
+            </param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PreDeleteWorkflowHandler">
+            <summary>
+            删除流程的前续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PreDeleteWorkflowHandler.Execute(Botwave.Workflow.ActivityExecutionContext)">
+            <summary>
+            执行.
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostCommentHandler">
+            <summary>
+            评论的后续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostCommentHandler.Execute(Botwave.Workflow.Domain.Comment)">
+            <summary>
+            执行.
+            </summary>
+            <param name="comment"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostCommentHandler.Next">
+            <summary>
+            下一后续处理器.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostCloseParallelActivityInstancesHandler">
+            <summary>
+            关闭并行流程活动实例的后续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostCloseParallelActivityInstancesHandler.Execute(Botwave.Workflow.Domain.ActivityInstance,System.Collections.Generic.ICollection{Botwave.Workflow.Domain.ActivityInstance})">
+            <summary>
+            执行.
+            </summary>
+            <param name="currentActivityInstance"></param>
+            <param name="parallelInstances"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.DecisionParserManager">
+            <summary>
+            决策解析管理类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.DecisionParserManager.DoGetParser(System.String)">
+            <summary>
+            获取指定类型的决策解析对象.
+            </summary>
+            <param name="typeName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.DecisionParserManager.ApplicationContext">
+            <summary>
+            应用程序上下文.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowNotifyService">
+            <summary>
+            流程提醒服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowNotifyService.GetNotifyActors(System.Guid)">
+            <summary>
+            获取指定流程步骤实例的通知提醒人信息.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowNotifyService.GetNextNotifyActors(System.Guid)">
+            <summary>
+            获取指定流程步骤实例的下一步骤的通知提醒人信息.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowNotifyService.SendMessage(Botwave.Workflow.Extension.Domain.ActorDetail,System.Int32,System.Guid,Botwave.Workflow.Domain.WorkflowSetting,Botwave.Workflow.Domain.WorkflowInstance,System.Collections.Generic.IList{Botwave.Workflow.Extension.Domain.NotifyActor})">
+            <summary>
+            发送通知消息（邮件、短信）.
+            </summary>
+            <param name="sender">发送人信息.</param>
+            <param name="operateType">操作类型.</param>
+            <param name="activityInstanceId">流程活动实例编号.</param>
+            <param name="setting">流程设置对象.</param>
+            <param name="workflowInstance">流程实例对象.</param>
+            <param name="notifyActors">提醒接收人列表.</param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowNotifyService.SendSMS(System.String,System.String,System.String)">
+            <summary>
+            发送短信通知.
+            </summary>
+            <param name="sender">发送人用户名.</param>
+            <param name="receiver">接收人用户名.</param>
+            <param name="content">短信内容.</param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowNotifyService.SendEmail(System.String,System.String,System.String)">
+            <summary>
+            发送邮件通知.
+            </summary>
+            <param name="sender">发送人用户名.</param>
+            <param name="receiver">接收人用户名.</param>
+            <param name="content">邮件内容.</param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowFieldService">
+            <summary>
+            流程字段控制服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFieldService.GetField(System.Guid,System.String)">
+            <summary>
+            获取字段信息.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="fieldName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFieldService.GetControllableFields(System.Guid)">
+            <summary>
+            获取可控制字段（即单选框类型字段）列表.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFieldService.UpdateFieldControls(System.Collections.Generic.IList{Botwave.Workflow.Extension.Domain.FieldControlInfo})">
+            <summary>
+            更新字段控制列表数据.
+            </summary>
+            <param name="items"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFieldService.GetFieldControls(System.String,System.String,System.String)">
+            <summary>
+            获取指定流程与指定步骤以及指定字段名称(fieldName)的字段控制信息.
+            </summary>
+            <param name="workflowName">流程名称.</param>
+            <param name="activityName">流程步骤名称.</param>
+            <param name="fieldName">字段名称.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.TooltipInfo">
+            <summary>
+            流程步骤操作人提示信息类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.ActorDetail">
+            <summary>
+            操作人详细信息.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ActorDetail.UserName">
+            <summary>
+            用户名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ActorDetail.RealName">
+            <summary>
+            用户真实姓名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ActorDetail.DpFullName">
+            <summary>
+            用户所在部门全名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ActorDetail.Email">
+            <summary>
+            用户电子邮箱.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ActorDetail.Tel">
+            <summary>
+            用户固定电话.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ActorDetail.Mobile">
+            <summary>
+            用户手机号码.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ActorDetail.EmployeeId">
+            <summary>
+            用户工号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.TooltipInfo.WorkingCount">
+            <summary>
+            用户待办工单数.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.FieldInfo">
+            <summary>
+            字段信息.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Domain.FieldInfo.ToEmptyFieldControls(System.String,System.String)">
+            <summary>
+            转换为字段控制信息列表.
+            </summary>
+            <param name="workflowName"></param>
+            <param name="activityName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldInfo.Id">
+            <summary>
+            字段编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldInfo.FieldName">
+            <summary>
+            字段名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldInfo.DisplayName">
+            <summary>
+            显示名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldInfo.DataSource">
+            <summary>
+            字段数据源.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldInfo.ItemDataType">
+            <summary>
+            数据类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldInfo.HeaderText">
+            <summary>
+            字段显示标题.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Util.WorkflowDataHelper">
+            <summary>
+            流程数据处理辅助类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowDataHelper.StartWorkflowByTransaction(Botwave.Workflow.Domain.WorkflowInstance,System.Collections.Generic.IDictionary{System.String,System.Object},Botwave.Workflow.ActivityExecutionContext,System.String,System.Boolean)">
+            <summary>
+            使用事务的方式启动流程.
+            </summary>
+            <param name="instance">流程实例信息.</param>
+            <param name="formVariables">流程表单参数字典.</param>
+            <param name="executionContext">流程步骤执行上下文.</param>
+            <param name="actor">当前处理人.</param>
+            <param name="isUpdate">是否属于更新流程信息.</param>
+            <returns>返回流程初始步骤实例 ID.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowDataHelper.StartWorkflowByLock(Botwave.Workflow.Domain.WorkflowInstance,System.Collections.Generic.IDictionary{System.String,System.Object},Botwave.Workflow.ActivityExecutionContext,System.String,System.Boolean)">
+            <summary>
+            使用 LOCK 的方式来启动流程.
+            </summary>
+            <param name="instance">流程实例信息.</param>
+            <param name="formVariables">流程表单参数字典.</param>
+            <param name="executionContext">流程步骤执行上下文.</param>
+            <param name="actor">当前处理人.</param>
+            <param name="isUpdate">是否属于更新流程信息.</param>
+            <returns>返回流程初始步骤实例 ID.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowDataHelper.StartWorkflow(Botwave.Workflow.Domain.WorkflowInstance,System.Collections.Generic.IDictionary{System.String,System.Object},Botwave.Workflow.ActivityExecutionContext,System.String,System.Boolean)">
+            <summary>
+            普通方式的启动流程.
+            </summary>
+            <param name="instance">流程实例信息.</param>
+            <param name="formVariables">流程表单参数字典.</param>
+            <param name="executionContext">流程步骤执行上下文.</param>
+            <param name="actor">当前处理人.</param>
+            <param name="isUpdate">是否属于更新流程信息.</param>
+            <returns>返回流程初始步骤实例 ID.</returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Util.WorkflowDataHelper.WorkflowEngine">
+            <summary>
+            流程引擎.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Util.WorkflowDataHelper.WorkflowService">
+            <summary>
+            流程实例服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Util.WorkflowDataHelper.WorkflowFormService">
+            <summary>
+            流程表单服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Util.WorkflowDataHelper.WorkflowAttachmentService">
+            <summary>
+            流程附件服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Util.GmccDeptHelper">
+            <summary>
+            广州移动组织部门辅助类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.GmccDeptHelper.GetDeptNameByDpFullName(System.String)">
+            <summary>
+            根据组织全名来获取部门名称.
+            </summary>
+            <param name="dpFullName">组织全名.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.GmccDeptHelper.GetDeptIdByDpId(System.String)">
+            <summary>
+            根据组织Id获取部门Id.
+            </summary>
+            <param name="dpId">组织Id.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.GmccDeptHelper.GetRoomIdByDpId(System.String)">
+            <summary>
+            根据组织Id获取科室Id.
+            </summary>
+            <param name="dpId">组织Id.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.GmccDeptHelper.GetPrefixByDpId(System.String,System.Int32)">
+            <summary>
+            获取指定部门的前缀字符串.
+            </summary>
+            <param name="dpId"></param>
+            <param name="lengthOfPrefix"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.WorkflowSelectorContext">
+            <summary>
+            流程选择器上下对象类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.#ctor(Botwave.Workflow.Domain.ActivityDefinition)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="activity">流程活动定义对象.</param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.WorkflowInstanceId">
+            <summary>
+            当前流程实例编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.WorkflowId">
+            <summary>
+            当前流程定义编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityInstanceId">
+            <summary>
+            当前流程活动(步骤)实例编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityId">
+            <summary>
+            当前流程定义编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityName">
+            <summary>
+            当前步骤名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.Actor">
+            <summary>
+            当前步骤处理人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.SplitCondition">
+            <summary>
+            当前步骤分支条件.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.WorkflowInstance">
+            <summary>
+            流程实例对象.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.NextActivities">
+            <summary>
+            下行步骤列表.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor">
+            <summary>
+            流程活动处理信息类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor.#ctor(System.Guid,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="activityId"></param>
+            <param name="activityName"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor.#ctor(System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="activityId"></param>
+            <param name="activityName"></param>
+            <param name="actors"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor.ActivityId">
+            <summary>
+            流程活动定义编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor.ActivityName">
+            <summary>
+            流程活动名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor.Actors">
+            <summary>
+            流程活动处理人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor.HasSuperior">
+            <summary>
+            是否有部门审核的任务分派.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowUserService">
+            <summary>
+            流程用户服务的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowUserService">
+            <summary>
+            流程操作人的服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowUserService.GetActorDetail(System.String)">
+            <summary>
+            获取指定用户名的操作人信息.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowUserService.GetActorTooltip(System.String)">
+            <summary>
+            获取步骤操作人提示信息.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowUserService.GetActorsLikeName(System.String,System.Int32)">
+            <summary>
+            获取指定匹配用户名或者真实姓名的用户真实姓名列表.
+            </summary>
+            <param name="prefixName"></param>
+            <param name="count">取得的列表大小.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowUserService.GetActorRealNames(System.Collections.Generic.ICollection{System.String})">
+            <summary>
+            获取指定操作人用户名集合的用户真实姓名字典.
+            </summary>
+            <param name="actorNames"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowUserService.GetActorDetail(System.String)">
+            <summary>
+            获取指定操作人的详细信息.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowUserService.GetActorTooltip(System.String)">
+            <summary>
+            获取指定操作人的提示信息.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowUserService.GetActorsLikeName(System.String,System.Int32)">
+            <summary>
+            获取指定用户名前缀的用户名列表.
+            </summary>
+            <param name="prefixName"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowUserService.GetActorRealNames(System.Collections.Generic.ICollection{System.String})">
+            <summary>
+            获取指定用户名集合的真实姓名字典.
+            </summary>
+            <param name="actorNames"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.JoinConditionHandler">
+            <summary>
+            合并条件处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.JoinConditionHandler.CanJoin(System.Guid,System.Collections.Generic.IList{System.String},System.Collections.Generic.IList{System.String})">
+            <summary>
+            是否可以合并.
+            </summary>
+            <param name="workflowInstanceId">流程实例Id.</param>
+            <param name="ifSelectedActivities">如果选择了的活动.</param>
+            <param name="mustCompletedActivities">需要完成的活动.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.ResourceProperty">
+            <summary>
+            流程权限资源类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Domain.ResourceProperty.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Domain.ResourceProperty.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="resourceId"></param>
+            <param name="parentId"></param>
+            <param name="alias"></param>
+            <param name="workflowName"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.ResourceId">
+            <summary>
+            权限资源编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.ParentId">
+            <summary>
+            父权限资源编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.WorkflowName">
+            <summary>
+            流程名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.Name">
+            <summary>
+            权限资源名称("流程名称-流程步骤名称").
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.Type">
+            <summary>
+            权限资源的类型.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.Visible">
+            <summary>
+            权限资源的可见性.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.SortIndex">
+            <summary>
+            排序索引.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.ResourceProperty.Alias">
+            <summary>
+            获取流程权限资源别名(流程步骤名称).
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Util.ResourceHelper">
+            <summary>
+            流程权限资源辅助类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.ResourceHelper.PrefixDisableResource">
+            <summary>
+            不进行权限控制的分派资源前缀.使得系统找不到该资源.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.ResourceHelper.System_ResourceId">
+            <summary>
+            系统资源父资源.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.ResourceHelper.Workflow_ResourceId">
+            <summary>
+            流程资源父资源.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.ResourceHelper.ResourceType_Workflow">
+            <summary>
+            流程(名称)的权限资源的类型名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.ResourceHelper.ResourceType_Common">
+            <summary>
+            流程的通用权限资源的类型名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.ResourceHelper.ResourceType_Activity">
+            <summary>
+            流程步骤的权限资源类型名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.ResourceHelper.Resources_WorkflowCommons">
+            <summary>
+            通用流程资源名称数组.
+            *0000: 流程协作;
+            *0001: 提单;
+            *0002: 报表统计;
+            *0003: 查看保密单;
+            *0004: 高级查询;
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.ResourceHelper.FormatWorkflowResourceId(System.Int32)">
+            <summary>
+            格式化指定流程资源整型值.格式："WF"+"######"(流程资源长度为 6,空余位置以 0 代替).
+            </summary>
+            <param name="workflowValue">生成长度为 6 的数字字符串("######",空余位置以 0 代替).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.ResourceHelper.FormatWorkflowResourceId(System.Int32,System.Int32)">
+            <summary>
+            格式化指定流程步骤资源整型值（包括流程整型值与流程步骤整型值）.格式："WF"+"######"(流程资源长度为 6,空余位置以 0 代替)+"####"(步骤资源长度为 4,空余位置以 0 代替).
+            </summary>
+            <param name="workflowValue">生成长度为 6 的数字字符串("######",空余位置以 0 代替)</param>
+            <param name="activityValue">生成长度为 4 的数字字符串("####",空余位置以 0 代替).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.ResourceHelper.FormatWorkflowResourceId(System.String,System.Int32)">
+            <summary>
+            格式化指定流程步骤资源整型值（包括流程整型值与流程步骤整型值）.格式："WF"+"######"(流程资源长度为 6,空余位置以 0 代替)+"####"(步骤资源长度为 4,空余位置以 0 代替).
+            </summary>
+            <param name="workflowResourceId">格式为 6 的数字字符串("######",空余位置以 0 代替)的字符串.</param>
+            <param name="activityValue">生成长度为 4 的数字字符串("####",空余位置以 0 代替).</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.ResourceHelper.GetResourceWorkflowValue(System.String)">
+            <summary>
+            获取指定流程资源编号的流程资源整型值.
+            </summary>
+            <param name="workflowResourceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.ResourceHelper.GetResourceActivityValue(System.String)">
+            <summary>
+            获取指定流程资源编号的流程活动（步骤）资源整型值.
+            </summary>
+            <param name="workflowResourceId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.ResourceTranslator">
+            <summary>
+            权限资源转换器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.ResourceTranslator.Alias2Name(System.String)">
+            <summary>
+            获取权限资源编号.
+            </summary>
+            <param name="alias"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.ResourceTranslator.Name2Alias(System.String)">
+            <summary>
+            获取权限资源别名.
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.ResourceTranslator.ClearEmpty(System.String)">
+            <summary>
+            去除空白.
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler">
+            <summary>
+            流程部署的后续处理对象.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler.Execute(Botwave.Workflow.Domain.WorkflowDefinition,Botwave.Workflow.Domain.WorkflowDefinition,System.Collections.Generic.ICollection{Botwave.Workflow.Domain.DeployActivityDefinition})">
+            <summary>
+            执行.
+            </summary>
+            <param name="oldWorkflow"></param>
+            <param name="newWorkflow"></param>
+            <param name="newActivities"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler.UpdateForm(Botwave.Workflow.Domain.WorkflowDefinition,Botwave.Workflow.Domain.WorkflowDefinition)">
+            <summary>
+            更新流程表单.
+            </summary>
+            <param name="oldWorkflow"></param>
+            <param name="newWorkflow"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler.UpdateSetting(System.String)">
+            <summary>
+            更新流程设置.
+            </summary>
+            <param name="workflowName"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler.WorkflowSettingService">
+            <summary>
+            流程设置服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler.WorkflowFormService">
+            <summary>
+            流程表单服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler.Next">
+            <summary>
+            下一后续处理器对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostDeployHandler.ParallelActivityManager">
+            <summary>
+            管理/维护并行结点
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostActivityExecutionHandler">
+            <summary>
+            流程活动(步骤)执行的后续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostActivityExecutionHandler.Execute(Botwave.Workflow.ActivityExecutionContext)">
+            <summary>
+            执行处理.
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostActivityExecutionHandler.Next">
+            <summary>
+            下一后续处理器对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.IWorkflowUIProfile">
+            <summary>
+            流程界面个性化接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.IWorkflowUIProfile.BuildHandlerOpinionHtml(System.Web.HttpContext,System.Object)">
+            <summary>
+            生成指定处理人的处理意见 Html.
+            </summary>
+            <param name="context"></param>
+            <param name="user">用户对象.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.IWorkflowSelectorProfile">
+            <summary>
+            流程选择器界面接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.IWorkflowSelectorProfile.BuildActivitySelectorHtml(System.Web.HttpContext,Botwave.Workflow.Extension.UI.WorkflowSelectorContext)">
+            <summary>
+            生成指定流程活动的活动选择器 Html.
+            </summary>
+            <param name="webContext"></param>
+            <param name="selecotrContext">选择器上下文对象.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.NotifyActor">
+            <summary>
+            流程处理提醒人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.NotifyActor.ActivityInstanceId">
+            <summary>
+            流程步骤实例编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.NotifyActor.ActivityName">
+            <summary>
+            流程步骤名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.NotifyActor.UserName">
+            <summary>
+            用户名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.NotifyActor.RealName">
+            <summary>
+            用户真实姓名.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.NotifyActor.Email">
+            <summary>
+            用户电子邮箱.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.NotifyActor.Mobile">
+            <summary>
+            用户手机号码.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.NotifyActor.EmployeeId">
+            <summary>
+            用户工号.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.FieldControlInfo">
+            <summary>
+            字段控制的属性类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Domain.FieldControlInfo.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Domain.FieldControlInfo.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="workflowName"></param>
+            <param name="activityName"></param>
+            <param name="fieldName"></param>
+            <param name="fieldValue"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.Id">
+            <summary>
+            字段控制编号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.WorkflowName">
+            <summary>
+            流程名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.ActivityName">
+            <summary>
+            流程步骤名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.FieldName">
+            <summary>
+            字段名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.FieldValue">
+            <summary>
+            字段值.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.ExtCondition">
+            <summary>
+            扩展条件.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.TargetUsers">
+            <summary>
+            模板用户字符串.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldControlInfo.CreatedTime">
+            <summary>
+            创建时间.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Util.SqlBulkCopyHelper">
+            <summary>
+            SqlBulkCopy 辅助类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.SqlBulkCopyHelper.ExecuteBulkCopy(System.String,System.String,System.Collections.Specialized.NameValueCollection,System.Data.DataTable)">
+            <summary>
+            批量复制.
+            </summary>
+            <param name="connectionString">数据库连接字符串.</param>
+            <param name="destinationTableName">数据库目标表名称.</param>
+            <param name="columnMappings">数据列名映射集合(/key/sourceColumn, /value/destinationColumn)</param>
+            <param name="sourceTable">要复制到数据库中源数据表对象.</param>
+            <returns>True 表示插入成功. False 失败.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.SqlBulkCopyHelper.ExecuteBulkCopy(System.Data.SqlClient.SqlConnection,System.String,System.Collections.Specialized.NameValueCollection,System.Data.DataTable)">
+            <summary>
+            执行批量复制.
+            </summary>
+            <param name="connection">数据库连接对象.</param>
+            <param name="destinationTableName">数据库目标表名称.</param>
+            <param name="columnMappings">数据列名映射集合(/key/sourceColumn, /value/destinationColumn).</param>
+            <param name="sourceTable">要复制到数据库中源数据表对象.</param>
+            <returns>True 表示插入成功. False 失败.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.SqlBulkCopyHelper.ExecuteBulkCopy(System.Data.SqlClient.SqlConnection,System.Data.SqlClient.SqlTransaction,System.String,System.Collections.Specialized.NameValueCollection,System.Data.DataTable)">
+            <summary>
+            执行批量复制.
+            </summary>
+            <param name="connection">数据库连接对象.</param>
+            <param name="transaction">数据库事务对象.</param>
+            <param name="destinationTableName">数据库目标表名称.</param>
+            <param name="columnMappings">数据列名映射集合(/key/sourceColumn, /value/destinationColumn).</param>
+            <param name="sourceTable">要复制到数据库中源数据表对象.</param>
+            <returns>True 表示插入成功. False 失败.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.SqlBulkCopyHelper.ExecuteBulkCopy(System.Data.SqlClient.SqlBulkCopy,System.String,System.Collections.Specialized.NameValueCollection,System.Data.DataTable)">
+            <summary>
+            执行批量复制.
+            </summary>
+            <param name="bulkCopy">批量执行对象.</param>
+            <param name="destinationTableName">数据库目标表名称.</param>
+            <param name="columnMappings">数据列名映射集合(/key/sourceColumn, /value/destinationColumn).</param>
+            <param name="sourceTable">要复制到数据库中源数据表对象.</param>
+            <returns>True 表示插入成功. False 失败.</returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorFactory">
+            <summary>
+            流程选择器的管理工厂的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.IWorkflowSelectorFactory">
+            <summary>
+            流程选择器的管理工厂接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.IWorkflowSelectorFactory.GetProfile(System.String)">
+            <summary>
+            获取指定类型的流程选择器对象.
+            </summary>
+            <param name="typeName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorFactory.GetProfile(System.String)">
+            <summary>
+            获取指定类型的流程选择器对象.
+            </summary>
+            <param name="typeName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorFactory.Profiles">
+            <summary>
+            适配spring
+            srping中的dictionary的类型为HybridDictionary
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler">
+            <summary>
+            动态网站路径处理类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler.Handle(System.String,System.Collections.Specialized.NameValueCollection,System.Collections.Generic.IList{Botwave.Web.Controls.ExtendedSiteMap.PathNode})">
+            <summary>
+            处理动态节点.
+            </summary>
+            <param name="url"></param>
+            <param name="parameters"></param>
+            <param name="pathNodes"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler.GetWorkflowName(System.Guid)">
+            <summary>
+            获取指定流程编号的流程名称.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Util.WorkflowUtility">
+            <summary>
+            Workflow 辅助类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.WorkflowUtility.EntityType_WorkflowAttachment">
+            <summary>
+            流程附件的实体关系类型名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.WorkflowUtility.EntityType_WorkflowTemplate">
+            <summary>
+            流程模板附件的实体关系类型名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.WorkflowUtility.EntityType_WorkflowForm">
+            <summary>
+            流程表单的实体管理类型名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.WorkflowUtility.EntityType_IISForm">
+            <summary>
+            流程表单的实体类型名称§IIS§
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.WorkflowUtility.Object_WorkflowService">
+            <summary>
+            WorkflowService 的对象名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Util.WorkflowUtility.Object_WorkflowUserService">
+            <summary>
+            WorkflowUserService 的对象名称.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.#cctor">
+            <summary>
+            静态构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.FormatWorkflowActor(System.String)">
+            <summary>
+            格式化流程执行人名称(可为:用户名/用户真实姓名,如：admin/系统管理员).
+            将其转换为有 Tooltip 的字符串.
+            </summary>
+            <param name="actor"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.FormatWorkflowActor(System.String,System.String)">
+            <summary>
+            格式化流程执行人名称(可为:用户名/用户真实姓名,如：admin/系统管理员).
+            将其转换为有 Tooltip 的字符串.
+            </summary>
+            <param name="todoActors"></param>
+            <param name="excludeActor">排除用户名.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.GetAllowedWorkflows(System.Collections.Generic.IList{Botwave.Workflow.Domain.WorkflowDefinition},System.Collections.Generic.IDictionary{System.String,System.String},System.String)">
+            <summary>
+            获取允许的流程列表.
+            </summary>
+            <param name="workflows"></param>
+            <param name="userResources"></param>
+            <param name="resourcePostfix"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.GetAllowedWorkflows(System.Collections.Generic.IList{Botwave.Workflow.Domain.WorkflowDefinition},System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String},System.String)">
+            <summary>
+            获取允许的流程列表.
+            </summary>
+            <param name="workflows"></param>
+            <param name="workflowResourceDict"></param>
+            <param name="userResources"></param>
+            <param name="resourcePostfix"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.GetWorkflowProcessors(System.Guid)">
+            <summary>
+            获取指定流程实例的全部处理人用户名列表.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.GetWorkflowName(System.Guid)">
+            <summary>
+            获取指定流程编号的流程名称.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Util.WorkflowUtility.TrimWhitespace(System.String)">
+            <summary>
+            清除字符串首尾的特殊空白字符.
+            </summary>
+            <param name="inputString"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Util.WorkflowUtility.WorkflowResourceService">
+            <summary>
+            流程权限资源服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFileService">
+            <summary>
+            流程文件上传服务的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowFileService">
+            <summary>
+            文件上传下载服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFileService.UploadFile(System.Web.HttpPostedFile)">
+            <summary>
+            上传指定 HTTP 文件到文件服务器，并返回上传文件所保存的新文件名.
+            </summary>
+            <param name="httpFile">要上传 HTTP 文件对象.</param>
+            <returns>返回上传文件所保存的新文件名.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFileService.UploadFile(System.Web.HttpPostedFile)">
+            <summary>
+            上传文件.
+            </summary>
+            <param name="httpFile"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.UserProxy">
+            <summary>
+            用户代理（授权）类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.UserProxy.GetProxy(System.String)">
+            <summary>
+            获取指定用户名的委托授权人.
+            </summary>
+            <param name="username"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.UserProxy.GetProxies(System.Collections.Generic.ICollection{System.String})">
+            <summary>
+            获取指定用户集合的委托授权人列表.
+            </summary>
+            <param name="usernames"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.UserProxy.GetProxies(System.Collections.Generic.ICollection{System.String},System.Boolean@)">
+            <summary>
+             获取指定用户集合的委托授权人列表.
+            </summary>
+            <param name="usernames"></param>
+            <param name="hasProxies"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.UserProxy.GetDistinctProxies(System.Collections.Generic.ICollection{System.String})">
+            <summary>
+             获取指定用户集合的委托授权人字典.
+            </summary>
+            <param name="usernames"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.UserProxy.GetDistinctProxies(System.Collections.Generic.ICollection{System.String},System.Boolean@)">
+            <summary>
+            获取指定用户集合的委托授权人字典.
+            </summary>
+            <param name="usernames"></param>
+            <param name="hasProxies"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WebServices.WorkflowService">
+            <summary>
+            流程 Web Service 接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.WorkflowService.QueryWorkflowCurrentState(System.String)">
+            <summary>
+            查询指定流程流水号的流程当前状态信息结果.
+            </summary>
+            <param name="workflowSheetId">流程流水号.</param>
+            <returns>返回流程当前状态信息结果对象.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.WorkflowService.ParserActors(System.String)">
+            <summary>
+            解析流程步骤操作人（格式:用户名/用户真实姓名,用户名/用户真实姓名）.
+            </summary>
+            <param name="actors"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService">
+            <summary>
+            流程附件数据操作服务的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService">
+            <summary>
+            流程附件服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.GetAttachmentCount(System.Guid)">
+            <summary>
+            获取指定流程实例的附件数.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.CreateAttachment(System.Web.HttpPostedFile,System.String,System.String)">
+            <summary>
+            创建附件信息.
+            </summary>
+            <param name="fileInfo"></param>
+            <param name="creator"></param>
+            <param name="fileName"></param>
+            <returns>返回附件编号.</returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.CreateAttachmentEntity(System.String,System.String,System.String)">
+            <summary>
+            创建附件实体关系.
+            </summary>
+            <param name="attachmentId"></param>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.UpdateWorkflowAttachmentEntities(System.Guid,System.Guid)">
+            <summary>
+            更新指定流程定义编号的附件对应实体对象为流程实例编号.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.DeleteAttachment(System.String)">
+            <summary>
+            删除指定的附件信息.
+            </summary>
+            <param name="attachmentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.DeleteAttachmentEntity(System.String,System.String,System.String)">
+            <summary>
+            删除指定的附件实体关系数据.
+            </summary>
+            <param name="attachmentId"></param>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.GetAttachmentsByEntity(System.String,System.String)">
+            <summary>
+            根据指定的实体信息获取指定附件信息数据表.
+            </summary>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.GetAttachmentsByEntity(System.String,System.String,System.String)">
+            <summary>
+            根据指定的实体信息获取指定附件信息数据表.
+            </summary>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+            <param name="creator"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.GetCommentAttaByActivityInstanceId(System.Guid)">
+            <summary>
+            获取指定流程步骤实例的评论附件数据表.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowAttachmentService.GetCommentAttaByWorkflowInstanceId(System.Guid)">
+            <summary>
+            获取指定流程实例的评论附件数据表.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.GetAttachmentCount(System.Guid)">
+            <summary>
+            获取指定流程实例的附件数.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.CreateAttachment(System.Web.HttpPostedFile,System.String,System.String)">
+            <summary>
+            新增附件.
+            </summary>
+            <param name="fileInfo"></param>
+            <param name="creator"></param>
+            <param name="fileName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.CreateAttachmentEntity(System.String,System.String,System.String)">
+            <summary>
+            创建附件实体关系对象.
+            </summary>
+            <param name="attachmentId"></param>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.UpdateWorkflowAttachmentEntities(System.Guid,System.Guid)">
+            <summary>
+            更新流程附件实体关系.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.DeleteAttachment(System.String)">
+            <summary>
+            删除指定附件.
+            </summary>
+            <param name="attachmentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.DeleteAttachmentEntity(System.String,System.String,System.String)">
+            <summary>
+            删除附件实体关系.
+            </summary>
+            <param name="attachmentId"></param>
+            <param name="EntityId"></param>
+            <param name="EntityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.GetAttachmentsByEntity(System.String,System.String)">
+            <summary>
+            获取指定实体的附件数据表.
+            </summary>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.GetAttachmentsByEntity(System.String,System.String,System.String)">
+            <summary>
+            获取指定实体以及用户的附件数据表.
+            </summary>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+            <param name="creator"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.GetCommentAttaByActivityInstanceId(System.Guid)">
+            <summary>
+            获取指定流程活动实例的评论附件数据表.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowAttachmentService.GetCommentAttaByWorkflowInstanceId(System.Guid)">
+            <summary>
+            获取指定流程实例的评论附件数据表.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.ResourceTaskAllocator">
+            <summary>
+            按资源任务分配算符.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.ResourceTaskAllocator.GetTargetUsers(Botwave.Workflow.Allocator.TaskVariable)">
+            <summary>
+            获取指定参数的目标处理用户列表.
+            </summary>
+            <param name="variable"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.ActivityExecutionHandlerManager">
+            <summary>
+            流程步骤执行处理器管理类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.ActivityExecutionHandlerManager.DoGetHandler(System.String)">
+            <summary>
+            流程活动处理器管理者.
+            增加了对由Spring来管理的处理器的支持.
+            </summary>
+            <param name="typeName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.ActivityExecutionHandlerManager.ApplicationContext">
+            <summary>
+            应用程序上下文.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNoticeService">
+            <summary>
+            流程公告服务的空实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowNoticeService">
+            <summary>
+            流程公告服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowNoticeService.PopupWorkflowNotices(System.Web.UI.Page,System.String,System.Boolean)">
+            <summary>
+            在指定页面弹出指定流程的公告信息.
+            </summary>
+            <param name="ownerPager"></param>
+            <param name="workflowName"></param>
+            <param name="isDirectOutput">是否直接输出弹出公告窗口的脚本.</param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNoticeService.PopupWorkflowNotices(System.Web.UI.Page,System.String,System.Boolean)">
+            <summary>
+            弹出流程公告.
+            </summary>
+            <param name="ownerPager"></param>
+            <param name="workflowName"></param>
+            <param name="isDirectOutput"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService">
+            <summary>
+            流程表单服务的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowFormService">
+            <summary>
+            流程动态表单服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFormService.GetFormVariables(System.Web.HttpRequest)">
+            <summary>
+            获取指定页面请求的表单变量字典.
+            </summary>
+            <param name="request">页面请求对象.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFormService.CreateFormInstance(System.Guid,System.Guid,System.String)">
+            <summary>
+            创建指定流程定义的表单实例.
+            </summary>
+            <param name="workflowId">流程定义编号.</param>
+            <param name="workflowInstanceId">表单实例所属的流程实例编号.</param>
+            <param name="creator">创建人.</param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFormService.LoadForm(System.Guid,System.Guid,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            加载指定流程的表单.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="binderVariables">数据绑定的变量字典.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFormService.SaveForm(System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            保存指定流程的表单数据.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <param name="actor"></param>
+            <param name="dataVariables"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFormService.SaveForm(System.Guid,System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+             保存指定流程的表单数据, 并在流程完成或取消时将流程表单数据保存为内容字符串.
+            </summary>
+            <param name="workflowId">流程定义编号.</param>
+            <param name="workflowInstanceId">流程实例编号.</param>
+            <param name="actor">当前操作人.</param>
+            <param name="dataVariables">字段值的数据字典.</param>
+            <param name="binderVariables">绑定的变量字典.</param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowFormService.DeployForm(Botwave.Workflow.Domain.WorkflowDefinition,Botwave.Workflow.Domain.WorkflowDefinition)">
+            <summary>
+            流程部署时，对流程关联表单也进行重新设置或生成.
+            </summary>
+            <param name="oldWorkflow"></param>
+            <param name="newWorkflow"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.GetFormVariables(System.Web.HttpRequest)">
+            <summary>
+            获取请求的表单变量字典.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.CreateFormInstance(System.Guid,System.Guid,System.String)">
+            <summary>
+            创建表单实例.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="creator"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.LoadForm(System.Guid,System.Guid,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            加载表单数据.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="binderVariables"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.SaveForm(System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            保存表单数据.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <param name="actor"></param>
+            <param name="dataVariables"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.SaveForm(System.Guid,System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            保存表单数据.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="actor"></param>
+            <param name="dataVariables"></param>
+            <param name="binderVariables"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.DeployForm(Botwave.Workflow.Domain.WorkflowDefinition,Botwave.Workflow.Domain.WorkflowDefinition)">
+            <summary>
+            部署表单数据.
+            </summary>
+            <param name="oldWorkflow"></param>
+            <param name="newWorkflow"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.BindForm(System.Guid,System.Guid,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            绑定表单数据，并返回 html 字符串的结果.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="binderVariables"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.BindForm(Botwave.DynamicForm.Binders.IFormItemDataBinder,System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            绑定表单数据.
+            </summary>
+            <param name="binder"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="templateContent"></param>
+            <param name="binderVariables"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.GetWorkflowInstanceState(System.Guid)">
+            <summary>
+            获取指定流程实例的执行状态.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.FormDefinitionService">
+            <summary>
+            表单定义服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.FormInstanceService">
+            <summary>
+            表单实例服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowFormService.FormItemDataBinder">
+            <summary>
+            表单项数据绑定服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.JoinConditionHandlerManager">
+            <summary>
+            合并条件处理管理器的默认实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.JoinConditionHandlerManager.DoGetHandler(System.String)">
+            <summary>
+            流程活动处理器管理者.
+            增加了对由Spring来管理的处理器的支持.
+            </summary>
+            <param name="typeName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.JoinConditionHandlerManager.ApplicationContext">
+            <summary>
+            Application 上下文属性.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.AllocatorItem">
+            <summary>
+            Allocator 信息项.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.AllocatorItem.Key">
+            <summary>
+            分派器键名(英文字母组成，如：users, resource 等).
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.AllocatorItem.Name">
+            <summary>
+            分派器显示名称(为中文名).
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler">
+            <summary>
+            WorkflowMap 配置节点处理器.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.Create(System.Object,System.Object,System.Xml.XmlNode)">
+            <summary>
+            IConfigurationSectionHandler 的创建配置方法.
+            </summary>
+            <param name="parent"></param>
+            <param name="configContext"></param>
+            <param name="section"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.Initialize">
+            <summary>
+            初始化配置节点.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.InitMaps(System.Xml.XmlNode)">
+            <summary>
+            初始化图象数据.
+            </summary>
+            <param name="section"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.GetWorkflow(System.Xml.XmlNode)">
+            <summary>
+            获取 WorkflowItem 对象.
+            </summary>
+            <param name="node"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.GetActivity(System.Xml.XmlNode)">
+            <summary>
+            获取 ActivityItem 对象.
+            </summary>
+            <param name="node"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.ToInt32(System.String)">
+            <summary>
+            将字符串型转化为整型.
+            </summary>
+            <param name="inputValue"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema">
+            <summary>
+            WorkflowMap 架构类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Section_WorkflowMap">
+            <summary>
+            WorkflowMap 配置节点名.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Element_Workflow">
+            <summary>
+            流程节点名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Element_Activity">
+            <summary>
+            流程步骤节点名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_Alpha">
+            <summary>
+            透明度属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_SelectedColor">
+            <summary>
+            被选中的颜色属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_CachePath">
+            <summary>
+            缓存路径属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_Name">
+            <summary>
+            名称属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_Path">
+            <summary>
+            路径属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_Width">
+            <summary>
+            宽度属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_Height">
+            <summary>
+            高度属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_X">
+            <summary>
+            起始坐标 X 位置属性.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.Configuration.WorkflowMapSectionHandler.WorkflowMapSchema.Attribute_Y">
+            <summary>
+            起始坐标 Y 位置属性.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WorkflowMap.RenderHelper">
+            <summary>
+            流程图呈现辅助类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.RenderHelper.GetGraphNodes(System.Guid)">
+            <summary>
+            获取指定流程编号的节点对象列表.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.RenderHelper.GetGraphNodes(System.Guid,System.Guid)">
+            <summary>
+            获取指定流程编号以及起始流程步骤编号的节点对象列表.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="currentActivityId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.RenderHelper.ToGraphNodes(System.Collections.Generic.IList{Botwave.Workflow.Domain.ActivityDefinition})">
+            <summary>
+            转换为  Botwave.StateGraph.GraphNode 对象集合.
+            </summary>
+            <param name="activities"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.RenderHelper.GetCacheGraphNodes(System.Guid)">
+            <summary>
+            获取知道流程变化流程图节点.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.RenderHelper.RenderWorkflowMap(System.Guid,System.IO.Stream,System.Int32)">
+            <summary>
+            呈现流程图.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="outputStream"></param>
+            <param name="thumbWidth"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.WorkflowMap.RenderHelper.ActivityDefinitionService">
+            <summary>
+            流程活动(步骤)定义服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFileService">
+            <summary>
+            流程文件服务的空实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFileService.UploadFile(System.Web.HttpPostedFile)">
+            <summary>
+            上传文件.
+            </summary>
+            <param name="httpFile"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFieldService">
+            <summary>
+            流程字段服务的空实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFieldService.GetField(System.Guid,System.String)">
+            <summary>
+            获取指定流程以及指定字段名称的字段信息.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="fieldName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFieldService.GetControllableFields(System.Guid)">
+            <summary>
+            获取指定流程的可控制字段信息列表.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFieldService.UpdateFieldControls(System.Collections.Generic.IList{Botwave.Workflow.Extension.Domain.FieldControlInfo})">
+            <summary>
+            更新字段控制信息列表.
+            </summary>
+            <param name="items"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFieldService.GetFieldControls(System.String,System.String,System.String)">
+            <summary>
+            获取指定流程活动指定字段的字段控制信息列表.
+            </summary>
+            <param name="workflowName"></param>
+            <param name="activityName"></param>
+            <param name="fieldName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService">
+            <summary>
+            流程附件服务的空实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.GetAttachmentCount(System.Guid)">
+            <summary>
+            获取指定流程实例的附件数.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.CreateAttachment(System.Web.HttpPostedFile,System.String,System.String)">
+            <summary>
+            新增附件.
+            </summary>
+            <param name="fileInfo"></param>
+            <param name="creator"></param>
+            <param name="fileName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.CreateAttachmentEntity(System.String,System.String,System.String)">
+            <summary>
+             创建附件实体关系对象.
+            </summary>
+            <param name="attachmentId"></param>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.UpdateWorkflowAttachmentEntities(System.Guid,System.Guid)">
+            <summary>
+            更新流程附件实体关系.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.DeleteAttachment(System.String)">
+            <summary>
+            删除指定附件.
+            </summary>
+            <param name="attachmentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.DeleteAttachmentEntity(System.String,System.String,System.String)">
+            <summary>
+            删除附件实体关系.
+            </summary>
+            <param name="attachmentId"></param>
+            <param name="EntityId"></param>
+            <param name="EntityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.GetAttachmentsByEntity(System.String,System.String)">
+            <summary>
+            获取指定实体的附件数据表.
+            </summary>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.GetAttachmentsByEntity(System.String,System.String,System.String)">
+            <summary>
+            获取指定实体以及用户的附件数据表.
+            </summary>
+            <param name="entityId"></param>
+            <param name="entityType"></param>
+            <param name="creator"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.GetCommentAttaByActivityInstanceId(System.Guid)">
+            <summary>
+            获取指定流程活动实例的评论附件数据表.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowAttachmentService.GetCommentAttaByWorkflowInstanceId(System.Guid)">
+            <summary>
+            获取指定流程实例的评论附件数据表.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService">
+            <summary>
+            流程权限资源服务的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowResourceService">
+            <summary>
+            流程权限资源服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.UpdateResourceVisible(System.String,System.Boolean)">
+            <summary>
+            更新指定权限资源的页面上的界面可见性.
+            </summary>
+            <param name="resourceId"></param>
+            <param name="isVisible"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.UpdateWorkflowResourceVisible(System.Guid,System.Boolean)">
+            <summary>
+            更新指定流程的权限资源的界面可见性.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="isVisible"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.InsertResources(System.Collections.Generic.IList{Botwave.Workflow.Extension.Domain.ResourceProperty})">
+            <summary>
+            新增指定的权限资源列表,返回插入的数据数.
+            </summary>
+            <param name="items"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.GetMaxResourceIdByParent(System.String)">
+            <summary>
+            获取指定父资源下的最大权限资源编号.
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.GetWorkflowResourceId(System.String)">
+            <summary>
+            获取指定流程名称的流程资源编号.
+            </summary>
+            <param name="workflowName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.GetWorkflowResourceId(System.Guid)">
+            <summary>
+            获取指定流程名称的流程资源编号.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.GetWorkflowResourceId(System.String,System.String,System.Boolean)">
+            <summary>
+            获取指定信息的流程步骤（或公用）资源 ID.
+            </summary>
+            <param name="workflowName"></param>
+            <param name="resourceName"></param>
+            <param name="isActivityResource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.GetWorkflowResources(System.String,System.Boolean)">
+            <summary>
+            获取指定流程的权限资源信息(Key:资源别名 Alias).
+            </summary>
+            <param name="workflowName"></param>
+            <param name="isActivityResources"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowResourceService.GetWorkflowResources(System.String,System.String)">
+            <summary>
+            获取指定的父资源以及资源类型的权限资源字段(Key:资源别名 Alias, Value:资源编号 ResouceId).
+            </summary>
+            <param name="parentId"></param>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.UpdateResourceVisible(System.String,System.Boolean)">
+            <summary>
+            更新指定权限资源的可见性.
+            </summary>
+            <param name="resourceId"></param>
+            <param name="isVisible"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.UpdateWorkflowResourceVisible(System.Guid,System.Boolean)">
+            <summary>
+            更新指定流程的权限资源可见性.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="isVisible"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.InsertResources(System.Collections.Generic.IList{Botwave.Workflow.Extension.Domain.ResourceProperty})">
+            <summary>
+            新增权限资源属性列表.
+            </summary>
+            <param name="items"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.GetMaxResourceIdByParent(System.String)">
+            <summary>
+            获取指定父资源的最大权限资源编号.
+            </summary>
+            <param name="parentId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.GetWorkflowResourceId(System.String)">
+            <summary>
+            获取流程权限资源编号.
+            </summary>
+            <param name="workflowName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.GetWorkflowResourceId(System.Guid)">
+            <summary>
+            获取流程权限资源编号.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.GetWorkflowResourceId(System.String,System.String,System.Boolean)">
+            <summary>
+            获取指定流程名称与资源名称的资源编号.
+            </summary>
+            <param name="workflowName"></param>
+            <param name="resourceName"></param>
+            <param name="isActivityResource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.GetWorkflowResources(System.String,System.Boolean)">
+            <summary>
+            获取指定流程与指定类型的流程权限资源字典.
+            </summary>
+            <param name="workflowName"></param>
+            <param name="isActivityResources"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowResourceService.GetWorkflowResources(System.String,System.String)">
+            <summary>
+            获取指定父资源以及类型的流程资源字典集合.
+            </summary>
+            <param name="parentId"></param>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WorkflowMap.WorkflowImageHandler">
+            <summary>
+            流程图的 HttpHandler 类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowImageHandler.ProcessRequest(System.Web.HttpContext)">
+            <summary>
+            处理请求.
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.WorkflowMap.WorkflowImageHandler.IsReusable">
+            <summary>
+            获取一个值，该值指示其他请求是否可以使用 System.Web.IHttpHandler 实例.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PreCommitDeployHandler">
+            <summary>
+            提交部署数据的前续处理类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PreCommitDeployHandler.Execute(Botwave.Workflow.Domain.WorkflowDefinition,System.Collections.Generic.ICollection{Botwave.Workflow.Domain.DeployActivityDefinition})">
+            <summary>
+            执行.
+            </summary>
+            <param name="deployWorkflow"></param>
+            <param name="deployActivities"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PreCommitDeployHandler.UpdateResources(Botwave.Workflow.Domain.WorkflowDefinition,System.Collections.Generic.ICollection{Botwave.Workflow.Domain.DeployActivityDefinition})">
+            <summary>
+            更新权限资源.
+            </summary>
+            <param name="deployWorkflow"></param>
+            <param name="deployActivities"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PreCommitDeployHandler.ToDictionary(System.Collections.Generic.ICollection{Botwave.Workflow.Domain.DeployActivityDefinition})">
+            <summary>
+            将集合转换为字典类型(key:流程步骤名称).
+            </summary>
+            <param name="activities"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PreCommitDeployHandler.WorkflowResourceService">
+            <summary>
+            流程权限资源服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PreCommitDeployHandler.Next">
+            <summary>
+            下一前续处理器对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostCompleteWorkflowHandler">
+            <summary>
+            完成流程的后续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostCompleteWorkflowHandler.Execute(Botwave.Workflow.ActivityExecutionContext)">
+            <summary>
+            执行.
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostCompleteWorkflowHandler.Next">
+            <summary>
+            下一后续处理器.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFormService">
+            <summary>
+            流程表单服务的空实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFormService.GetFormVariables(System.Web.HttpRequest)">
+            <summary>
+            获取请求的表单变量字典.
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFormService.CreateFormInstance(System.Guid,System.Guid,System.String)">
+            <summary>
+            创建表单实例.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="creator"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFormService.LoadForm(System.Guid,System.Guid,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            加载表单数据.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="binderVariables"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFormService.SaveForm(System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            保存表单数据.
+            </summary>
+            <param name="workflowInstanceId"></param>
+            <param name="actor"></param>
+            <param name="dataVariables"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFormService.SaveForm(System.Guid,System.Guid,System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            保存表单数据.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="workflowInstanceId"></param>
+            <param name="actor"></param>
+            <param name="dataVariables"></param>
+            <param name="binderVariables"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowFormService.DeployForm(Botwave.Workflow.Domain.WorkflowDefinition,Botwave.Workflow.Domain.WorkflowDefinition)">
+            <summary>
+            部署表单.
+            </summary>
+            <param name="oldWorkflow"></param>
+            <param name="newWorkflow"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile">
+            <summary>
+            流程选择器界面的默认实现类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.SelectedBound">
+            <summary>
+            选中上限值.当处理用户数小于等于上限值时，则将用户标志为选中状态.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.repeatRows">
+            <summary>
+            重复列数.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.repeatModValue">
+            <summary>
+            重复列模值.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.Template_DisplayActor">
+            <summary>
+            显示操作人的模板.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.Template_DisplayActor_Proxy">
+            <summary>
+            显示操作委托人的模板.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.Template_ActorInputHtml">
+            <summary>
+            操作人选择框模板.
+            选中的操作人值格式："流程步骤编号$操作人用户名$委托人用户名".
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.NotActorMessage">
+            <summary>
+            无操作人时的提示信息.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.activityAllocationService">
+            <summary>
+            流程还多任务分派服务接口.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.workflowUserService">
+            <summary>
+            流程用户服务接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.BuildActivitySelectorHtml(System.Web.HttpContext,Botwave.Workflow.Extension.UI.WorkflowSelectorContext)">
+            <summary>
+            生成指定流程活动的活动选择器 Html.
+            </summary>
+            <param name="webContext"></param>
+            <param name="selecotrContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.BuildDefaultActivitySelectorHtml(System.Web.HttpContext,Botwave.Workflow.Extension.UI.WorkflowSelectorContext)">
+            <summary>
+            生成指定流程活动默认的活动选择器 Html.
+            </summary>
+            <param name="webContext"></param>
+            <param name="selecotrContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.BuildDefaultRadioActivities(System.Collections.Generic.IList{Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor},System.String,System.String)">
+            <summary>
+            以单选框形式呈现默认活动选择器 Html.
+            </summary>
+            <param name="activityActors"></param>
+            <param name="activityItemTemplate"></param>
+            <param name="actorItemTemplate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.BuildDefaultCheckBoxActivities(System.Collections.Generic.IList{Botwave.Workflow.Extension.UI.WorkflowSelectorContext.ActivityActor},System.Boolean,System.String,System.String)">
+            <summary>
+            以复选框形式呈现默认活动选择器 Html.
+            </summary>
+            <param name="activityActors"></param>
+            <param name="selectAll"></param>
+            <param name="activityItemTemplate"></param>
+            <param name="actorItemTemplate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.OnGetActorNames(System.Collections.Generic.ICollection{System.String},System.Collections.Generic.IList{System.String}@)">
+            <summary>
+            获取处理姓名字典.
+            </summary>
+            <param name="actors"></param>
+            <param name="sortActors"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.GetCheckedAttribute(System.Boolean)">
+            <summary>
+            获取被选中的 html 属性文本.
+            </summary>
+            <param name="isChecked"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.GetSelectedClass(System.Boolean)">
+            <summary>
+            获取被选中的样式.
+            </summary>
+            <param name="isSelected"></param>
+            <returns></returns>
+        </member>
+        <member name="E:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.AddProperties">
+            <summary>
+            新增属性事件.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.ActivityAllocationService">
+            <summary>
+            流程还多任务分派服务接口.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.WorkflowUserService">
+            <summary>
+            流程用户服务接口.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.Support.DefaultWorkflowSelectorProfile.AddPropertiesHandler">
+            <summary>
+            新增属性委托.
+            </summary>
+            <param name="item"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WebServices.ActivityResult">
+            <summary>
+            流程步骤结果类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.ActivityResult.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.ActivityResult.#ctor(System.Int32)">
+            <summary>
+            构造方法.
+            </summary>
+            <param name="capacity"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.ActivityResult.#ctor(System.String)">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.ActivityResult.#ctor(System.String,System.String)">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.ActivityResult.#ctor(System.String,System.String[])">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.ActivityResult.ToActivityResult(System.String,System.String[])">
+            <summary>
+            转换为流程步骤结果对象.
+            </summary>
+            <param name="activityName"></param>
+            <param name="actors"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.WebServices.ActivityResult.ActivityName">
+            <summary>
+            流程步骤名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.WebServices.ActivityResult.Actors">
+            <summary>
+            流程步骤操作人列表.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowSearcher">
+            <summary>
+            高级搜索服务的默认实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.IWorkflowSearcher">
+            <summary>
+            流程高级查询接口.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.IWorkflowSearcher.Search(Botwave.Workflow.Extension.Service.AdvancedSearchCondition,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            搜索.
+            </summary>
+            <param name="condition"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowSearcher.Search(Botwave.Workflow.Extension.Service.AdvancedSearchCondition,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            搜索.
+            </summary>
+            <param name="condition"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowSearcher.DoComplexSearch(Botwave.Workflow.Extension.Service.AdvancedSearchCondition,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            复杂条件搜索.
+            </summary>
+            <param name="condition"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowSearcher.DoSimpleSearch(Botwave.Workflow.Extension.Service.AdvancedSearchCondition,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            简单条件搜索.
+            </summary>
+            <param name="condition"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowSearcher.DoComplexSearchByProcessed(Botwave.Workflow.Extension.Service.AdvancedSearchCondition,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            复杂条件搜索.
+            </summary>
+            <param name="condition"></param>
+            <param name="pageIndex"></param>
+            <param name="pageSize"></param>
+            <param name="recordCount"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Domain.FieldDisplayInfo">
+            <summary>
+            显示字段信息.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldDisplayInfo.Id">
+            <summary>
+            ID.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldDisplayInfo.WorkflowName">
+            <summary>
+            显示的流程名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldDisplayInfo.FieldName">
+            <summary>
+            显示的字段名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldDisplayInfo.HeaderText">
+            <summary>
+            显示的标题文本.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Domain.FieldDisplayInfo.TableType">
+            <summary>
+            显示控制的表格类型.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Util.PluginHelper">
+            <summary>
+            流程插件辅助类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.Support.EmptyWorkflowUIProfile">
+            <summary>
+            流程界面个性化的空实现类.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.UserProxyNotifier">
+            <summary>
+            授权人通知服务实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.UserProxyNotifier.Notify(System.Guid,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            发送提醒信息.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <param name="relations"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNotifyService">
+            <summary>
+            流程提醒服务的空实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNotifyService.GetNotifyActors(System.Guid)">
+            <summary>
+            获取指定流程活动实例的提醒用户列表.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNotifyService.GetNextNotifyActors(System.Guid)">
+            <summary>
+            获取指定流程活动实例的下一活动的提醒用户列表.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNotifyService.SendMessage(Botwave.Workflow.Extension.Domain.ActorDetail,System.Int32,System.Guid,Botwave.Workflow.Domain.WorkflowSetting,Botwave.Workflow.Domain.WorkflowInstance,System.Collections.Generic.IList{Botwave.Workflow.Extension.Domain.NotifyActor})">
+            <summary>
+            发送通知消息（邮件、短信）.
+            </summary>
+            <param name="sender">发送人信息.</param>
+            <param name="operateType">操作类型.</param>
+            <param name="activityInstanceId">流程活动实例编号.</param>
+            <param name="setting">流程设置对象.</param>
+            <param name="workflowInstance">流程实例对象.</param>
+            <param name="notifyActors">提醒接收人列表.</param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNotifyService.SendSMS(System.String,System.String,System.String)">
+            <summary>
+            发送短信通知.
+            </summary>
+            <param name="sender"></param>
+            <param name="receiver"></param>
+            <param name="content"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.EmptyWorkflowNotifyService.SendEmail(System.String,System.String,System.String)">
+            <summary>
+            发送电子邮件通知.
+            </summary>
+            <param name="sender"></param>
+            <param name="receiver"></param>
+            <param name="content"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.ActivityExecutionContextHandler">
+            <summary>
+            ActivityExecutionContext 上下文对象变量处理的默认实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.ActivityExecutionContextHandler.Handle(Botwave.Workflow.ActivityExecutionContext,System.Web.HttpRequest,System.Guid)">
+            <param name="executionContext">当前 ActivityExecutionContext 对象.</param>
+            <param name="request">HttpRequest 请求对象.</param>
+            <param name="workflowInstanceId">流程实例编号.</param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager">
+            <summary>
+            流程图管理类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.OutputImageFormat">
+            <summary>
+            输出图片格式.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ColorName">
+            <summary>
+            颜色名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ColorAlpha">
+            <summary>
+            颜色透明度.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ImageCachePath">
+            <summary>
+            图片保存(缓存)路径.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.Maps">
+            <summary>
+            流程图字典(Key 忽略大小写).
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.#cctor">
+            <summary>
+            静态构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ExistsMap(System.String)">
+            <summary>
+            查询是否存在知道流程图.
+            </summary>
+            <param name="workflowName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.FillRectangle(System.Guid,System.String,System.IO.Stream)">
+            <summary>
+            填充长方形区域.
+            </summary>
+            <param name="workflowId">流程编号.</param>
+            <param name="activityName">流程步骤名称.</param>
+            <param name="outputStream">输出流.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.FillRectangle(System.Guid,System.String,System.IO.Stream,System.Int32)">
+            <summary>
+            填充长方形区域.
+            </summary>
+            <param name="workflowId">流程编号.</param>
+            <param name="activityName">流程步骤名称.</param>
+            <param name="outputStream">输出流.</param>
+            <param name="thumbWidth">缩小图的宽度.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.FillRectangle(System.String,System.String,System.IO.Stream)">
+            <summary>
+            填充长方形区域.
+            </summary>
+            <param name="workflowName">流程名称.</param>
+            <param name="activityName">流程步骤名称.</param>
+            <param name="outputStream">输出流.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.FillRectangle(System.String,System.String,System.IO.Stream,System.Int32)">
+            <summary>
+            填充长方形区域.
+            </summary>
+            <param name="workflowName">流程名称.</param>
+            <param name="activityName">流程步骤名称.</param>
+            <param name="outputStream">输出流.</param>
+            <param name="thumbWidth">缩小图的宽度.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.FillRectangle(System.String,Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem,System.IO.Stream,System.Int32)">
+            <summary>
+            填充长方形区域.
+            </summary>
+            <param name="path">流程图片路径.</param>
+            <param name="activity"></param>
+            <param name="outputStream"></param>
+            <param name="thumbWidth">缩小图的宽度.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.FillRectangle(System.Drawing.Image,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            填充长方形区域.
+            </summary>
+            <param name="source"></param>
+            <param name="x"></param>
+            <param name="y"></param>
+            <param name="width"></param>
+            <param name="height"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.WorkflowItem">
+            <summary>
+            流程.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.WorkflowItem.Name">
+            <summary>
+            流程名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.WorkflowItem.Path">
+            <summary>
+            流程图片文件路径.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.WorkflowItem.Activities">
+            <summary>
+            流程步骤列表.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.WorkflowItem.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem">
+            <summary>
+            流程步骤.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem.Index">
+            <summary>
+            索引.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem.Name">
+            <summary>
+            流程步骤名称.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem.X">
+            <summary>
+            起始位置 X 坐标.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem.Y">
+            <summary>
+            起始位置 Y 坐标.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem.Width">
+            <summary>
+            流程步骤边框宽度.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WorkflowMap.WorkflowMapManager.ActivityItem.Height">
+            <summary>
+            流程步骤边框高度.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowNotifyService">
+            <summary>
+            流程提醒服务的默认实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowNotifyService.GetNotifyActors(System.Guid)">
+            <summary>
+            获取指定流程活动实例的提醒用户列表.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowNotifyService.GetNextNotifyActors(System.Guid)">
+            <summary>
+            获取指定流程活动实例的下一活动的提醒用户列表.
+            </summary>
+            <param name="activityInstanceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowNotifyService.SendMessage(Botwave.Workflow.Extension.Domain.ActorDetail,System.Int32,System.Guid,Botwave.Workflow.Domain.WorkflowSetting,Botwave.Workflow.Domain.WorkflowInstance,System.Collections.Generic.IList{Botwave.Workflow.Extension.Domain.NotifyActor})">
+            <summary>
+            发送通知消息（邮件、短信）.
+            </summary>
+            <param name="sender">发送人信息.</param>
+            <param name="operateType">操作类型.</param>
+            <param name="activityInstanceId">流程活动实例编号.</param>
+            <param name="setting">流程设置对象.</param>
+            <param name="workflowInstance">流程实例对象.</param>
+            <param name="notifyActors">提醒接收人列表.</param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowNotifyService.SendSMS(System.String,System.String,System.String)">
+            <summary>
+            发送短信通知.
+            </summary>
+            <param name="sender"></param>
+            <param name="receiver"></param>
+            <param name="content"></param>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Support.DefaultWorkflowNotifyService.SendEmail(System.String,System.String,System.String)">
+            <summary>
+             发送电子邮件通知.
+            </summary>
+            <param name="sender"></param>
+            <param name="receiver"></param>
+            <param name="content"></param>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostAssignHandler">
+            <summary>
+            任务指派的后续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostAssignHandler.Execute(Botwave.Workflow.Domain.Assignment)">
+            <summary>
+            执行处理.
+            </summary>
+            <param name="assignment"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostAssignHandler.Next">
+            <summary>
+            下一后续处理器对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.WorkflowInstanceCreationController">
+            <summary>
+            流程实例创建控制器类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.WorkflowInstanceCreationController.CanCreate(System.Guid,System.String,System.Object)">
+            <summary>
+            验证能否发单.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="actor"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.WorkflowInstanceCreationController.CanCreate(System.Guid,System.String,System.Int32,System.Object)">
+            <summary>
+            验证能否发单.
+            </summary>
+            <param name="workflowId"></param>
+            <param name="actor"></param>
+            <param name="urgency"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WebServices.WorkflowAjaxService">
+            <summary>
+            流程 AJAX Web Service 类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.WorkflowAjaxService.#ctor">
+            <summary>
+            构造方法.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.WorkflowAjaxService.GetActorTooltipInfo(System.String)">
+            <summary>
+            获取指定用户名的用户工作负荷实例.
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.WorkflowAjaxService.GetCompletionWorkflowTitles(System.String,System.Int32)">
+            <summary>
+            获取指定匹配流程标题的流程自动完成列表.
+            </summary>
+            <param name="prefixText"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.WebServices.WorkflowAjaxService.GetCompletionUserNames(System.String,System.Int32)">
+            <summary>
+            获取指定匹配用户名或者真实姓名的用户自动完成列表.
+            </summary>
+            <param name="prefixText"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.WebServices.WorkflowAjaxService.WorkflowService">
+            <summary>
+            流程服务.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.WebServices.WorkflowAjaxService.WorkflowUserService">
+            <summary>
+            流程用户服务.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.WebServices.WorkflowCurrentStateResult">
+            <summary>
+            流程当前状态结果.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WebServices.WorkflowCurrentStateResult.State">
+            <summary>
+            当前流程状态.
+            -100 查询失败;
+            -1 草稿状态;
+            0 初始状态;
+            1 流程运行中;
+            2 流程已完成;
+            99 流程已取消.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WebServices.WorkflowCurrentStateResult.IsSuccess">
+            <summary>
+            返回查询是否成功.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.WebServices.WorkflowCurrentStateResult.Activities">
+            <summary>
+            结果集合数组.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.UI.WorkflowSelectorManager">
+            <summary>
+            管理类.
+            </summary>
+        </member>
+        <member name="F:Botwave.Workflow.Extension.UI.WorkflowSelectorManager.profileNames">
+            <summary>
+            流程选择器名值集合.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.WorkflowSelectorManager.GetProfileNames">
+            <summary>
+            获取流程选择器配置名值集合.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.WorkflowSelectorManager.GetProfileName(System.String)">
+            <summary>
+            获取指定流程名称的流程选择器类型名称.
+            </summary>
+            <param name="workflowName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.UI.WorkflowSelectorManager.GetProfileName(System.Guid)">
+            <summary>
+            获取指定流程编号的流程选择器类型名称.
+            </summary>
+            <param name="workflowId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostCountersignedHandler">
+            <summary>
+            会签的后续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostCountersignedHandler.Execute(Botwave.Workflow.Domain.Countersigned)">
+            <summary>
+            执行.
+            </summary>
+            <param name="countersigned"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostCountersignedHandler.Next">
+            <summary>
+            下一后续处理器对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.Plugins.PostCancelWorkflowHandler">
+            <summary>
+            取消流程的后续处理器实现类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.Plugins.PostCancelWorkflowHandler.Execute(Botwave.Workflow.ActivityExecutionContext)">
+            <summary>
+            执行.
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.Plugins.PostCancelWorkflowHandler.Next">
+            <summary>
+            下一后续处理器对象.
+            </summary>
+        </member>
+        <member name="T:Botwave.Workflow.Extension.Service.AdvancedSearchCondition">
+            <summary>
+            流程高级查询条件类.
+            </summary>
+        </member>
+        <member name="M:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.IsComplex">
+            <summary>
+            是否属于复杂查询条件.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.BeginTime">
+            <summary>
+            开始时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.EndTime">
+            <summary>
+            结束时间.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.Title">
+            <summary>
+            工单标题.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.SheetId">
+            <summary>
+            受理号.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.WorkflowName">
+            <summary>
+            流程名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.ActivityName">
+            <summary>
+            活动/步骤名称.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.CreatorName">
+            <summary>
+            发起人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.ProcessorName">
+            <summary>
+            处理人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.Keywords">
+            <summary>
+            内容关键字.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.Actor">
+            <summary>
+            当前操作人.
+            </summary>
+        </member>
+        <member name="P:Botwave.Workflow.Extension.Service.AdvancedSearchCondition.IsProcessed">
+            <summary>
+            处理过的. true 表示只查询当前用户处理过的工单记录列表.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,100 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script>
+        var app = angular.module('CreateOrUpdate', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            var id = '@ViewData["id"]';
+            $scope.curObj = {};
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                    $('.content').html($scope.curObj.Content);
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            else {
+                $scope.curObj.ID = newID;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysKnowledge/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+
+    </script>
+}
+<style>
+    body {
+        font-family:FangSong;
+        font-size: 15px;
+        min-width: 0px;
+        width: 80%;
+        margin: auto;
+        padding: 30px 20px;
+    }
+
+    .title {
+        font-weight:700;
+        font-size: 25px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .content {
+        margin: 10px 15px;
+    }
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div>
+            <div><p class="title">@ViewBag.Title</p></div>
+            <div style="text-align:center;">
+                <span>作者：</span><span>{{curObj.RealName}}</span>
+                <span style="margin-left:50px;">时间：</span><span> {{curObj.Createdtime}}</span>
+            </div>
+            <hr />
+            <div class="content"></div>
+            <hr />
+            <table>
+                <tr>
+                    <th style="vertical-align: top;">附件：</th>
+                    <td>
+                        <table>
+                            <tr ng-repeat="x in curObj.Attachments">
+                                <td>
+                                    <a class="ico_download" style="color: Blue;" ng-href="/Upload/FileDownload?id={{x.Id}}" title="点击下载">{{x.FileName}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+
+</div>
+<!--公告编辑 end--->

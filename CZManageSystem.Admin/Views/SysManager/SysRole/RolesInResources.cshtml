@@ -1,0 +1,160 @@
+﻿
+@{
+    ViewBag.Title = "资源分配";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+    <link href="~/Content/Javascript/zTree_v3-master/css/zTreeStyle/zTreeStyle.css" rel="stylesheet" />
+    <script src="~/Content/Javascript/zTree_v3-master/js/jquery.ztree.all.js"></script>
+    <script>
+
+        var app = angular.module('RolesInResources', ['treeControl']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('ResourcesController', ['$scope', 'CreateService', function ($scope, CreateService) {
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+            //菜单树形结构
+            var setting = {
+                check: {
+                    enable: true
+                }
+            };
+            var id = '@ViewData["id"]';
+            $scope.treedata = [];
+            CreateService.getlist().success(function (response) {
+                $scope.treedata = response;
+                zTreeObj = $.fn.zTree.init($("#ResourceTree"), setting, $scope.treedata);
+                if (id != 0) {
+                    CreateService.get(id).success(function (response) {
+                        $scope.RoleId = response.RoleId;
+                        $scope.RoleName = response.RoleName;
+                        $scope.ParentId = response.ParentId;
+                        $scope.ResourceIds = response.ResourceIds;
+                        $scope.setCheck();
+                    }).error(function (response) {
+                        box.alert("错误！", { icon: 'error' });
+                    });
+                }
+            });
+          
+            $scope.setCheck = function () {
+                var zTree = $.fn.zTree.getZTreeObj("ResourceTree");
+                angular.forEach($scope.ResourceIds, function (obj) {
+                    zTree.checkNode(zTree.getNodeByParam("ResourceId", obj), true);//ID名称不同的页面名称不同，
+                });
+                //for (var i = 0; i < $scope.ResourceIds.length; i++) {
+                //    zTree.checkNode(zTree.getNodeByParam("ResourceId", $scope.ResourceIds[i]), true);
+                //}
+            }
+            $scope.Save = function () {
+                $scope.editForm.submitted = false;
+                if ($scope.editForm.$valid) {
+                    $scope.checknodes = $.fn.zTree.getZTreeObj("ResourceTree").getCheckedNodes(true);
+                    var list = [];
+                    $.each($scope.checknodes, function (i, item) {
+                        list.push(item.ResourceId)//({ ResourceId: item.ResourceId });
+                    });
+
+                    var postData = {
+                        RoleId: $scope.RoleId,
+                        ResourceList: list
+                    }
+                    CreateService.Save(JSON.stringify(postData)).success(function (response) {
+                        box.alert(response.message, { icon: 'success' }, function () {
+                            window.location.href = CurPath + 'SysRole/Index';
+                        });
+                      
+                    });
+                    //
+                }
+                else {
+                    $scope.editForm.submitted = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('CreateService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.Save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/SaveRoRe',
+                    contentType: "application/json;charset=utf-8",
+                    data: postData
+                });
+            };
+            serive.get = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/GetResources?id=' + id
+                    //param: id
+                });
+            };
+            serive.getlist = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysRole/GetResourcesList'
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+    <!--书模块-->
+    <script>
+
+    </script>
+    <style type="text/css">
+        .divcss {
+            width: 400px;
+            height: 36px;
+            border: 1px solid #d9dce5;
+        }
+    </style>
+}
+<!--角色管理--->
+@*<div ng-app="RolesInResources" ng-controller="ResourcesController" class="public-form" name="editForm">
+    <form name="editForm">*@
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="RolesInResources" ng-controller="ResourcesController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>角色名称： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" ng-model="RoleName" class="cell-input" readonly />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>资源名称： </th>
+                <td>
+                    <div>
+                        <ul id="ResourceTree" class="ztree"></ul>
+                    </div>
+
+
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="Save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysRole/Index" class="cell-btn-orange" style="width:70px; margin-right:20px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<!--角色管理 end--->

@@ -1,0 +1,111 @@
+﻿
+@{
+    ViewBag.Title = "StockAssetEdit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('StockController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+
+            var Id = '@ViewData["Id"]';
+            var StockId = '@ViewData["StockId"]';
+           // $scope.asset = { StockId: StockId };
+            if (Id != null && Id.toString().length > 0) {
+                BusinessService.getDataByID(Id).success(function (response) {
+                    $scope.asset = response;
+                    $scope.asset.StockId = StockId;
+
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    if (StockId != '' && StockId!=null) {
+                        $scope.asset.StockId = StockId;
+                    }
+                    $scope.asset.State = 0;
+                    var postData = $scope.asset;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Stock/StockAsset?Id=' +StockId;
+                            });
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Stock/SaveAsset',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (Id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Stock/GetAssetID/' + Id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="CreateOrUpdate" ng-controller="StockController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>固定资产编码：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="LableNo" ng-model="asset.AssetSn" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.AssetSn.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.AssetSn.$error.required">固定资产编码</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a  href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    @*<a href="../Stock/StockAsset?Id={{asset.StockId}}" class="cell-btn-orange" style="width:70px;">返回</a>*@
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+

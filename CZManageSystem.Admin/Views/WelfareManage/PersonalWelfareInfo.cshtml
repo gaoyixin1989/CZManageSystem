@@ -1,0 +1,177 @@
+﻿
+@{
+    ViewBag.Title = "个人福利";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('WelfareManageController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                Year: ""
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                var postData = {
+                    Year: $scope.queryBuilder.Year
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    if (response.items.yearlist.length == 0) {
+                        //$('.yearlist').hide();
+                        box.alert("没有该年份的福利数据！", { icon: 'warning' });
+                        return;
+                    }
+                    //if (response.items.monthlist.length == 0) {
+                    //    $('.monthlist').hide();
+                    //    box.alert("没有该月份的福利数据！", { icon: 'warning' });
+                    //    return;
+                    //}
+
+                    $scope.YearList = response.items.yearlist[0];
+                    $scope.DpFullName = response.items.DpFullName;
+                    $scope.ListPageData = response.items.monthlist;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            $scope.query = function () {
+                //$('.yearlist').show();
+                //$('.monthlist').show();
+                GetListData();
+            }
+            //---------------
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'WelfareManage/GetPersonalWelfareInfoListData', postData);
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 97%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+        margin:10px 10px 1px 10px;
+    }
+
+        .WF_Table tr th {
+            background: white;
+            padding: 7px;
+            font-weight: bold;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            text-align: center;
+        }
+
+        .WF_Table tr td {
+            padding: 5px;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            width: 35%;
+        }
+
+        .WF_Table tr th {
+            background: #F4F4F4;
+            width: 15%;
+        }
+</style>
+<div id="ng-app" ng-app="ListPage" ng-controller="WelfareManageController">
+    <!--content--->
+    <div class="search-mod">
+        <table >
+            <tr>
+                <td>年度</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="EndTime" date-Picker dateFmt="yyyy" ng-model="queryBuilder.Year" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+        <table class="WF_Table yearlist">
+            <tr>
+                <th>员工编号：</th>
+                <td ng-bind="YearList.Employee"></td>
+            </tr>
+            <tr>
+                <th>员工姓名：</th>
+                <td ng-bind="YearList.EmployeeName"></td>
+            </tr>
+           <tr>
+                <th>所属单位：</th>
+                <td ng-bind="DpFullName"></td>
+            </tr>
+            <tr>
+                <th>年份：</th>
+                <td ng-bind="YearList.CYear"></td>
+            </tr>
+           @* <tr>
+        <th>职位：</th>
+        <td ng-bind="yearInfo.CYear|date:'yyyy'"></td>
+    </tr>*@
+            <tr>
+                <th>个人福利账户总额：</th>
+                <td ng-bind="YearList.WelfareYearTotalAmount"></td>
+            </tr>
+        </table>
+    <div class="public-table-main monthlist">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>福利套餐</th>
+                <th>总额度</th>
+                <th>已用额度</th>
+                <th>剩余额度</th>
+            </tr>
+            <tr ng-repeat="temp in ListPageData">
+                <td ng-bind="temp.WelfarePackage"></td>
+                <td ng-bind="temp.WelfareMonthTotalAmount"></td>
+                <td ng-bind="temp.WelfareMonthAmountUsed"></td>
+                <td ng-bind="temp.WelfareMonthRemain"></td>
+            </tr>
+        </table>
+    </div>
+    <!--content--->
+</div>
+

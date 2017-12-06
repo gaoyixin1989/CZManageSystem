@@ -1,0 +1,592 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            var ID = '@ViewData["ID"]';
+            var DeptID = '@ViewData["DeptID"]';
+            var ProjectID = '';
+            $scope.curObj = {};
+            $scope.ListData_YearTotal = {
+                items: [],
+                total: 0.00
+            };
+
+
+            var getData = function () {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                    $scope.curObj.Year = $scope.curObj.Year.toString();
+                    ProjectID = $scope.curObj.ProjectID;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+
+            //获取当前数据
+            var getCurData = false;
+            if (ID != null && ID.toString().length > 0) {
+                getData();
+            }
+            else {
+                getCurData = true;
+            }
+
+
+            //设置相关的配置信息
+            var setConfigureData = function () {
+                $timeout(function () {
+                    if (getCurData) {
+                        //获取字典“年”
+                        BusinessService.getDictListByName('年').success(function (response) {
+                            $scope.dictYear = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.Year && !!response.defaultvalue) {
+                                    $scope.curObj.Year = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                        if (ID != null && ID.toString().length > 0) {
+                            //查询获取年度投资金额数据
+                            GetYearTotallistByProjectID();
+                        }
+
+
+                    }
+                    else {
+                        setConfigureData();
+                    }
+                }, 100);
+            }
+            setConfigureData();//设置相关的配置信息
+
+            //查询获取年度投资金额数据
+            var GetYearTotallistByProjectID = function () {
+                BusinessService.getYearTotallistByProjectID(ProjectID).success(function (response) {
+                    box.ready("getYearTotallistByProjectID");
+                    $scope.ListData_YearTotal = response;
+                }).error(function (err) {
+                    box.ready("getYearTotallistByProjectID");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                if (ID == null || ID.toString() == '')
+                                    window.location.href = CurPath + 'Project/ProjectEdit?ID=' + response.Message;
+                                else {
+                                    getData();
+                                }
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' })
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //打开窗口
+            $scope.openWindow = function (type, value) {
+                if (type == "UserID" || type == "ManagerID") {
+                    if ($scope.curObj.DpCode == null || $scope.curObj.DpCode == '') {
+                        box.alert('请先选择负责专业室！', { icon: 'info' });
+                        return;
+                    }
+                }
+                var iframeId = type + '_edit';
+                var title = "";
+                var strUrl = "";
+                var data = {};
+                var wWidth = 530;
+
+                switch (type) {
+                    case 'DpCode': {//负责专业室
+                        wWidth = 530;
+                        title = "部门选择";
+                        strUrl = '../UsersGrounp/SelectDepts';
+                        data = {
+                            selectedId: value
+                        };
+                    } break;
+                    case 'UserID': {//室负责人
+                        wWidth = 760;
+                        title = "用户选择";
+                        strUrl = '../UsersGrounp/SelectUsers';
+                        data = {
+                            selectedId: value,
+                            startDeptId: $scope.curObj.DpCode
+                        };
+                    } break;
+                    case 'ManagerID': {//项目经理
+                        wWidth = 760;
+                        title = "用户选择";
+                        strUrl = '../UsersGrounp/SelectUsers';
+                        data = {
+                            selectedId: value,
+                            startDeptId: $scope.curObj.DpCode
+                        };
+                    } break;
+                    default: {
+                        box.alert('没有对应的窗口类型！', { icon: 'error' });
+                    } break;
+                }
+
+                box.popup('',
+                                    {
+                                        url: strUrl,
+                                        iframeData: data,
+                                        iframeId: iframeId,
+                                        title: title,
+                                        width: wWidth,//窗口宽度，默认400
+                                        height: 380,//窗口高度，默认400
+                                        hasOk: true,
+                                        hasCancel: true,
+                                        onBeforeClose: function (data) {
+                                            if (data == true) {
+                                                var theWindow = window;
+                                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                                    theWindow = theWindow.parent;
+                                                }
+                                                if (!theWindow.frames[iframeId]) {
+                                                    box.alert('出错！', { icon: 'error' });
+                                                }
+                                                else {
+                                                    var result = theWindow.frames[iframeId].getResult();
+                                                    switch (type) {
+                                                        case 'DpCode': {
+                                                            if (result.length > 0) {
+                                                                $scope.curObj.DpCode = result[0].id;
+                                                                $scope.curObj.DpCode_Text = result[0].text;
+                                                            }
+                                                            else {
+                                                                $scope.curObj.DpCode = null;
+                                                                $scope.curObj.DpCode_Text = null;
+                                                            }
+                                                            $scope.curObj.UserID = null;
+                                                            $scope.curObj.User_Text = null;
+                                                        } break;
+                                                        case 'UserID': {
+                                                            $scope.curObj.UserID = getAttrByArr(result, 'id').join(',');
+                                                            $scope.curObj.User_Text = getAttrByArr(result, 'text').join(',');
+                                                        } break;
+                                                        case 'ManagerID': {
+                                                            $scope.curObj.ManagerID = getAttrByArr(result, 'id').join(',');
+                                                            $scope.curObj.Manager_Text = getAttrByArr(result, 'text').join(',');
+                                                        } break;
+                                                        default: break;
+                                                    }
+                                                    $scope.$apply();
+                                                }
+                                            }
+                                        }
+                                    });
+            }
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListData_YearTotal.items, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListData_YearTotal.items.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            //删除年度投资金额信息
+            $scope.delYearTotal = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteYearTotal(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetYearTotallistByProjectID();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            }
+            //添加年度投资金额信息
+            $scope.addYearTotal = function () {
+                if (ID == null || ID.toString() == '') {
+                    box.alert('请先保存基础信息！', { icon: 'info' });
+                    return;
+                }
+                EditYearTotalWindow(null, ProjectID);
+            }
+            //编辑年度投资金额信息
+            $scope.editYearTotal = function () {
+                if (choseArr.length == 0 || choseArr[0] == "") {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                EditYearTotalWindow(choseArr[0], null);
+            }
+
+            var EditYearTotalWindow = function (Y_ID, Y_ProjectID) {
+                var strUrl = '../Project/ProjectYearTotalEdit';
+                var data = {
+                    ID: Y_ID,
+                    ProjectID: Y_ProjectID
+                };
+                var iframeId = 'EditYearTotalWindow';
+                var title = '编辑年度投资金额信息';
+                box.popup('',
+                                    {
+                                        url: strUrl,
+                                        iframeData: data,
+                                        iframeId: iframeId,
+                                        title: title,
+                                        width: 400,//窗口宽度，默认400
+                                        height: 200,//窗口高度，默认400
+                                        hasOk: true,
+                                        hasCancel: true,
+                                        onBeforeClose: function (data) {
+                                            if (data == true) {
+                                                var theWindow = window;
+                                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                                    theWindow = theWindow.parent;
+                                                }
+                                                if (!theWindow.frames[iframeId]) {
+                                                    box.alert('出错！', { icon: 'error' });
+                                                    return false;
+                                                }
+                                                else {
+                                                    var result = theWindow.frames[iframeId].SaveData();
+                                                    if (result) {
+                                                        GetYearTotallistByProjectID();
+                                                    }
+                                                    else {
+                                                        return false;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //保存投资项目
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Project/Save_Project',
+                    data: postData
+                });
+            };
+            //根据id获取投资项目信息
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Project/GetDataByID_Project/' + id
+                });
+            };
+
+            //根据projectid获取年度投资金额列表
+            serive.getYearTotallistByProjectID = function (projectId) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Project/GetListData_YearTotal',
+                    data: { projectId: projectId }
+                });
+            };
+            //删除年度投资金额数据
+            serive.deleteYearTotal = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Project/Delete_YearTotal',
+                    data: { ids: ids }
+                });
+            };
+
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div><span class="p-title">基本信息</span></div>
+        <table>
+            <tr>
+                <th>下达年份：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select name="Year" required ng-model="curObj.Year" ng-options="a.value as a.text for a in dictYear" class="cell-input" style="width:80px;"></select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Year.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择下达年份</div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>计划任务书文号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="1000" name="TaskID" ng-model="curObj.TaskID" required class="cell-input" style="width:400px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.TaskID.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.TaskID.$error.required">请输入计划任务书文号</span>
+                                <span ng-show="editForm.TaskID.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>项目编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="ProjectID" ng-model="curObj.ProjectID" required class="cell-input" style="width:400px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ProjectID.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ProjectID.$error.required">请输入项目编号</span>
+                                <span ng-show="editForm.ProjectID.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>项目名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="1000" name="ProjectName" ng-model="curObj.ProjectName" required class="cell-input" style="width:400px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ProjectName.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ProjectName.$error.required">请输入项目名称</span>
+                                <span ng-show="editForm.ProjectName.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>起止年限：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="BeginEnd" ng-model="curObj.BeginEnd" required class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>要求完成时限：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="200" name="FinishDate" ng-model="curObj.FinishDate" required class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>项目总投资(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="Total" ng-model="curObj.Total" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Total.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Total.$error.required">请输入项目总投资</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>年度项目投资(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="YearTotal" ng-model="curObj.YearTotal" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.YearTotal.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.YearTotal.$error.required">请输入年度项目投资</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>年度建设内容：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Content" ng-model="curObj.Content" required style="width:400px;"></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入年度建设内容</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>负责专业室：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="DpCode" ng-model="curObj.DpCode" required class="cell-input" />
+                        <input type="text" ng-model="curObj.DpCode_Text" required class="cell-input" readonly ng-click="openWindow('DpCode',curObj.DpCode)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DpCode.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DpCode.$error.required">请选择负责专业室</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>室负责人：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="UserID" ng-model="curObj.UserID" required class="cell-input" />
+                        <input type="text" ng-model="curObj.User_Text" required class="cell-input" readonly ng-click="openWindow('UserID',curObj.UserID)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.UserID.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.UserID.$error.required">请选择负责专业室</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>项目经理：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="ManagerID" ng-model="curObj.ManagerID" required class="cell-input" />
+                        <input type="text" ng-model="curObj.Manager_Text" required class="cell-input" readonly ng-click="openWindow('ManagerID',curObj.ManagerID)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ManagerID.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ManagerID.$error.required">请选择负责专业室</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../Project/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+        <div style="padding-left:100px;"><span class="p-title">年度投资金额列表</span></div>
+        <div style="padding-left:100px;">
+            <a ng-click="addYearTotal()" class="cell-btn-blue" style="width:70px; margin-right:20px;">添加</a>
+            <a ng-click="editYearTotal()" class="cell-btn-blue" style="width:70px; margin-right:20px;">编辑</a>
+            <a ng-click="delYearTotal()" class="cell-btn-blue" style="width:70px; margin-right:20px;">删除</a>
+        </div>
+
+        <div class="public-table-main">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                    <th>年度</th>
+                    <th>年度投资金额</th>
+                </tr>
+                <tr ng-repeat="emp in ListData_YearTotal.items">
+                    <td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                    <td>{{emp.Year}}</td>
+                    <td>{{emp.YearTotal}}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <th>合计</th>
+                    <td>{{ListData_YearTotal.total}}</td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

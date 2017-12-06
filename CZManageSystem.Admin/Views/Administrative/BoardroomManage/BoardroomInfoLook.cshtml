@@ -1,0 +1,103 @@
+﻿    
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <script>
+        var loadComData1 = false;
+        var loadComData2 = false;
+        var app = angular.module('CreateOrUpdate', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            var id = '@ViewData["BoardroomID"]';
+            BusinessService.getDataByID(id).success(function (response) {
+                $scope.curObj = response;
+                $scope.curObj.CorpID = $scope.curObj.CorpID;
+            }).error(function (response) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/GetBoardroomInfoDataByID?BoardroomID=' + id
+                });
+            };
+            return serive;
+        }]);
+    </script>
+    <style>
+        body{min-width:0px;}
+        table{width:430px;}
+        table th{width:110px;text-align:right; vertical-align:top; padding: 3px 0px;font-weight: bolder;}
+        table td{text-align:left;padding: 3px 0px;}
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" @*class="public-form"*@ style="margin:10px 0px;">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table style="width:430px;">
+            <tr>
+                <th style="width:110px;">所属单位：</th>
+                <td ng-bind="curObj.CorpID_text"></td>
+            </tr>
+            @*<tr>
+                <th>会议室编号：</th>
+                <td ng-bind="curObj.Code"></td>
+            </tr>*@
+            <tr>
+                <th>会议室名称：</th>
+                <td ng-bind="curObj.Name"></td>
+            </tr>
+            <tr>
+                <th>会议室地点：</th>
+                <td ng-bind="curObj.Address"></td>
+            </tr>
+            <tr>
+                <th>容纳最大人数：</th>
+                <td ng-bind="curObj.MaxMan"></td>
+            </tr>
+            <tr>
+                <th>配备设备：</th>
+                <td ng-bind="curObj.Equip"></td>
+            </tr>
+            <tr>
+                <th>管理单位：</th>
+                <td>
+                    <div>{{curObj.ManagerUnit_text}}</div>
+                </td>
+            </tr>
+            <tr>
+                <th>管理员：</th>
+                <td>
+                    <div>{{curObj.ManagerPerson_text}}</div>
+                </td>
+            </tr>
+            <tr>
+                <th>状态：</th>
+                <td ng-bind="curObj.State"></td>
+            </tr>
+            <tr ng-show="curObj.State=='停用'">
+                <th>停用时间段：</th>
+                <td ng-bind="curObj.StartTime+' 至 '+curObj.EndTime"></td>
+            </tr>
+            <tr>
+                <th>备注信息：</th>
+                <td ng-bind="curObj.Remark"></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

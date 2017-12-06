@@ -1,0 +1,220 @@
+﻿
+@{
+    ViewBag.Title = "排班查询";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script type="text/javascript">
+
+        var app = angular.module('ListPage', ['tm.pagination']);
+
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                Year: "",
+                Month:"",
+                DeptId: null,
+                State: 1
+            };
+            $scope.YearList = [];
+            $scope.MonthList = [];
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                //choseArr = [];
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder,
+                        isSearch: true
+
+                    }
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            BusinessService.GetDropList().success(function (response) {
+                $scope.YearList = response.YearList;
+                $scope.MonthList = response.MonthList;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.DeptId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.DeptId = getAttrByArr(result, 'id').join(',');
+                                            $scope.queryBuilder.DeptName = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            $scope.clickTitle = function (id) {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + "Shift/BanCiDetail?type=show&ZhiBanId="+id;
+            }
+
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Shift/GetListData_ZhiBan', postData);
+            };
+            serive.GetDropList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/GetDropList'
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    年度：
+                </td>
+                <td>
+                    <div class="selectdrapdown">
+                        <select class="cell-input" ng-model="queryBuilder.Year" style="width:80px;">
+                            <option ng-repeat="x in YearList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    月份：
+                </td>
+                <td>
+                    <div class="selectdrapdown">
+                        <select class="cell-input" ng-model="queryBuilder.Month" style="width:80px;">
+                            <option ng-repeat="x in MonthList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                        </select>
+                    </div>
+                </td>              
+                <th>部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="DeptId" ng-model="queryBuilder.DeptId" ng- class="cell-input" />
+                        <input type="text" style="width:150px;"  name="DeptName" ng-model="queryBuilder.DeptName" required class="cell-input" ng-click="editMember('dept')" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                @*<th style="width:20px;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>*@
+                <th>标题</th>
+                <th>部门</th>
+                <th>年度</th>
+                <th>月份</th>
+            </tr>
+
+
+            <tr ng-repeat="emp in ListPageData">
+                @*<td><input type="checkbox" id="{{emp.Id}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ApplyId)" /></td>*@
+                <td><a class="titleCol" ng-click="clickTitle(emp.Id)" >{{emp.Title}}</a></td>
+                <td ng-bind="emp.DeptId_DpName"></td>
+                <td ng-bind="emp.Year"></td>
+                <td ng-bind="emp.Month"></td>
+                @*<td ng-bind="emp.CreateTime"></td>*@
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

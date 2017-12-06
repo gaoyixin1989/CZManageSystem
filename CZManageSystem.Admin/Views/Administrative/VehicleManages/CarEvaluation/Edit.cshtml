@@ -1,0 +1,216 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <script>
+        var loadComData1 = false;
+        var loadComData2 = false;
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+
+
+
+
+
+
+
+            var id = '@ViewData["Id"]';
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'CarEvaluation/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.alert("网络出错！", { icon: 'error' })
+                    });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarEvaluation/CarEvaluationInfo',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarEvaluation/CarEvaluationDataByID?Id=' + id
+                });
+            };
+
+
+
+            return serive;
+        }]);
+    </script>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+
+
+            <tr>
+                <th>行车安全：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OpinGrade1" ng-model="curObj.OpinGrade1" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OpinGrade1.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OpinGrade1.$error.required">请输入行车安全评价</span>
+                                <span ng-show="editForm.OpinGrade1.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>服务质量：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OpinGrade2" ng-model="curObj.OpinGrade2" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OpinGrade2.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OpinGrade2.$error.required">请输入服务质量评价</span>
+                                <span ng-show="editForm.OpinGrade2.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>车容卫生：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OpinGrade3" ng-model="curObj.OpinGrade3" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OpinGrade3.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OpinGrade3.$error.required">请输入车容卫生评价</span>
+                                <span ng-show="editForm.OpinGrade3.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>个人仪表：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OpinGrade4" ng-model="curObj.OpinGrade4" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OpinGrade4.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OpinGrade4.$error.required">请输入个人仪表评价</span>
+                                <span ng-show="editForm.OpinGrade4.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>时间观念：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OpinGrade5" ng-model="curObj.OpinGrade5" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OpinGrade5.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OpinGrade5.$error.required">请输入时间观念评价</span>
+                                <span ng-show="editForm.OpinGrade5.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>方向感：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OpinGrade6" ng-model="curObj.OpinGrade6" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.OpinGrade6.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OpinGrade6.$error.required">请输入方向感评价</span>
+                                <span ng-show="editForm.OpinGrade6.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>评价备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" ng-model="curObj.OpinRemark">这里是备注</textarea>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../CarEvaluation/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

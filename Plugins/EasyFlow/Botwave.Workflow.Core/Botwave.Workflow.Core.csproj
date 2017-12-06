@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9A4AF51F-822C-4C0D-98FC-773F9EA89CF0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Botwave.Workflow</RootNamespace>
+    <AssemblyName>Botwave.Workflow.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Botwave.Workflow.Core.XML</DocumentationFile>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ActionResult.cs" />
+    <Compile Include="ActivityCommands.cs" />
+    <Compile Include="ActivityExecutionContext.cs" />
+    <Compile Include="Allocator\DefaultTaskAllocatorManager.cs" />
+    <Compile Include="Allocator\ITaskAllocator.cs" />
+    <Compile Include="Allocator\ITaskAllocatorManager.cs" />
+    <Compile Include="Allocator\IUserProxy.cs" />
+    <Compile Include="Allocator\IUserProxyNotifier.cs" />
+    <Compile Include="Allocator\SyncUserProxyNotifierCaller.cs" />
+    <Compile Include="Allocator\TaskAllocatorExpression.cs" />
+    <Compile Include="Allocator\TaskVariable.cs" />
+    <Compile Include="Allocator\UsersTaskAllocator.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="DefaultWorkflowEngine.cs" />
+    <Compile Include="Plugin\IActivityExecutionContextHandler.cs" />
+    <Compile Include="Service\DeployActionResult.cs" />
+    <Compile Include="Domain\ActivityDefinition.cs" />
+    <Compile Include="Domain\ActivityInstance.cs" />
+    <Compile Include="Domain\ActivitySet.cs" />
+    <Compile Include="Domain\ActorInfo.cs" />
+    <Compile Include="Domain\AllocatorOption.cs" />
+    <Compile Include="Domain\Assignment.cs" />
+    <Compile Include="Domain\Comment.cs" />
+    <Compile Include="Domain\Countersigned.cs" />
+    <Compile Include="Domain\DeployActivityDefinition.cs" />
+    <Compile Include="Domain\DeployActivitySet.cs" />
+    <Compile Include="Domain\RejectOption.cs" />
+    <Compile Include="Domain\Report.cs" />
+    <Compile Include="Domain\TodoInfo.cs" />
+    <Compile Include="Domain\WorkflowDefinition.cs" />
+    <Compile Include="Domain\WorkflowInstance.cs" />
+    <Compile Include="Domain\WorkflowRoute.cs" />
+    <Compile Include="Domain\WorkflowSetting.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="IWorkflowEngine.cs" />
+    <Compile Include="Parser\AbstractCommandRulesParser.cs" />
+    <Compile Include="Parser\AbstractConditionParser.cs" />
+    <Compile Include="Parser\ConditionParser.cs" />
+    <Compile Include="Parser\DefaultCommandRulesParser.cs" />
+    <Compile Include="Parser\DefaultDecisionParserManager.cs" />
+    <Compile Include="Parser\DefaultJoinConditionHandlerManager.cs" />
+    <Compile Include="Parser\DefaultJoinConditionParser.cs" />
+    <Compile Include="Parser\DefaultSplitConditionParser.cs" />
+    <Compile Include="Parser\ICommandRulesParser.cs" />
+    <Compile Include="Parser\IConditionParser.cs" />
+    <Compile Include="Parser\IDecisionParser.cs" />
+    <Compile Include="Parser\IDecisionParserManager.cs" />
+    <Compile Include="Parser\IJoinConditionHandler.cs" />
+    <Compile Include="Parser\IJoinConditionHandlerManager.cs" />
+    <Compile Include="Plugin\DefaultActivityExecutionHandlerManager.cs" />
+    <Compile Include="Plugin\IActivityExecutionHandler.cs" />
+    <Compile Include="Plugin\IActivityExecutionHandlerManager.cs" />
+    <Compile Include="Plugin\IPreCommitDeployHandler.cs" />
+    <Compile Include="Plugin\IPostActivityExecutionHandler.cs" />
+    <Compile Include="Plugin\IPostAssignHandler.cs" />
+    <Compile Include="Plugin\IPostCancelWorkflowHandler.cs" />
+    <Compile Include="Plugin\IPostCloseParallelActivityInstancesHandler.cs" />
+    <Compile Include="Plugin\IPostCommentHandler.cs" />
+    <Compile Include="Plugin\IPostCompleteWorkflowHandler.cs" />
+    <Compile Include="Plugin\IPostCountersignedHandler.cs" />
+    <Compile Include="Plugin\IPostDeployHandler.cs" />
+    <Compile Include="Plugin\IResourceTranslator.cs" />
+    <Compile Include="Plugin\IWorkflowInstanceCreationController.cs" />
+    <Compile Include="Plugin\SyncActivityExecutionHandlerCaller.cs" />
+    <Compile Include="Plugin\SyncPostActivityExecutionHandlerCaller.cs" />
+    <Compile Include="Plugin\SyncPostCancelWorkflowHandlerCaller.cs" />
+    <Compile Include="Plugin\SyncPostCompleteWorkflowHandlerCaller.cs" />
+    <Compile Include="Plugin\SyncPostCountersignedHandler.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Service\AbstarctDeployService.cs" />
+    <Compile Include="Service\AbstractActivityExecutionService.cs" />
+    <Compile Include="Service\AbstractCountersignedService.cs" />
+    <Compile Include="Service\IActivityAllocationService.cs" />
+    <Compile Include="Service\IActivityDefinitionService.cs" />
+    <Compile Include="Service\IActivityExecutionService.cs" />
+    <Compile Include="Service\IActivityService.cs" />
+    <Compile Include="Service\IActivitySetService.cs" />
+    <Compile Include="Service\ICommentService.cs" />
+    <Compile Include="Service\ICountersignedService.cs" />
+    <Compile Include="Service\IDeployService.cs" />
+    <Compile Include="Service\IReportService.cs" />
+    <Compile Include="Service\ITaskAssignService.cs" />
+    <Compile Include="Service\IWorkflowDefinitionService.cs" />
+    <Compile Include="Service\IWorkflowPagerService.cs" />
+    <Compile Include="Service\IWorkflowService.cs" />
+    <Compile Include="Service\IWorkflowSettingService.cs" />
+    <Compile Include="WorkflowConfig.cs" />
+    <Compile Include="WorkflowHelper.cs" />
+    <Compile Include="WorkflowStates.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Botwave.Core\Botwave.Core.csproj">
+      <Project>{20CF5584-39AB-4274-BADA-0F50A4B6183A}</Project>
+      <Name>Botwave.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

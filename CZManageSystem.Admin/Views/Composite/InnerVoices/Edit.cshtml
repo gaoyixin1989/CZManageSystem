@@ -1,0 +1,316 @@
+﻿@{
+    ViewBag.Title = "我的心声编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@{ var user = ViewBag.User as CZManageSystem.Data.Domain.SysManger.Users;}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+<script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script>
+        var workflowName = '@ViewData["workflowName"]';
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter','$timeout', 'BusinessService', function ($scope, $filter,$timeout, BusinessService) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            $scope.curObj = {
+                IsInfo: '是',
+                IsNiming: '是'
+            };
+
+            var id = '@ViewData["id"]';
+            @*$scope.IsView = '@ViewBag.IsView';
+            $scope.IsEdit = ($scope.IsView!=true);//判断是否编辑*@
+
+            @*$scope.curObj.Creator = '@user.RealName';
+            $scope.curObj.DeptName = '@user.Dept.DpName';
+            $scope.curObj.Phone = '@user.Mobile';*@
+            //$scope.curObj.CreateTime = '@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")';
+
+
+
+            //if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response.Items;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+          //  }
+            BusinessService.getDictListByName('主题类型').success(function (response) {
+                $scope.dictCorpType = response.items;
+                $timeout(function () {
+                    if (!$scope.curObj.Themetype && !!response.defaultvalue) {
+                        $scope.curObj.Themetype = response.defaultvalue;
+                    }
+                }, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { loadComData1 = true; });
+
+
+            //提交数据
+            $scope.submit = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+
+                //先保存数据，保存数据成功后执行提交操作
+
+                var postData = $scope.curObj;
+                BusinessService.save(postData).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.load("submitData");
+                        var postData2 = {
+                            Voice: response.data,
+                            nextActivity: nextInfo.nextActivity,
+                            nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                            nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                        };
+                        BusinessService.submit(postData2).success(function (response2) {
+                            box.ready("submitData");
+                            if (response2.IsSuccess) {
+                                box.alert("提交成功", { icon: 'success' }, function () {
+                                    window.location.href = CurPath + 'InnerVoices/Myheart';
+                                });
+                            }
+                            else {
+                                box.alert(response2.Message, { icon: 'error' });
+                            }
+                        }).error(function (response2) {
+                            box.ready("submitData");
+                            box.alert(response2.Message, { icon: 'error' })
+                        });
+                    }
+                    else {
+                        box.alert(response.Message, { icon: 'error' });
+                    }
+                }).error(function (response) {
+                    box.alert(response.Message, { icon: 'error' })
+                });
+            };
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'InnerVoices/Edit?id=' + response.data.Id;
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert(response.Message, { icon: 'error' }) });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InnerVoices/Save',
+                    data: postData
+                });
+            };
+
+            serive.submit = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InnerVoices/Submit',
+                    data: postData
+                });
+            };
+
+
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InnerVoices/GetDataByID?id=' + id
+                });
+            };
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            //serive.get = function (id) {
+            //    return $http({
+            //        method: 'POST',
+            //        url: CurPath + 'MyCenter/GET/'
+            //        //param: id
+            //    });
+            //};
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+
+
+            <tr>
+                <th>标题：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Applytitle" ng-model="curObj.Applytitle" ng-maxlength="50" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Applytitle.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Applytitle.$error.required">请输入标题</span>
+                                <span ng-show="editForm.Applytitle.$error.maxlength">输入标题过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>主题类型：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="CorpID" required ng-model="curObj.Themetype" style="width:222px;">
+                                <option ng-repeat="x in dictCorpType" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Themetype.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择主题类型</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>个人信息是否公开：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="IsInfo" required ng-model="curObj.IsInfo" style="width:222px;">
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.IsInfo.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择个人信息是否公开</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>基层心声是否公开：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="IsNiming" required ng-model="curObj.IsNiming" style="width:222px;">
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.IsNiming.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择基层心声是否公开</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>内容：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" name="Remark" required ng-model="curObj.Remark">内容</textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Remark.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Remark.$error.required">请输入内容</span>
+
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>申请日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="CreateTime" ng-maxlength="50" ng-model="curObj.CreateTime" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.CreateTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.CreateTime.$error.required">请输入字典名称</span>
+                                <span ng-show="editForm.CreateTime.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="forEdit">
+                <td colspan="2">
+                    <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="submit()" class="cell-btn-blue" style="width:70px; margin-right:20px;">提交</a>
+                    <a href="../InnerVoices/Myheart" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

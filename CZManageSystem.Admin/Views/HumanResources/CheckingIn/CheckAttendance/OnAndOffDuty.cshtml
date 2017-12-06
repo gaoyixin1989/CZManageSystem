@@ -1,0 +1,323 @@
+﻿
+@{
+    ViewBag.Title = "查看详细";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'number', 'ngDialog']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", '$timeout', 'BusinessService', 'ngDialog', function ($scope, $filter, $timeout, BusinessService, ngDialog) {
+            var oDate = new Date(); //实例一个时间对象；
+            oDate.getFullYear();   //获取系统的年；
+            oDate.getMonth() + 1;   //
+            $scope.queryBuilder = {
+                EmployeeId: '',
+                UserId:[],
+                DpId: []
+            };
+            $scope.UserTypeDic;
+            $scope.Builder = {
+                UserNames: '',
+                DeptNames: ''
+            };
+
+            $scope.queryBuilder.DpId = '@ViewData["DpId"]';
+           var  Type ='@ViewData["Type"]';
+            //获取列表
+            var GetListData = function () {
+                box.load("loading");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder,
+                    type: Type
+                };
+                BusinessService.list(postData).success(function (response) {
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.Summarizing = response.model;
+                    $scope.ListPageData = response.items;
+                    box.ready("loading");
+                }).error(function (err) {
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+
+                    box.ready("loading");
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                if (z == null || z == "undefined") {
+                    return;
+                }
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.Edit = function () {
+                if (choseArr.length != 1 || choseArr[0] == "") {//没有选择一个的时候提示
+                    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                    return;
+                };
+                window.location.href = CurPath + 'CheckAttendance/Edit?key=' + choseArr[0];
+            }
+
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.IsSuccess) {
+                                box.alert("成功删除" + response.data.successCount + "条数据", { icon: 'success' });
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.Message.length > 0 ? response.Message : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                if ($scope.Builder.DeptNames == '')
+                    $scope.queryBuilder.DpId = [];
+                GetListData();
+            }
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.DpId;
+                    } break;
+                    case 'role': {
+                        title = '角色';
+                        // iframeSrc = '../UsersGrounp/SelectRoles?selectedId=' + $scope.roles.arrId.join(",");
+                    } break;
+                    case 'user': {
+                        title = '用户';
+                        iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.queryBuilder.UserId;
+                        wWidth = 760;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.DpId = getAttrByArr(result, 'id').join();
+                                            $scope.Builder.DeptNames = getAttrByArr(result, 'text').join();
+                                        } break;
+                                        case 'role': {
+                                            //$scope.roles.arrId = getAttrByArr(result, 'id');
+                                            //$scope.roles.arrText = getAttrByArr(result, 'text');
+                                        } break;
+                                        case 'user': {
+                                            $scope.queryBuilder.UserId = getAttrByArr(result, 'id').join();
+                                            $scope.Builder.UserNames = getAttrByArr(result, 'text').join();
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'CheckAttendance/GetOnAndOffDuty', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CheckAttendance/Delete',
+                    data: ids
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+
+            <tr>
+
+
+                <td>
+                    员工编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EmployeeId" class="cell-input" placeholder="员工编号" style="width:100px;" />
+                    </div>
+                </td>
+
+                <td>
+                    姓名：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="Builder.UserNames" ng-click="editMember('user')" readonly class="cell-input" style="width:100px;" placeholder="请选择" />
+                    </div>
+
+                </td>
+                <td>
+                    部门：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="Builder.DeptNames" ng-click="editMember('dept')" readonly class="cell-input" style="width:100px;" placeholder="请选择" />
+                    </div>
+
+                </td>
+
+
+                <td colspan="2">
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div class="public-table-main FixedHeaderColumnsTableDiv">
+
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>序号</th>
+                <th>员工编号</th>
+                <th>姓名</th>
+                <th>部门</th>
+                <th>日期</th>
+                <th>上班时间</th>
+                <th>下班时间</th>
+                <th>实际上班时间</th>
+                <th>实际下班时间</th>
+                <th>状态</th>
+                 
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="$index+1"> </td>
+                <td ng-bind="emp.EmployeeId"></td>
+                <td ng-bind="emp.RealName"></td>
+                <td ng-bind="emp.DpName"></td>
+                <td ng-bind="emp.AtDate"></td>
+                <td ng-if="Type==0" ng-bind="emp.AtDate"></td>
+                <td ng-if="Type!=0" ng-bind="emp.OffDate"></td>
+                <td ng-bind="emp.DoTime"></td>
+                <td ng-bind="emp.OffTime"></td>
+                <td ng-bind="emp.DoReallyTime"></td>
+                <td ng-bind="emp.OffReallyTime"></td>
+                @*<td ng-bind="emp.State"></td>*@
+                <td ng-if="Type==0" >上班</td>
+                <td ng-if="Type!=0" >下班</td>
+                
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                @*<li><a href="../CheckAttendance/Edit" class="btn-add"><i></i>添加</a></li>*@
+                @*<li><a ng-click="Edit()" class="btn-edit"><i></i>申报</a></li>*@
+                @*<li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>*@
+                @*<li><a ng-click="fileDialog()" class="btn-import"><i></i>导入</a></li>*@
+                @*<li><a href="../CheckAttendance/HaveBeenDeclared" class=""><i></i>已申报</a></li>*@
+                <li><a href="JavaScript:history.back(-1)" class="btn-back"><i></i>返回</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>

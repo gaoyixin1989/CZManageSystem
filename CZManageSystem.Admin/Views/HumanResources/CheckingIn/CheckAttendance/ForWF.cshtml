@@ -1,0 +1,197 @@
+﻿
+@{
+    ViewBag.Title = "考勤异常申报查看";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+        var type = '@ViewData["type"]';
+        var change = '@ViewData["change"]';
+        var step = '@ViewData["step"]';
+
+
+        //保存
+        function getSaveJudgeResult() {
+            var appElement = document.querySelector('[ng-controller=CreateController]');
+            var $scope = angular.element(appElement).scope();
+            var mm = false;
+            mm = $scope.saveResult();
+            return mm;
+        }
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$rootScope', '$filter', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $rootScope, $filter, $timeout, BusinessService, ngDialog) {
+           
+            var key = '@ViewData["key"]';
+            if (key != null && key.toString().length > 0) {
+                box.load("load");
+                BusinessService.getDataByID(key).success(function (response) {
+                    $scope.curObj = response.data; 
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("load");
+            }
+           
+
+            //
+            $scope.saveResult = function () {
+                var isSuccess = false;
+                var isR = parent.checkReason();//获取父级的验证方法
+                if (!isR)//看页面的验证是否都通过了
+                    return;
+                if ($scope.curObj.AttendanceIds == null || $scope.curObj.AttendanceIds == 'undefined' || $scope.curObj.AttendanceIds.length < 1) {
+                    box.alert("AttendanceId为空，考勤申请状态无法更新！", { icon: 'error' });
+                    return;
+                }
+                var postData =
+                { AttendanceIds: $scope.curObj.AttendanceIds};
+                $.ajax({
+                    url: CurPath + 'CheckAttendance/saveResult',
+                    data: JSON.stringify(postData),
+                    type: 'POST',
+                    async: false,
+                    contentType: 'application/json;charset=utf-8',
+                    success: function (response) {
+                        if (response.IsSuccess) {
+                            isSuccess = true;
+                        }
+                        else {
+                            box.alert("考勤申请状态失败！", { icon: 'error' });
+                        }
+                    },
+                    error: function () {
+                        box.alert("网络出错！", { icon: 'error' })
+                    }
+                });
+                return isSuccess;
+            };
+
+        }]);
+         //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.getDataByID = function (id) {//获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CheckAttendance/GetAbnormalInfoByID?key=' + id
+                });
+            };
+            serive.getCarsInfo = function (postData) {//获取车辆信息列表
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CheckAttendance/GetCarsInfo',
+                    data: postData
+                });
+            };
+
+
+            return serive;
+        }]);
+
+    </script>
+    <style>
+        .ui-label label {
+            margin-right: 10px;
+            line-height: 30px;
+            float: left;
+        }
+
+        .showMulti {
+            /*background-color: #F9F9F9;*/
+        }
+
+        .WF_Table {
+            width: 100%;
+            border: 1px solid #EAEAEA;
+            border-width: 1px 0px 0px 1px;
+            border-collapse: collapse;
+        }
+
+            .WF_Table tr th {
+                background: white;
+                padding: 7px;
+                font-weight: bold;
+                border: 1px solid #EAEAEA;
+                border-width: 0px 1px 1px 0px;
+                text-align: center;
+            }
+
+            .WF_Table tr td {
+                padding: 5px;
+                border: 1px solid #EAEAEA;
+                border-width: 0px 1px 1px 0px;
+                width: 35%;
+            }
+
+            .WF_Table tr th {
+                background: #F4F4F4;
+                width: 15%;
+            }
+    </style>
+}
+<!--公告编辑--->
+
+<div id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" xmlns:ng="http://angularjs.org">
+    <div>
+        <form id="isHide" action="" style="display:none " method="post" name="judgeForm" novalidate></form>
+        <table id="ForEdit" class="WF_Table" cellpadding="0" cellspacing="0">
+            <tr><td style="color:red;" colspan="4">申请信息如下</td></tr>
+            <tr>
+                <th>申请人：</th>
+                <td ng-bind="curObj.ApplyUserName"></td>
+                <th>申请时间：</th>
+                <td ng-bind="curObj.CreateTime|date:'yyyy-MM-dd'"></td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td ng-bind="curObj.Mobile"></td>
+                <th>所在部门：</th>
+                <td ng-bind="curObj.ApplyDept"></td>
+
+            </tr>
+            <tr>
+                <th>流程单号：</th>
+                <td ng-bind="curObj.ApplySn" colspan="3"></td>
+
+            </tr>
+            <tr>
+                <th>主题名称：</th>
+                <td ng-bind="curObj.ApplyTitle" colspan="3"></td>
+            </tr>
+
+            <tr>
+                <th>异常记录：</th>
+                <td ng-bind="curObj.RecordContent" colspan="3"></td>
+            </tr>
+
+            <tr>
+                <th>异常原因：</th>
+                <td ng-bind="curObj.Reason" colspan="3"></td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td ng-bind="curObj.Remark" colspan="3"></td>
+            </tr>
+
+
+        </table>
+        <div id="isBack" style="text-align:center;display:none ">
+            <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+            @* <a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+        </div>
+    </div>
+
+</div>
+<!--公告编辑 end--->

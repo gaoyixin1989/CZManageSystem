@@ -1,0 +1,172 @@
+﻿
+@{
+    ViewBag.Title = "ApplyView";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.apply = {};
+            var Id = '@ViewData["Id"]';
+            $scope.apply = {};
+            if (Id != null && Id.toString().length > 0) {
+                BusinessService.getDataByID(Id).success(function (response) {
+                    $scope.apply = response.items[0];
+                    //获取耗材详情
+                    BusinessService.getDataByApplyID(Id).success(function (data) {
+                        box.load("GetListData");
+                        box.ready("GetListData");
+                        $scope.Data = data.items;
+                       // $scope.total = data.Total;
+                        //$.each($scope.Data, function (i, item) {
+
+                        //})
+                    }).error(function (err) {
+                        box.ready("GetListData");
+                        box.alert("网络出错！", { icon: 'error' });
+                    });
+                    //---------------------------
+
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+            //-------------------------------------
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByApplyID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MonthEstimate/GetListByApplyID/' + ID
+
+                });
+            };
+            serive.getDataByID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'MonthEstimate/GetByID?ID=' + ID
+
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 100%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+    }
+
+        .WF_Table tr th {
+            background: white;
+            padding: 7px;
+            font-weight: bold;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            text-align: center;
+        }
+
+        .WF_Table tr td {
+            padding: 5px;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            width: 35%;
+        }
+
+        .WF_Table tr th {
+            background: #F4F4F4;
+            width: 15%;
+        }
+</style>
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table class="WF_Table">
+            <tr>
+                <th>申请人：</th>
+                <td>{{apply.ApplyName}}</td>
+                <th>所在部门：</th>
+                <td>{{apply.DpName}} </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td> {{apply.Mobile}}  </td>
+                <th>申请日期：</th>
+                <td>
+                    {{apply.ApplyTime}}
+                </td>
+            </tr>
+            <tr>
+                <th>标题：</th>
+                <td>
+                    {{apply.Title}}
+                </td>
+                <th>流程单号：</th>
+                <td>
+                    {{apply.Series}}
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    {{apply.Content}}
+                </td>
+            </tr>
+        </table>
+        <div class="public-table-main">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <th>年份</th>
+                    <th>月份</th>
+                    <th>项目编号</th>
+                    <th>项目名称</th>
+                    <th>合同编号</th>
+                    <th>合同名称</th>
+                    <th>合同金额(元)</th>
+                    <th>实际合同金额(元)</th>
+                    <th>形象进度(%)</th>
+                    <th>已付款金额</th>
+                    <th>暂估金额</th>
+                </tr>
+                <tr ng-repeat="temp in Data" on-finish-render-filters>
+                    <td ng-bind="temp.Year"></td>
+                    <td ng-bind="temp.Month"></td>
+                    <td style="color:blue;" ng-bind="temp.ProjectID" ng-click="clickTitle(temp)"></td>
+                    <td ng-bind="temp.ProjectName"></td>
+                    <td ng-bind="temp.ContractID"></td>
+                    <td ng-bind="temp.ContractName"></td>
+                    <td ng-bind="temp.SignTotal"></td>
+                    <td ng-bind="temp.PayTotal"></td>
+                    <td ng-bind="temp.Rate"></td>
+                    <td ng-bind="temp.Pay"></td>
+                    <td ng-bind="temp.NotPay"></td>
+                </tr>
+              
+            </table>
+        </div>
+    </form>
+</div>
+

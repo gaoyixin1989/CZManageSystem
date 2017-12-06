@@ -1,0 +1,572 @@
+﻿
+@{
+    ViewBag.Title = "成本归口管理申请";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    @*<script src="~/Content/Javascript/jscroll.js"></script>*@
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+<script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        var workflowName = '@ViewData["workflowName"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        function addJsCroll(elememt) {
+            if ($(elememt).length > 0) {
+                $(elememt).jscroll({
+                    W: "8px",
+                    BgUrl: "",
+                    Bg: "#f4f4f4",
+                    Bar: {
+                        //Pos: "bottom",
+                        Bd: { Out: "#f4f4f4", Hover: "#f4f4f4" },
+                        Bg: { Out: "#0085d1", Hover: "#03a3fe", Focus: "#03a3fe" }
+                    },
+                    Btn: { btn: false }
+                });
+            }
+        }
+
+
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number', 'datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', 'BusinessService', 'ngDialog', '$timeout', function ($scope, $filter, BusinessService, ngDialog, $timeout) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            //获取当前数据
+            var ApplyId = '@ViewData["ApplyId"]';
+            $scope.curObj = {};
+            var selectedId = "";
+            $scope.dictSourceType = [];
+            $scope.curObj.BudgetDept = "";
+            var myDate = new Date();
+            $scope.curObj.Year = myDate.getFullYear();
+            //-----------------------------
+            var hasReadly = false;
+            if (ApplyId != null && ApplyId.toString().length > 0) {
+                BusinessService.getDataByID(ApplyId).success(function (response) {
+                    $scope.curObj = response.items;
+                    $scope.curObj.Year = $scope.curObj.Year.toString();
+                    //---------------------------
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                }).then(function () { hasReadly = true;});
+            }
+            else {
+                BusinessService.GetNewApplyInfo().success(function (response) {
+                    for (var item in response) {
+                        $scope.curObj[item] = response[item];
+                    }
+                }).error(function (err) {
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { hasReadly = true; });
+            }
+
+            //设置相关的配置信息
+            $scope.setConfigureData = function () {
+                $timeout(function () {
+                    if (hasReadly) {
+                        BusinessService.GetSourceList($scope.curObj.BudgetDept, $scope.curObj.Year).success(function (response) {
+                            $scope.dictSourceType = response.NameList;
+
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        $scope.setConfigureData();
+                    }
+                }, 100);
+            }
+            $scope.setConfigureData();//设置相关的配置信息
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.curObj.SourceTypeID = $scope.curObj.SourceType.ID;
+                    var postData = {
+                        dataObj: $scope.curObj
+                    }
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'ComeBackApply/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //提交数据，提交数据时先执行保存数据
+            $scope.submit = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = {
+                        dataObj: $scope.curObj
+                    }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var sumbitData = {
+                                ApplyId: response.Message,
+                                nextActivity: nextInfo.nextActivity,
+                                nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                            };
+                            box.load("submit");
+                            BusinessService.SubmitApply(sumbitData).success(function (response2) {
+                                box.ready("submit");
+                                if (response2.IsSuccess) {
+                                    box.alert("提交成功", { icon: 'success' }, function () {
+                                        window.location.href = CurPath + 'ComeBackApply/Index';
+                                    });
+                                }
+                                else {
+                                    box.alert(response2.Message.length > 0 ? response2.Message : "提交失败", { icon: 'error' });
+                                }
+                            }).error(function (response2) {
+                                box.ready("submit");
+                                box.alert("网络出错！", { icon: 'error' });
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+
+          
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.curObj.BudgetDpId;
+                    } break;
+                    case 'user': {
+                        title = '姓名';
+                        var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.curObj.ProjManagerId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.curObj.BudgetDpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.curObj.BudgetDept = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        case 'user': {
+                                            $scope.curObj.ProjManagerId = getAttrByArr(result, 'id').join(',');
+                                            $scope.curObj.ProjManager = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //$scope.GetSourceType = function () {
+            //    BusinessService.CheckChildRemain($scope.curObj.BudgetDept, $scope.curObj.Year).success(function (response) {
+            //        $('.reason').show();
+            //        $scope.explain = "（" + response.typeremain[0]["Year"] + "年度预算额度" + response.typeremain[0]["Amount"] + "元，剩余额度" + response.typeremain[0]["RemainAmount"] + "元）。"
+            //    }).error(function (response) {
+            //        box.alert("错误!!！", { icon: 'error' });
+            //    })
+            //}
+
+            //------------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetNewApplyInfo = function () {//获取新的申请信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ComeBackApply/getApplyInfo'
+                });
+            };
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ComeBackApply/Save_ComebackApply',
+                    data: postData
+                });
+            };
+            serive.SubmitApply = function (postData) {//提交
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ComeBackApply/Sumbit_ComebackApply',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (ApplyId) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ComeBackApply/ComebackApplyGetByID?ApplyId=' + ApplyId
+
+                });
+            };
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            serive.GetSourceList = function (BudgetDept,Year) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ComeBackApply/GetSourceList',
+                    data: { BudgetDept: BudgetDept, Year: Year }
+                });
+            };
+            return serive;
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            setByType();
+                            //scope.$emit('ngRepeatFinished');
+                            //addJsCroll(element.parents('.jscroll'));
+                        });
+                    }
+                }
+            };
+        });
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr class="editWithout">
+                    <th>申请人：</th>
+                    <td><label>{{curObj.ApplyUser}}</label> </td>
+                </tr>
+                <tr>
+                    <th style="width:20%">流程单号：</th>
+                    <td>{{curObj.Series==null?'(提交时自动生成)':curObj.Series}}</td>
+                    <th class="editWithout" style="width:20%">所在部门：</th>
+                    <td class="editWithout" ng-bind="curObj.ApplyDept"></td>
+                </tr>
+                <tr class="editWithout">
+                    <th>申请日期：</th>
+                    <td ng-bind="curObj.ApplyTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                    <th>手机号码：</th>
+                    <td ng-bind="curObj.Mobile"></td>
+                </tr>
+                <tr>
+                    <th>主题：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="Title" ng-model="curObj.Title" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Title.$error.required">请输入标题</span>
+                                    <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>预算年度：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="Year" name="Year" date-Picker dateFmt="yyyy" ng-model="curObj.Year" ng-change="setConfigureData()" class="cell-input cell-input-data" >
+                            <i class="icon-data"></i>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Year.$invalid&&editForm.failSubmited">
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择年度</div>
+                                @*</div>*@
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>预算需求部门：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" style="display:none;" name="BudgetDpId" ng-model="curObj.BudgetDpId" ng-change="setConfigureData()" ng-class="cell-input" />
+                            <input type="text" style="width:150px;" name="ApplyDept" ng-model="curObj.BudgetDept" required class="cell-input" ng-click="editMember('dept')" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.BudgetDept.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择预算需求部门</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>申请资源类别：</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="Year" required ng-model="curObj.SourceType" ng-options="a.Name for a in dictSourceType" class="cell-input" style="width:170px;"></select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.SourceTypeID.$invalid&&editForm.failSubmited">
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择申请资源类别</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>拟开展项目名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="ProjName" ng-model="curObj.ProjName" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ProjName.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ProjName.$error.required">请输入拟开展项目名称</span>
+                                    <span ng-show="editForm.ProjName.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目开始时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="StartTime" name="TimeStart" required date-Picker dateFmt="yyyy-MM-dd HH:mm:ss " ng-model="curObj.TimeStart" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.TimeStart.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入开始时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目结束时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="TimeEnd" name="EndTime" required date-Picker dateFmt="yyyy-MM-dd HH:mm:ss" ng-model="curObj.TimeEnd" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.TimeEnd.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入结束时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>拟立或已立预算项目名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="PrevProjName" ng-model="curObj.PrevProjName" ng-maxlength="100" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PrevProjName.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.PrevProjName.$error.required">请输入拟开展项目名称</span>
+                                    <span ng-show="editForm.PrevProjName.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>拟立或已立预算项目编号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="PrevProjCode" ng-model="curObj.PrevProjCode" ng-maxlength="100" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PrevProjCode.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.PrevProjCode.$error.required">请输入拟开展项目名称</span>
+                                    <span ng-show="editForm.PrevProjCode.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目经办人：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" style="display:none;" name="ProjManagerId" ng-model="curObj.ProjManagerId" ng- class="cell-input" />
+                            <input type="text" style="width:150px;" name="ProjManager" ng-model="curObj.ProjManager" required class="cell-input" ng-click="editMember('user')" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ProjManager.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择项目经办人</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>申请额度不含税金：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" style="width:150px;" name="AppAmount" ng-model="curObj.AppAmount" required class="cell-input"  />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.AppAmount.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入不含税金金额</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>申请额度含税金：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" style="width:150px;" name="AppAmountHanshui" ng-model="curObj.AppAmountHanshui" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.AppAmountHanshui.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入含税金金额</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>项目开展必要性及效益性分析：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:550px;" name="ProjAnalysis" ng-model="curObj.ProjAnalysis" required ng-maxlength="200" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ProjAnalysis.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ProjAnalysis.$error.required">请输入项目开展必要性及效益性分析</span>
+                                    <span ng-show="editForm.ProjAnalysis.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:550px;" name="Remark" ng-model="curObj.Remark" ng-maxlength="200" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="4">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a id="btnSave" ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+

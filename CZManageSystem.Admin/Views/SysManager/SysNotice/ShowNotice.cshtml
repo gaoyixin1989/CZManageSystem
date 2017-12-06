@@ -1,0 +1,41 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+
+}
+<style>
+    body {
+        min-width: 0px;
+        width: 80%;
+        margin: auto;
+        padding: 30px 20px;
+    }
+
+    .title {
+        font-size: 25px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .content {
+        font-size: 16px;
+        margin: 10px 15px;
+    }
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <div >
+        <div><p class="title">@ViewBag.Title</p></div>
+        <div style="text-align:center;">
+            <span>作者：</span><span>@ViewBag.Creator</span>
+            <span style="margin-left:50px;">时间：</span><span> @ViewBag.Createdtime </span>
+        </div>
+        <hr />
+        <div class="content">@Html.Raw(ViewBag.Content);</div>
+    </div>
+</div>
+<!--公告编辑 end--->

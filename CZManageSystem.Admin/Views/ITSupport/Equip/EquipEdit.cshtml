@@ -1,0 +1,95 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate',[]);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EquipController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            var Id = '@ViewData["Id"]';
+            $scope.equip = { EnableFlag: false };
+            if (Id != null && Id.toString().length > 0) {
+
+                BusinessService.getDataByID(Id).success(function (response) {
+                    $scope.equip = response;
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.equip.Id = Id;
+                    var postData = $scope.equip;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Equip/EquipIndex';
+                            });
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Equip/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (Id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Equip/GetDataByID/' + Id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="CreateOrUpdate" ng-controller="EquipController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>设备类型：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="EquipClass" ng-model="equip.EquipClass" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.EquipClass.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.EquipClass.$error.required">请输设备类型</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../Equip/EquipIndex" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+

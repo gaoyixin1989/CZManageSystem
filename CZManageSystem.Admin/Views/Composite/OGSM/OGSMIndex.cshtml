@@ -1,0 +1,638 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <link href="~/Content/app/AngularJsMultiSelect/isteven-multi-select.css" rel="stylesheet" />
+    <script src="~/Content/app/AngularJsMultiSelect/isteven-multi-select.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'isteven-multi-select', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('OGSMController', ['$scope', "$filter", 'BusinessService', 'ngDialog', '$timeout', function ($scope, $filter, BusinessService, ngDialog, $timeout) {
+            $scope.queryBuilder = {
+                Group_Name: [],
+                USR_NBR: "",
+                BaseStation: [],
+                PowerType: "",
+                PropertyRight: [],
+                IsShare: "",
+                IsRemove: "",
+                ContractEndTime_Start: "",
+                ContractEndTime_End: ""
+            };
+            $scope.GroupNameList = [
+                { text: "市区", value: "市区", ticked: false },
+                { text: "潮安", value: "潮安", ticked: false },
+                { text: "饶平", value: "饶平", ticked: false }
+            ];
+            $scope.PropertyRightList = [
+                { text: "移动", value: "移动", ticked: false },
+                { text: "铁塔", value: "铁塔", ticked: false },
+                { text: "第三方", value: "第三方", ticked: false }
+            ];
+            $scope.groupnameSelected = [];
+            $scope.basestationSelected = [];
+            $scope.propertySelected = [];
+            //获取户号作为下拉框字典
+            BusinessService.getBaseStationAsDict().success(function (response) {
+                $scope.BaseStationsList = response;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { });
+
+
+
+            var qureyB = function () {
+                $scope.master = false;
+
+                choseArr = [];
+                $scope.queryBuilder.BaseStation = [];
+                $scope.queryBuilder.Group_Name = [];
+                if ($scope.basestationSelected.length > 0) {
+                    $.each($scope.basestationSelected, function (i, item) {
+                        $scope.queryBuilder.BaseStation.push(item.BaseStation);
+                    })
+                }
+                if ($scope.groupnameSelected.length > 0) {
+                    $.each($scope.groupnameSelected, function (i, item) {
+                        $scope.queryBuilder.Group_Name.push(item.value);
+                    })
+                }
+                if ($scope.propertySelected.length > 0) {
+                    $.each($scope.propertySelected, function (i, item) {
+                        $scope.queryBuilder.PropertyRight.push(item.value);
+                    })
+                }
+
+            }
+
+            $scope.resetComData = function () {
+                if ($scope.BaseStationsList == undefined) {
+                    $timeout(function () {
+                        $scope.resetComData();
+                    }, 100);
+                }
+                else {
+                    $.each($scope.GroupNameList, function (i, item) {
+                        if (postData.queryBuilder.Group_Name.indexOf(item.value) > -1)
+                            item.ticked = true;
+                    })
+                    $.each($scope.PropertyRightList, function (i, item) {
+                        if (postData.queryBuilder.PropertyRight.indexOf(item.value) > -1)
+                            item.ticked = true;
+                    })
+                    $.each($scope.BaseStationsList, function (i, item) {
+                        if (postData.queryBuilder.BaseStation.indexOf(item.BaseStation) > -1)
+                            item.ticked = true;
+                    })
+                }
+            }
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                qureyB();
+                //queryBuilder: $scope.queryBuilder                
+                //var postData = {
+                //    pageIndex: $scope.paginationConf.currentPage,
+                //    pageSize: $scope.paginationConf.itemsPerPage,
+                //    queryBuilder: $scope.queryBuilder
+                //}
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                    $scope.resetComData();
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.AddData = function () {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'OGSM/OGSMEdit';
+            }
+
+            $scope.OGSMEdit = function (id) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                        return;
+                    };
+                    url = CurPath + 'OGSM/OGSMEdit?id=' + choseArr[0];
+                }
+                else {
+                    url = CurPath + 'OGSM/OGSMEdit?id=' + id;
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+
+                //if (choseArr[0] == "" || choseArr.length != 1) {//没有选择一个的时候提示
+                //    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                //    return;
+                //};
+                ////alert(choseArr[0]);
+                //window.location.href = CurPath + 'OGSM/OGSMEdit?Id=' + choseArr[0];
+
+            }
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据在操作！")
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            ///alert(response.message);
+                            if (response.message == "删除成功") {
+                                GetListData();
+                                choseArr = new Array();
+                            }
+                            else {
+                                ///alert(response.status);
+                                var status=response.status;
+                                if (status == "2")
+                                {
+                                    box.alert("选择的记录中存在明细，只能删除没有明细的记录！", { icon: 'error' });
+                                } else
+                                {
+                                    box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                                }
+
+                            }
+                        });
+                    }
+                });
+            };
+
+            $scope.deleteOne = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData([id]).success(function (response) {
+                            if (response.message == "删除成功") {
+                                box.alert("删除成功", { icon: 'success' });
+                                $scope.query();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+            //打开窗口
+            $scope.openWindow = function (type, value) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var strUrl = "";
+                var data = {};
+                var wWidth = 530;
+                var wHeight = 360;
+
+                switch (type) {
+                    case 'BaseStation': {//选择项目
+                        wWidth = 600;
+                        wHeight = 450;
+                        title = "选择";
+                        strUrl = '../OGSM/SelectBaseStationIndex';
+                        data = {
+                            selectedId: value
+                        };
+                    } break;
+                    default: {
+                        box.alert('没有对应的窗口类型！', { icon: 'error' });
+                    } break;
+                }
+
+                box.popup('',
+                                    {
+                                        url: strUrl,
+                                        iframeData: data,
+                                        iframeId: iframeId,
+                                        title: title,
+                                        width: wWidth,//窗口宽度，默认400
+                                        wHeight: 380,//窗口高度，默认400
+                                        hasOk: true,
+                                        hasCancel: true,
+                                        onBeforeClose: function (data) {
+                                            if (data == true) {
+                                                var theWindow = window;
+                                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                                    theWindow = theWindow.parent;
+                                                }
+                                                if (!theWindow.frames[iframeId]) {
+                                                    box.alert('出错！', { icon: 'error' });
+                                                }
+                                                else {
+                                                    var result = theWindow.frames[iframeId].getResult();
+                                                    switch (type) {
+                                                        case 'BaseStation': {//选择项目
+                                                            if (result.length > 0) {
+                                                                $scope.queryBuilder.BaseStation = getAttrByArr(result, 'text');
+                                                            }
+                                                            else
+                                                            {
+                                                                $scope.queryBuilder.BaseStation = [];
+                                                            }
+                                                        } break;
+                                                        default: break;
+                                                    }
+                                                    $scope.$apply();
+                                                }
+                                            }
+                                        }
+                                    });
+
+
+            }
+            //导入数据
+            $scope.fileDialog = function () {
+                var _type = 'OGSMBase'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入数据',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        box.load("loadding");
+                        //获取会议室资料信息
+                        $scope.query();
+                        box.ready("loadding");
+                    }
+                });
+
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OGSM/GetOGSMListData', postData);
+            };
+
+            serive.ExportData = function (postData) {
+                return $http.post(CurPath + 'OGSM/OGSMExport', postData);
+            };
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/OGSMDelete',
+                    data: ids
+                });
+            };
+            serive.getBaseStationAsDict = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/getBaseStationAsDict'
+                });
+            };
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+
+
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="OGSMController">
+    <!--content--->
+    <div class="search-mod" style="height:90px;">
+        <table>
+            <tr>
+                <td>
+                    归属分公司：
+                </td>
+
+                <td>
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="GroupNameList"
+                             output-model="groupnameSelected"
+                             button-label="text"
+                             item-label="text"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:120px;">
+                        </div>
+                    </div>
+                    @*<div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" ng-model="queryBuilder.Group_Name" style="width:70px;">
+                                    <option value="">全部</option>
+                                    <option value="市区">市区</option>
+                                    <option value="潮安">潮安</option>
+                                    <option value="饶平">饶平</option>
+                                </select>
+                            </div>
+                        </div>*@
+                </td>
+                <td>所属基站/服务厅：</td>
+                <td>
+                    @*<div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.BaseStation" class="cell-input" style="width:80px;" ng-click="openWindow('BaseStation',queryBuilder.BaseStation)" />
+                    </div>*@
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="BaseStationsList"
+                             output-model="basestationSelected"
+                             button-label="BaseStation"
+                             item-label="BaseStation"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:160px;"
+                             max-height="300px;">
+                        </div>
+                    </div>
+                    @*<div class="ui-input">
+
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="BaseStation" ng-model="queryBuilder.BaseStation" style="width:70px; margin-left:5px;">
+                                    <option value="">全部</option>
+                                    <option ng-repeat="x in dictBaseStations" value="{{x.BaseStation}}">{{x.BaseStation}}</option>
+                                </select>
+                            </div>
+                        </div>*@
+                </td>
+                <td>
+                    是否拆除：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.IsRemove" style="width:70px;">
+                                <option value="">全部</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    用电类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.PowerType" style="width:70px;">
+                                <option value="">全部</option>
+                                <option value="公电">公电</option>
+                                <option value="私电">私电</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    是否分摊电费：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.IsShare" style="width:70px;">
+                                <option value="">全部</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    产权方：
+                </td>
+                <td>
+                    <div class="selectdrapdown">
+                        <div isteven-multi-select
+                             input-model="PropertyRightList"
+                             output-model="propertySelected"
+                             button-label="text"
+                             item-label="text"
+                             tick-property="ticked"
+                             helper-elements=""
+                             style="width:120px;">
+                        </div>
+                    </div>
+                    @*<div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" ng-model="queryBuilder.PropertyRight" style="width:70px;">
+                                    <option value="">全部</option>
+                                    <option value="移动">移动</option>
+                                    <option value="铁塔">铁塔</option>
+                                    <option value="第三方">第三方</option>
+                                </select>
+                            </div>
+                        </div>*@
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:center">
+                    户号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.USR_NBR" class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+
+                <td>
+                    合同到期时间：
+                </td>
+                <td colspan="3">
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="ContractEndTime_Start" date-Picker ng-model="queryBuilder.ContractEndTime_Start" class="cell-input cell-input-data" style="width:80px;" readonly>
+                        <i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" id="ContractEndTime_End" date-Picker ng-model="queryBuilder.ContractEndTime_End" class="cell-input cell-input-data" style="width:80px;" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                @*<td style="text-align:center">至&nbsp;:</td>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="ContractEndTime_End" date-Picker ng-model="queryBuilder.ContractEndTime_End" class="cell-input cell-input-data" style="width:80px;" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>*@
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        @*<table>
+                <tr>
+                    <th></th>
+                    <td>
+                        <div class="the-text-area">
+                            <input type="file" id="Importfile" name="Importfile" />
+                            <a ng-click="Edata()" class="cell-btn-blue" style="width:70px; margin-right:20px;">上传</a>
+                        </div>
+                    </td>
+                </tr>
+            </table>*@
+        <table></table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>分公司</th>
+                <th>镇区</th>
+                <th>户号</th>
+                <th>供电所名称</th>
+                <th>基站/服务厅</th>
+
+                <th>用电类型</th>
+                <th>产权方</th>
+                <th>是否拆除</th>
+                <th>拆除时间</th>
+                <th>用电单价</th>
+                <th>物业属性</th>
+                <th>联系人</th>
+                <th>是否分摊电费</th>
+                <th>合同开始时间</th>
+                <th>合同到期时间</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.USR_NBR}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.USR_NBR)" /></td>
+                <td ng-bind="emp.Group_Name"></td>
+                <td ng-bind="emp.Town"></td>
+                <td><a ng-bind="emp.USR_NBR" ng-click="OGSMEdit(emp.USR_NBR)"></a></td>
+                @*<td ng-bind="emp.USR_NBR"></td>*@
+                <td ng-bind="emp.PowerStation"></td>
+                <td ng-bind="emp.BaseStation"></td>
+
+                <td ng-bind="emp.PowerType"></td>
+                <td ng-bind="emp.PropertyRight"></td>
+                <td ng-bind="emp.IsRemove"></td>
+                <td ng-bind="emp.RemoveTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td ng-bind="emp.Price"></td>
+                <td ng-bind="emp.Property"></td>
+                <td ng-bind="emp.LinkMan"></td>
+                <td ng-bind="emp.IsShare"></td>
+                <td ng-bind="emp.ContractStartTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td ng-bind="emp.ContractEndTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="AddData()" class="btn-add"><i></i>添加</a></li>
+                <li><a ng-click="OGSMEdit('')" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                <li><a ng-click="fileDialog()" class="btn-import"><i></i>导入</a></li>
+                <li><a href="../OGSM/OGSMExport?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

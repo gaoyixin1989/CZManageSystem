@@ -1,0 +1,310 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('ListDataController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {};
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.editData = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请选中一条数据再操作！");
+                    return;
+                };
+                window.location.href = CurPath + 'SourceChild/Edit?Id=' + choseArr[0].ID;
+            }
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'SourceChild/Edit?ID=' + obj.ID;
+                src += '&type=look';
+                window.location.href = src;
+            }
+            //修改按钮
+            $scope.editData = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                window.location.href = CurPath + 'SourceChild/Edit?type=edit&ID=' + choseArr[0];
+            }
+            //---------------
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.BudgetDpId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.BudgetDpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.queryBuilder.BudgetDept = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            $scope.fileDialog = function () {
+                var _type = 'ComebackChild'; //导入的类型
+                var data = "";
+                var dialog = ngDialog.openConfirm({
+                    title: '归口小项导入',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        GetListData();
+                    }
+                });
+
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'SourceChild/GetChildListData', postData);
+            };
+
+            serive.deleteData = function (Id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SourceChild/DeleteChild',
+                    data: {Ids: Id }
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ListDataController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    年份：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="YearStart" name="YearStart" date-Picker dateFmt="yyyy" ng-model="queryBuilder.YearStart" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>到:</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="YearEnd" name="YearEnd" date-Picker dateFmt="yyyy" ng-model="queryBuilder.YearEnd" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>部门:</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="BudgetDpId" ng-model="queryBuilder.BudgetDpId" ng- class="cell-input" />
+                        <input type="text" style="width:150px;" name="ApplyDept" ng-model="queryBuilder.BudgetDept" class="cell-input" ng-click="editMember('dept')" />
+                    </div>
+                </td>
+                <td>归口项目:</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="width:150px;" id="ProName" name="ProName"  ng-model="queryBuilder.ProName" class="cell-input ">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>归口小项:</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="width:150px;" id="Name" name="Name"  ng-model="queryBuilder.Name" class="cell-input " >
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>年份</th>
+                <th>部门</th>
+                <th>归口项目</th>
+                <th>归口小项</th>
+                <th>预算额度</th>
+                <th>剩余额度</th>
+                <th>备注</th>
+            </tr>
+            <tr ng-repeat="temp in ListPageData">
+                <td><input type="checkbox" id="{{temp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,temp.ID)" /></td>
+                <td ng-bind="temp.Year"></td>
+                <td ng-bind="temp.BudgetDept"></td>
+                <td style="color:blue;" ng-bind="temp.ProName" ng-click="clickTitle(temp)"></td>
+                <td ng-bind="temp.Name"></td>
+                <td ng-bind="temp.Amount"></td>
+                <td ng-bind="temp.RemainAmount"></td>
+                <td ng-bind="temp.Remark"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../SourceChild/Edit?type=edit" class="btn-add"><i></i>添加</a></li>
+                <li><a href="javascript:void(0);" ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                <li><a href="../SourceChild/Index" class="btn-back"><i></i>返回</a></li>
+                <li><a ng-click="fileDialog()" class="btn-import"><i></i>导入</a></li>
+                <li><a href="../SourceChild/ComebackChildDownload?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

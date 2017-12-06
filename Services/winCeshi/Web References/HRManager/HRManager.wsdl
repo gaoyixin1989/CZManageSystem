@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="GetAllUserInfo">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetAllUserInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetAllUserInfoResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserInfoByDPID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="DPID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="withInherit" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserInfoByDPIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserInfoByDPIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserInfoByUserID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetUserInfoByUserIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetUserInfoByUserIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryRank">
+        <s:complexType />
+      </s:element>
+      <s:element name="QueryRankResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryRankResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryPost">
+        <s:complexType />
+      </s:element>
+      <s:element name="QueryPostResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryPostResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAllDepartmentInfo">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetAllDepartmentInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetAllDepartmentInfoResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetDepartmentInfoByUserID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetDepartmentInfoByUserIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetDepartmentInfoByUserIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetDepartmentInfoByDPID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="DPID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="withInherit" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetDepartmentInfoByDPIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetDepartmentInfoByDPIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryDepartmentName">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="departmentID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryDepartmentNameResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryDepartmentNameResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEmployeeName">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="employeeID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEmployeeNameResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryEmployeeNameResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryPostName">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="postID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryPostNameResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryPostNameResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryRankName">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="rankID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryRankNameResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryRankNameResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEmployeesByPostID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="postID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="includeChild" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEmployeesByPostIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryEmployeesByPostIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetManagerInfo">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetManagerInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetManagerInfoResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEmployeesByRankID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="rankID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="includeChild" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryEmployeesByRankIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryEmployeesByRankIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetAllUserInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAllUserInfo" />
+  </wsdl:message>
+  <wsdl:message name="GetAllUserInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAllUserInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserInfoByDPIDSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserInfoByDPID" />
+  </wsdl:message>
+  <wsdl:message name="GetUserInfoByDPIDSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserInfoByDPIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetUserInfoByUserIDSoapIn">
+    <wsdl:part name="parameters" element="tns:GetUserInfoByUserID" />
+  </wsdl:message>
+  <wsdl:message name="GetUserInfoByUserIDSoapOut">
+    <wsdl:part name="parameters" element="tns:GetUserInfoByUserIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryRankSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryRank" />
+  </wsdl:message>
+  <wsdl:message name="QueryRankSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryRankResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryPostSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryPost" />
+  </wsdl:message>
+  <wsdl:message name="QueryPostSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryPostResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAllDepartmentInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAllDepartmentInfo" />
+  </wsdl:message>
+  <wsdl:message name="GetAllDepartmentInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAllDepartmentInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetDepartmentInfoByUserIDSoapIn">
+    <wsdl:part name="parameters" element="tns:GetDepartmentInfoByUserID" />
+  </wsdl:message>
+  <wsdl:message name="GetDepartmentInfoByUserIDSoapOut">
+    <wsdl:part name="parameters" element="tns:GetDepartmentInfoByUserIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetDepartmentInfoByDPIDSoapIn">
+    <wsdl:part name="parameters" element="tns:GetDepartmentInfoByDPID" />
+  </wsdl:message>
+  <wsdl:message name="GetDepartmentInfoByDPIDSoapOut">
+    <wsdl:part name="parameters" element="tns:GetDepartmentInfoByDPIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryDepartmentNameSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryDepartmentName" />
+  </wsdl:message>
+  <wsdl:message name="QueryDepartmentNameSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryDepartmentNameResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryEmployeeNameSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryEmployeeName" />
+  </wsdl:message>
+  <wsdl:message name="QueryEmployeeNameSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryEmployeeNameResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryPostNameSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryPostName" />
+  </wsdl:message>
+  <wsdl:message name="QueryPostNameSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryPostNameResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryRankNameSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryRankName" />
+  </wsdl:message>
+  <wsdl:message name="QueryRankNameSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryRankNameResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryEmployeesByPostIDSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryEmployeesByPostID" />
+  </wsdl:message>
+  <wsdl:message name="QueryEmployeesByPostIDSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryEmployeesByPostIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetManagerInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:GetManagerInfo" />
+  </wsdl:message>
+  <wsdl:message name="GetManagerInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:GetManagerInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="QueryEmployeesByRankIDSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryEmployeesByRankID" />
+  </wsdl:message>
+  <wsdl:message name="QueryEmployeesByRankIDSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryEmployeesByRankIDResponse" />
+  </wsdl:message>
+  <wsdl:portType name="HRManagerSoap">
+    <wsdl:operation name="GetAllUserInfo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">1、获取平台所有用户的详细信息</wsdl:documentation>
+      <wsdl:input message="tns:GetAllUserInfoSoapIn" />
+      <wsdl:output message="tns:GetAllUserInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfoByDPID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">2、获取系统中指定部门的所有用户，不指定部门则表示所有用户</wsdl:documentation>
+      <wsdl:input message="tns:GetUserInfoByDPIDSoapIn" />
+      <wsdl:output message="tns:GetUserInfoByDPIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfoByUserID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">3、根据用户编号获取用户的详细信息</wsdl:documentation>
+      <wsdl:input message="tns:GetUserInfoByUserIDSoapIn" />
+      <wsdl:output message="tns:GetUserInfoByUserIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryRank">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">4、获取系统中所有的岗位级别的集合</wsdl:documentation>
+      <wsdl:input message="tns:QueryRankSoapIn" />
+      <wsdl:output message="tns:QueryRankSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryPost">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">5、获取系统中所有岗位的集合</wsdl:documentation>
+      <wsdl:input message="tns:QueryPostSoapIn" />
+      <wsdl:output message="tns:QueryPostSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAllDepartmentInfo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">6、获取系统中的所有部门的集合</wsdl:documentation>
+      <wsdl:input message="tns:GetAllDepartmentInfoSoapIn" />
+      <wsdl:output message="tns:GetAllDepartmentInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetDepartmentInfoByUserID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">7、根据用户编号获取用户所在部门的详细信息</wsdl:documentation>
+      <wsdl:input message="tns:GetDepartmentInfoByUserIDSoapIn" />
+      <wsdl:output message="tns:GetDepartmentInfoByUserIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetDepartmentInfoByDPID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">8、根据部门编号获取部门的详细信息</wsdl:documentation>
+      <wsdl:input message="tns:GetDepartmentInfoByDPIDSoapIn" />
+      <wsdl:output message="tns:GetDepartmentInfoByDPIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryDepartmentName">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">9、获取指定ID的部门名称</wsdl:documentation>
+      <wsdl:input message="tns:QueryDepartmentNameSoapIn" />
+      <wsdl:output message="tns:QueryDepartmentNameSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeeName">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">10、获取指定员工ID的员工姓名</wsdl:documentation>
+      <wsdl:input message="tns:QueryEmployeeNameSoapIn" />
+      <wsdl:output message="tns:QueryEmployeeNameSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryPostName">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">11、获取指定岗位ID的岗位名称</wsdl:documentation>
+      <wsdl:input message="tns:QueryPostNameSoapIn" />
+      <wsdl:output message="tns:QueryPostNameSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryRankName">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">12、获取指定岗位级别ID的岗位级别名称</wsdl:documentation>
+      <wsdl:input message="tns:QueryRankNameSoapIn" />
+      <wsdl:output message="tns:QueryRankNameSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeesByPostID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">13、获取指定岗位上的人员的数据集，至少包括EmployeeID,EmployeeName两列</wsdl:documentation>
+      <wsdl:input message="tns:QueryEmployeesByPostIDSoapIn" />
+      <wsdl:output message="tns:QueryEmployeesByPostIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetManagerInfo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">14、获取领导分管信息，至少包含DepartmentID和EmployeeID两列</wsdl:documentation>
+      <wsdl:input message="tns:GetManagerInfoSoapIn" />
+      <wsdl:output message="tns:GetManagerInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeesByRankID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">15、获取指定岗位级别上的人员的数据集，至少包括EmployeeID,EmployeeName两列</wsdl:documentation>
+      <wsdl:input message="tns:QueryEmployeesByRankIDSoapIn" />
+      <wsdl:output message="tns:QueryEmployeesByRankIDSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="HRManagerSoap" type="tns:HRManagerSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetAllUserInfo">
+      <soap:operation soapAction="http://tempuri.org/GetAllUserInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfoByDPID">
+      <soap:operation soapAction="http://tempuri.org/GetUserInfoByDPID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfoByUserID">
+      <soap:operation soapAction="http://tempuri.org/GetUserInfoByUserID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryRank">
+      <soap:operation soapAction="http://tempuri.org/QueryRank" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryPost">
+      <soap:operation soapAction="http://tempuri.org/QueryPost" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAllDepartmentInfo">
+      <soap:operation soapAction="http://tempuri.org/GetAllDepartmentInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetDepartmentInfoByUserID">
+      <soap:operation soapAction="http://tempuri.org/GetDepartmentInfoByUserID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetDepartmentInfoByDPID">
+      <soap:operation soapAction="http://tempuri.org/GetDepartmentInfoByDPID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryDepartmentName">
+      <soap:operation soapAction="http://tempuri.org/QueryDepartmentName" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeeName">
+      <soap:operation soapAction="http://tempuri.org/QueryEmployeeName" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryPostName">
+      <soap:operation soapAction="http://tempuri.org/QueryPostName" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryRankName">
+      <soap:operation soapAction="http://tempuri.org/QueryRankName" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeesByPostID">
+      <soap:operation soapAction="http://tempuri.org/QueryEmployeesByPostID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetManagerInfo">
+      <soap:operation soapAction="http://tempuri.org/GetManagerInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeesByRankID">
+      <soap:operation soapAction="http://tempuri.org/QueryEmployeesByRankID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="HRManagerSoap12" type="tns:HRManagerSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetAllUserInfo">
+      <soap12:operation soapAction="http://tempuri.org/GetAllUserInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfoByDPID">
+      <soap12:operation soapAction="http://tempuri.org/GetUserInfoByDPID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetUserInfoByUserID">
+      <soap12:operation soapAction="http://tempuri.org/GetUserInfoByUserID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryRank">
+      <soap12:operation soapAction="http://tempuri.org/QueryRank" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryPost">
+      <soap12:operation soapAction="http://tempuri.org/QueryPost" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAllDepartmentInfo">
+      <soap12:operation soapAction="http://tempuri.org/GetAllDepartmentInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetDepartmentInfoByUserID">
+      <soap12:operation soapAction="http://tempuri.org/GetDepartmentInfoByUserID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetDepartmentInfoByDPID">
+      <soap12:operation soapAction="http://tempuri.org/GetDepartmentInfoByDPID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryDepartmentName">
+      <soap12:operation soapAction="http://tempuri.org/QueryDepartmentName" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeeName">
+      <soap12:operation soapAction="http://tempuri.org/QueryEmployeeName" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryPostName">
+      <soap12:operation soapAction="http://tempuri.org/QueryPostName" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryRankName">
+      <soap12:operation soapAction="http://tempuri.org/QueryRankName" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeesByPostID">
+      <soap12:operation soapAction="http://tempuri.org/QueryEmployeesByPostID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetManagerInfo">
+      <soap12:operation soapAction="http://tempuri.org/GetManagerInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryEmployeesByRankID">
+      <soap12:operation soapAction="http://tempuri.org/QueryEmployeesByRankID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="HRManager">
+    <wsdl:port name="HRManagerSoap" binding="tns:HRManagerSoap">
+      <soap:address location="http://localhost:9001/HRManager.asmx" />
+    </wsdl:port>
+    <wsdl:port name="HRManagerSoap12" binding="tns:HRManagerSoap12">
+      <soap12:address location="http://localhost:9001/HRManager.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

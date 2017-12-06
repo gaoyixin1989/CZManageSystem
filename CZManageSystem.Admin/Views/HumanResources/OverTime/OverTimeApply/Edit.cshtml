@@ -1,0 +1,417 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script>
+        var workflowName = '@ViewData["workflowName"]';
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'datePicker', 'number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            $scope.curObj = {};
+            $scope.CorpList = [];
+            $scope.RoadList = [];
+            var id = '@ViewData["id"]';
+
+
+            if (id != null && id.toString().length > 0) {
+                box.load("load");
+                var _data = { id: id };//id
+                BusinessService.getDataByID(_data).success(function (response) {
+                    $scope.curObj = response.Items;
+                    $scope.CorpList = response.TypeList;
+                    $scope.IsAction = response.IsAction;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("load");
+            }
+            $scope.editUser = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                title = '用户';
+                iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.curObj.ManageId;
+                wWidth = 760;
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.curObj.ManageId = getAttrByArr(result, 'id').join();
+                                    $scope.curObj.ManageName = getAttrByArr(result, 'text').join();
+                                    var _data = { ManageId: $scope.curObj.ManageId };
+                                    BusinessService.getManagePost(_data).success(function (response) {
+                                        $scope.curObj.ManagePost = response.Message;
+                                    }).error(function (response) {
+                                        box.alert("网络出错！", { icon: 'error' });
+                                    });
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            $scope.IdNumCheck = function () {
+                $scope.curObj.ManagePost = $scope.curObj.ManageName;
+            };
+            $scope.save = function (isTrue) {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+
+                    $scope.curObj.ApplyType = 0;
+                    var nextInfo = $scope.aftersubmitConf.getValue();
+
+                    if (isTrue) {
+                        if (!nextInfo.isSuccess) {
+                            box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                            return;
+                        }
+                        if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                            box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                            return;
+                        }
+                    }
+
+                    var postData = isTrue == true ? {
+                        apply: $scope.curObj,
+                        isAction: true,
+                        nextActivity: nextInfo.nextActivity,
+                        nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                        nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                    } : $scope.curObj;
+                    box.load("loadding");
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var msg = isTrue == true ? "提交成功" : "保存成功";
+                            box.alert(msg, { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'OverTimeApply/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert(response.Message, { icon: 'error' }) });
+                    box.ready("loadding");
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OverTimeApply/Save',
+                    data: postData
+                });
+            };
+            serive.getManagePost = function (ManageId) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OverTimeApply/getManagePost',
+                    data: ManageId
+                });
+            };
+            serive.submit = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OverTimeApply/Submit',
+                    data: postData
+                });
+            };
+
+
+            serive.getDataByID = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OverTimeApply/GetDataByID',
+                    data: postData
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>流程单号：</th>
+                <td>{{curObj.ApplySn==null?'(提交时自动生成)':curObj.ApplySn}}</td>
+            </tr>
+            <tr>
+                <th>申请人：</th>
+                <td>
+                    {{curObj.ApplyUserName}}
+                    @*<div class="ui-input">
+                            <input type="text" name="ApplyUserName" ng-model="curObj.ApplyUserName" required readonly class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ApplyUserName.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ApplyUserName.$error.required">请输入申请人</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>*@
+                </td>
+            </tr>
+            <tr>
+                <th>所在部门：</th>
+                <td>
+                    {{curObj.DeptName}}
+                    @*<div class="ui-input">
+                            <input type="text" name="DeptName" ng-model="curObj.DeptName" required readonly class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.DeptName.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.DeptName.$error.required">请输入所在部门</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>*@
+                </td>
+            </tr>
+            <tr>
+                <th>申请日期：</th>
+                <td>
+                    {{curObj.CreateTime}}
+                    @*<div class="ui-input">
+                            <input type="text" name="CreateTime" ng-model="curObj.CreateTime" required readonly class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CreateTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CreateTime.$error.required">请输入申请日期</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>*@
+                </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td>
+                    {{curObj.Mobile}}
+                    @*<div class="ui-input">
+                            <input type="text" name="Mobile" ng-model="curObj.Mobile" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Mobile.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Mobile.$error.required">请输入联系电话</span>
+                                    <span ng-show="editForm.Mobile.$error.maxlength">输入联系电话</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>*@
+                </td>
+            </tr>
+            <tr>
+                <th>主题名称：</th>
+                <td>
+                    {{curObj.ApplyTitle}}
+                    @*<div class="ui-input">
+                            <input type="text" name="ApplyTitle" ng-model="curObj.ApplyTitle" ng-maxlength="150" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ApplyTitle.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ApplyTitle.$error.required">请输入主题名称</span>
+                                    <span ng-show="editForm.ApplyTitle.$error.maxlength">输入主题名称过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>*@
+                </td>
+            </tr>
+            <tr>
+                <th>职务：</th>
+                <td>
+                    {{curObj.ApplyPost}}
+                    @*<div class="ui-input">
+                            <input type="text" name="ApplyPost" ng-model="curObj.ApplyPost" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ApplyPost.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ApplyPost.$error.required">请输入职务</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>*@
+                </td>
+            </tr>
+            <tr>
+                <th>直接主管姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="UserId" ng-model="curObj.ManageId" class="cell-input" />
+                        <input type="text" name="ManageName" ng-model="curObj.ManageName" ng-blur="IdNumCheck();" ng-click="editUser(user)" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ManageName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ManageName.$error.required">请输入直接主管姓名</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>直接主管职务：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ManagePost" ng-model="curObj.ManagePost" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ManagePost.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ManagePost.$error.required">请输入直接主管职务</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>加班地点：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Address" ng-model="curObj.Address" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Address.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Address.$error.required">请输入加班地点</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>加班类型：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="OvertimeType" required ng-model="curObj.OvertimeType" style="width:222px;">
+                                <option ng-repeat="x in CorpList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.OvertimeType.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择加班类型</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>开始时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="StartTime" name="StartTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.StartTime" class="cell-input cell-input-data" required>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.StartTime.$error.required">请选择加班开始时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>时长：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PeriodTime" ng-model="curObj.PeriodTime" ng-pattern="/^[0-9]+$/" required class="cell-input" />
+                        <strong class="must-options">*</strong>(单位：小时)
+                        <div class="ui-tips" ng-show="editForm.PeriodTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.PeriodTime.$error.required">请输入加班时长(数字)</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>加班原因：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" name="Reason"  ng-model="curObj.Reason" height:35px;width:200px"></textarea>
+                    </div>
+
+                </td>
+            </tr>
+            <tr class="forEdit">
+                <td colspan="2">
+                    <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save(false)" ng-hide="IsAction" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="save(true)" ng-hide="IsAction" class="cell-btn-blue" style="width:70px; margin-right:20px;">提交</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>

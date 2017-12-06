@@ -1,0 +1,179 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('SysLinkController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+
+            var id = '@ViewData["id"]';
+            $scope.notice = { EnableFlag: false };
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.notice = response;
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.notice;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'SysLink/Index';
+                            });
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysLink/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysLink/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="SysLinkController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>链接名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="LinkName" ng-model="notice.LinkName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.LinkName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.LinkName.$error.required">请输入链接名称</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>链接地址：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="LinkUrl" ng-model="notice.LinkUrl" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.LinkUrl.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.LinkUrl.$error.required">请输入链接地址</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>到期日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ValidTime" name="ValidTime"date-Picker ng-model="notice.ValidTime" required class="wdatePicker cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ValidTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="editForm-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ValidTime.$error.required">请输入到期日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>序号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number name="OrderNo" ng-model="notice.OrderNo" class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否启用：</th>
+                <td>
+                    <label><input type="radio" name="EnableFlag" ng-value='true' ng-model="notice.EnableFlag" />是</label>
+                    <label style="margin-left:20px;"><input type="radio" name="EnableFlag" ng-value='false' ng-model="notice.EnableFlag" />否</label>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="notice.Remark" required></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Remark.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Remark.$error.required">请输入备注</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysLink/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                    @*<input type="submit" ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;" ng-disabled="editForm.$invalid" value="保存" />
+                        <input type="button" class="cell-btn-gray" value="返回" style="width:70px;" onclick="window.location.href='/SysNotice/Index'" />*@
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

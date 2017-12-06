@@ -1,0 +1,509 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9B66F5E1-1C40-4D43-A6D3-72159A6C0D66}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Botwave.XQP</RootNamespace>
+    <AssemblyName>Botwave.XQP</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Cells">
+      <HintPath>..\..\..\Lib\etc\Aspose.Cells.dll</HintPath>
+    </Reference>
+    <Reference Include="Botwave.GMCCServiceHelpers">
+      <HintPath>..\..\..\Lib\bizsdk\Botwave.GMCCServiceHelpers.dll</HintPath>
+    </Reference>
+    <Reference Include="Botwave.GmccWsProxies">
+      <HintPath>..\..\..\Lib\bizsdk\Botwave.GmccWsProxies.dll</HintPath>
+    </Reference>
+    <Reference Include="Botwave.Report">
+      <HintPath>..\..\..\Lib\bizsdk\Botwave.Report.dll</HintPath>
+    </Reference>
+    <Reference Include="Brettle.Web.NeatUpload">
+      <HintPath>..\..\..\Lib\etc\Brettle.Web.NeatUpload.dll</HintPath>
+    </Reference>
+    <Reference Include="Common.Logging, Version=3.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Common.Logging.3.0.0\lib\net40\Common.Logging.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Common.Logging.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Common.Logging.Core.3.0.0\lib\net40\Common.Logging.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FileManager">
+      <HintPath>..\..\..\Lib\etc\FileManager.dll</HintPath>
+    </Reference>
+    <Reference Include="FsllIAMS.SSO">
+      <HintPath>..\..\..\Lib\local\FsllIAMS.SSO.dll</HintPath>
+    </Reference>
+    <Reference Include="IBatisNet.Common">
+      <HintPath>..\..\..\Lib\ibatis\IBatisNet.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="IBatisNet.DataMapper">
+      <HintPath>..\..\..\Lib\ibatis\IBatisNet.DataMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionic.Zip">
+      <HintPath>..\..\..\Lib\etc\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Spring.Core, Version=2.0.1.45000, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Spring.Core.2.0.1\lib\net45\Spring.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Spring.Web, Version=2.0.1.45000, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Spring.Web.2.0.1\lib\net45\Spring.Web.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="API\Entity\Activity.cs" />
+    <Compile Include="API\Entity\ApiResult.cs" />
+    <Compile Include="API\Entity\Attachment.cs" />
+    <Compile Include="API\Entity\CommentResult.cs" />
+    <Compile Include="API\Entity\Field.cs" />
+    <Compile Include="API\Entity\FiledInfo.cs" />
+    <Compile Include="API\Entity\SearchQueryResult.cs" />
+    <Compile Include="API\Entity\SearchResult.cs" />
+    <Compile Include="API\Entity\WorkflowDefinitionResult.cs" />
+    <Compile Include="API\Entity\WorkflowDeployResult.cs" />
+    <Compile Include="API\Entity\WorkflowDetail.cs" />
+    <Compile Include="API\Entity\WorkflowDetailResult.cs" />
+    <Compile Include="API\Entity\WorkflowExecutionResult.cs" />
+    <Compile Include="API\Entity\WorkflowInfoResult.cs" />
+    <Compile Include="API\Entity\WorkflowMenuGroupResult.cs" />
+    <Compile Include="API\Entity\WorkflowRecord.cs" />
+    <Compile Include="API\Entity\WorkflowRecordResult.cs" />
+    <Compile Include="API\Entity\WorkflowResult.cs" />
+    <Compile Include="API\Entity\WorkflowStateResult.cs" />
+    <Compile Include="API\Entity\WorkflowTask.cs" />
+    <Compile Include="API\Entity\WorkflowTaskResult.cs" />
+    <Compile Include="API\Entity\WorkflowTodo.cs" />
+    <Compile Include="API\Entity\WorkflowTodoResult.cs" />
+    <Compile Include="API\Enums\ManageCommandEnum.cs" />
+    <Compile Include="API\Enums\SearchCommandEnum.cs" />
+    <Compile Include="API\Interfaces\IWorkflowProcessService.cs" />
+    <Compile Include="API\Interfaces\WorkflowProcessService.cs" />
+    <Compile Include="API\Interface\IWorkflowAPIService.cs" />
+    <Compile Include="API\Interface\SearchHelper.cs" />
+    <Compile Include="API\Interface\WorkflowAPIService.cs" />
+    <Compile Include="API\Proxies\InterfaceManager.cs" />
+    <Compile Include="API\Proxies\InterfaceManagerHelper.cs" />
+    <Compile Include="API\Service\ILoginAPIService.cs" />
+    <Compile Include="API\Service\IManageAPIService.cs" />
+    <Compile Include="API\Service\ISaveAsAPIService.cs" />
+    <Compile Include="API\Service\ISearchAPIService.cs" />
+    <Compile Include="API\Service\IWorkflowAPIService.cs" />
+    <Compile Include="API\Service\LoginAPIService.cs" />
+    <Compile Include="API\Service\ManageAPIService.cs" />
+    <Compile Include="API\Service\SaveAsAPIService.cs" />
+    <Compile Include="API\Service\SearchAPIService.cs" />
+    <Compile Include="API\Service\WorkflowAPIService.cs" />
+    <Compile Include="API\Util\APIServiceSQLHelper.cs" />
+    <Compile Include="API\Util\CommonHelper.cs" />
+    <Compile Include="API\Util\ExpandHelper.cs" />
+    <Compile Include="API\Util\FieldControlDal.cs" />
+    <Compile Include="API\Util\ManageActivityinstance.cs" />
+    <Compile Include="API\Util\XmlAnalysisHelp.cs" />
+    <Compile Include="Commons\APIServiceSQLHelper.cs" />
+    <Compile Include="Commons\DataHelper.cs" />
+    <Compile Include="Commons\DataTableJoinUtil.cs" />
+    <Compile Include="Commons\ExcelHelper.cs" />
+    <Compile Include="Commons\LogWriter.cs" />
+    <Compile Include="Commons\SMSHelper.cs" />
+    <Compile Include="Commons\UploadHelper.cs" />
+    <Compile Include="Designer\WorkflowActivity.cs" />
+    <Compile Include="Designer\WorkflowComponent.cs" />
+    <Compile Include="Designer\WorkflowDesignerHandler.cs" />
+    <Compile Include="Designer\WorkflowDesignerService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Domain\ActivityProfile.cs" />
+    <Compile Include="Domain\CZActivityInstance.cs" />
+    <Compile Include="Domain\CZRegistSystem.cs" />
+    <Compile Include="Domain\CZWorkflowAttention.cs" />
+    <Compile Include="Domain\CZWorkflowDefinition.cs" />
+    <Compile Include="Domain\CZWorkflowInterface.cs" />
+    <Compile Include="Domain\CZWorkflowRelation.cs" />
+    <Compile Include="Domain\Highcharts.cs" />
+    <Compile Include="Domain\ProcessData.cs" />
+    <Compile Include="Domain\SMSProfile.cs" />
+    <Compile Include="Domain\SZIntelligentRemind.cs" />
+    <Compile Include="Domain\ToReview.cs" />
+    <Compile Include="Domain\Attachment.cs" />
+    <Compile Include="Domain\AttachmentEntity.cs" />
+    <Compile Include="Domain\FormField.cs" />
+    <Compile Include="Domain\Help.cs" />
+    <Compile Include="Domain\Notice.cs" />
+    <Compile Include="Domain\UCS_FromField.cs" />
+    <Compile Include="Domain\UCS_MarketManage.cs" />
+    <Compile Include="Domain\Ucs_Reportforms.cs" />
+    <Compile Include="Domain\WorkflowCustomReport.cs" />
+    <Compile Include="Domain\CZActivityDefinition.cs" />
+    <Compile Include="Domain\CZWorkflowInstance.cs" />
+    <Compile Include="Domain\ActivityRemark.cs" />
+    <Compile Include="Domain\CZReminderTimeSpan.cs" />
+    <Compile Include="Domain\CZWorkflowRelationSetting.cs" />
+    <Compile Include="FileMgr\Attachment.cs" />
+    <Compile Include="FileMgr\IAttachmentService.cs" />
+    <Compile Include="FileMgr\Support\AttachmentService.cs" />
+    <Compile Include="ImportExport\ActionResult.cs" />
+    <Compile Include="ImportExport\FormDefinitionCommon.cs" />
+    <Compile Include="ImportExport\FormDefinitionExporter.cs" />
+    <Compile Include="ImportExport\FormDefinitionImporter.cs" />
+    <Compile Include="ImportExport\IFormDefinitionExporter.cs" />
+    <Compile Include="ImportExport\IFormDefinitionImporter.cs" />
+    <Compile Include="ImportExport\Sgml\SgmlParser.cs" />
+    <Compile Include="ImportExport\Sgml\SgmlReader.cs" />
+    <Compile Include="ImportExport\Sgml\XHtmlHelper.cs" />
+    <Compile Include="ImportExport\WorkflowExporter.cs" />
+    <Compile Include="ImportExport\WorkflowFormHelper.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Service\ExternalProxies\WebServicesHelper.cs" />
+    <Compile Include="Service\ExternalProxies\WorkflowCooperation.cs" />
+    <Compile Include="Service\ExternalProxies\WSDynamicProxy.cs" />
+    <Compile Include="Service\IActivitySystemExtentionHandler.cs" />
+    <Compile Include="Service\IAdvancedSearcher.cs" />
+    <Compile Include="Service\INoticeService.cs" />
+    <Compile Include="Service\IReviewPending.cs" />
+    <Compile Include="Service\IReviewSelectorProfile.cs" />
+    <Compile Include="Service\IUCS_MarketManageService.cs" />
+    <Compile Include="Service\IUcs_ReportformsService.aspx.cs" />
+    <Compile Include="Service\IWorkflowGenericService.cs" />
+    <Compile Include="Service\IWorkflowMaintenanceService.cs" />
+    <Compile Include="Service\IWorkflowMobileService.cs" />
+    <Compile Include="Service\IWorkflowReminderService.cs" />
+    <Compile Include="Service\IWorkflowReportService.cs" />
+    <Compile Include="Service\IWorkflowReviewService.cs" />
+    <Compile Include="Service\IWorkflowRoleService.cs" />
+    <Compile Include="Service\Plugins\CustomizeTaskAllocator.cs" />
+    <Compile Include="Service\Plugins\PostActivityExecutionMessageHandler.cs" />
+    <Compile Include="Service\Plugins\PostCompleteWorkflowHandler.cs" />
+    <Compile Include="Service\Plugins\SpecialCycleActivityExecutionHandler.cs" />
+    <Compile Include="Service\Plugins\SuperiorTaskAllocator.cs" />
+    <Compile Include="Service\Plugins\WorkflowActivityTaskAllocator.cs" />
+    <Compile Include="Service\Plugins\XqpJoinConditionHandler.cs" />
+    <Compile Include="Service\Plugins\XqpSystemPostHandler.cs" />
+    <Compile Include="Service\Plugins\RoleTaskAllocator.cs" />
+    <Compile Include="Service\ReviewSelectorHelper.cs" />
+    <Compile Include="Service\Support\AuthService.cs" />
+    <Compile Include="Service\Support\DefaultLogWriter.cs" />
+    <Compile Include="Service\Support\DefaultReviewSelectorProfile.cs" />
+    <Compile Include="Service\CZWorkflowSearcher.cs" />
+    <Compile Include="Service\Support\ExtendAvtivityService.cs" />
+    <Compile Include="Service\Support\MobileWorkflowSearcher.cs" />
+    <Compile Include="Service\Support\DefaultWorkflowSelectorProfile.cs" />
+    <Compile Include="Service\Support\ExtendWorkflowSelectorProfile.cs" />
+    <Compile Include="Service\Support\DynamicSitePathHandler.cs" />
+    <Compile Include="Service\Plugins\WorkflowAttachmentService.cs" />
+    <Compile Include="Service\Plugins\WorkflowFileService.cs" />
+    <Compile Include="Service\Plugins\WorkflowFormService.cs" />
+    <Compile Include="Service\Support\CheckReviewSelectorProfile.cs" />
+    <Compile Include="Service\Support\ReviewPending.cs" />
+    <Compile Include="Service\Support\UCS_MarketManageService.cs" />
+    <Compile Include="Service\Support\Ucs_ReportformsService.cs" />
+    <Compile Include="Service\Support\WorkflowGenericService.cs" />
+    <Compile Include="Service\Support\WorkflowMaintenanceService.cs" />
+    <Compile Include="Service\Support\WorkflowMobileService.cs" />
+    <Compile Include="Service\Support\WorkflowReportService.cs" />
+    <Compile Include="Service\Plugins\WorkflowUIProfile.cs" />
+    <Compile Include="Service\Support\WorkflowReviewService.cs" />
+    <Compile Include="Service\Support\WorkflowRoleService.cs" />
+    <Compile Include="Service\WorkflowProfileHelper.cs" />
+    <Compile Include="Service\WS\ActionResult.cs" />
+    <Compile Include="Service\WS\ActionResultHelper.cs" />
+    <Compile Include="Service\WS\AppAuthConstants.cs" />
+    <Compile Include="Service\WS\Authenticator.cs" />
+    <Compile Include="Service\WS\IAuthenticator.cs" />
+    <Compile Include="Service\WS\IWorkflowCooperation.cs" />
+    <Compile Include="Service\WS\TimerAuthenticator.cs" />
+    <Compile Include="Service\WS\WorkflowCooperationService.cs" />
+    <Compile Include="Util\CommontUnit.cs" />
+    <Compile Include="Util\FormContext.cs" />
+    <Compile Include="Util\ResourceHelper.cs" />
+    <Compile Include="Util\WorkflowTransactionHelper.cs" />
+    <Compile Include="Util\CZWorkflowUtility.cs" />
+    <Compile Include="Web\ActionResult.cs" />
+    <Compile Include="Commons\DESUtils.cs" />
+    <Compile Include="Commons\XQPHelper.cs" />
+    <Compile Include="Domain\Apps.cs" />
+    <Compile Include="Domain\IntelligentRemind.cs" />
+    <Compile Include="Domain\IntelligentRemindControl.cs" />
+    <Compile Include="Domain\ReminderTimeSpan.cs" />
+    <Compile Include="Domain\WorkflowBusiness.cs" />
+    <Compile Include="Domain\WorkflowCreationControl.cs" />
+    <Compile Include="Domain\WorkflowField.cs" />
+    <Compile Include="Domain\WorkflowInMenuGroup.cs" />
+    <Compile Include="Domain\WorkflowMenuGroup.cs" />
+    <Compile Include="Domain\WorkflowNotify.cs" />
+    <Compile Include="Domain\WorkflowNotifyActor.cs" />
+    <Compile Include="Domain\WorkflowProfile.cs" />
+    <Compile Include="Domain\WorkflowRemark.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Service\IWorkflowNotifyExtendService.cs" />
+    <Compile Include="Service\Plugins\PostActivityExecutionHandler.cs" />
+    <Compile Include="Service\Plugins\PostCloseParallelActivityInstancesHandler.cs" />
+    <Compile Include="Service\Plugins\PostDeployHandler.cs" />
+    <Compile Include="Service\Plugins\UploadFileHandler.cs" />
+    <Compile Include="Service\Plugins\WorkflowFieldService.cs" />
+    <Compile Include="Service\Plugins\WorkflowNotifyService.cs" />
+    <Compile Include="Service\Plugins\WorkflowNoticeService.cs" />
+    <Compile Include="Service\Plugins\FieldTaskAllocator.cs" />
+    <Compile Include="Service\Plugins\PostAssignHandler.cs" />
+    <Compile Include="Service\Plugins\PostCancelWorkflowHandler.cs" />
+    <Compile Include="Service\Plugins\WorkflowInstanceCreationController.cs" />
+    <Compile Include="Service\Plugins\WorkflowPostHelper.cs" />
+    <Compile Include="Service\Plugins\UserProxyNotifier.cs" />
+    <Compile Include="Service\Support\NoticeService.cs" />
+    <Compile Include="Service\Support\WorkflowNotifyExtendService.cs" />
+    <Compile Include="Web\Controls\AccessController.cs" />
+    <Compile Include="Web\Controls\FileUpload.cs" />
+    <Compile Include="Web\Controls\MoreMenuView.cs" />
+    <Compile Include="Web\Controls\TaskHeaderTemplte.cs" />
+    <Compile Include="Web\Controls\TaskItemTemplate.cs" />
+    <Compile Include="Web\Controls\VirtualMobilePager.cs" />
+    <Compile Include="Web\Controls\WorkflowControlBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\Controls\WorkflowProcessHistory.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\Controls\WorkflowReviewSelector.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\Controls\WorkflowProcessHistoryEidtor.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\HttpHandler\DownloadHandler.cs" />
+    <Compile Include="Web\HttpHandler\GZMCCSSOProxyHandler.cs" />
+    <Compile Include="Web\HttpHandler\WorkflowDesignerHandler.cs" />
+    <Compile Include="Web\Security\PageBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\WorkflowExtensionService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Web\WorkflowCooperationService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Web\WorkflowDesignerService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\Apps.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\WorkflowMenuGroup.config" />
+    <EmbeddedResource Include="Maps\XQPCore.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Maps\IntelligentRemind.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\XQPWorkflowControl.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\XQPAttachment.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\WorkflowCustomReport.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\XQPGroupChannel.config" />
+    <EmbeddedResource Include="Maps\XQPHelp.config" />
+    <EmbeddedResource Include="Maps\WorkflowDesigner.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="doc\2009-03-16升级备注.txt" />
+    <Content Include="doc\sql\2009-03-16-Tables.txt" />
+    <Content Include="ImportExport\Botwave.XQP.dll" />
+    <EmbeddedResource Include="Maps\WorkflowAPI.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\CZMCC.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ImportExport\Sgml\Html.dtd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Botwave.Core\Botwave.Core.csproj">
+      <Project>{20cf5584-39ab-4274-bada-0f50a4b6183a}</Project>
+      <Name>Botwave.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.DynamicForm.Extension\Botwave.DynamicForm.Extension.csproj">
+      <Project>{05C07883-0574-4EE0-91D7-4D5CCB487A83}</Project>
+      <Name>Botwave.DynamicForm.Extension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.DynamicForm.IBatisNet\Botwave.DynamicForm.IBatisNet.csproj">
+      <Project>{612e60db-75a7-4cd7-9ae8-ccdb708b9b30}</Project>
+      <Name>Botwave.DynamicForm.IBatisNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.DynamicForm\Botwave.DynamicForm.csproj">
+      <Project>{599562f2-bbd7-46d9-8f1f-8a2e9007484b}</Project>
+      <Name>Botwave.DynamicForm</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Easyflow\Botwave.Easyflow.csproj">
+      <Project>{87CC9BA6-C574-4090-8816-CBBB9127480A}</Project>
+      <Name>Botwave.Easyflow</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Extension.IBatisNet\Botwave.Extension.IBatisNet.csproj">
+      <Project>{f6d8e05c-ca82-4420-b267-5fc4316014d3}</Project>
+      <Name>Botwave.Extension.IBatisNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.FileManagement\Botwave.FileManagement.csproj">
+      <Project>{06A408C6-B486-40BE-A2C3-2AE2996632CF}</Project>
+      <Name>Botwave.FileManagement</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Log.GMCC\Botwave.Log.GMCC.vbproj">
+      <Project>{448fbc19-efac-4a2e-9d15-bc8c3ae01917}</Project>
+      <Name>Botwave.Log.GMCC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Security\Botwave.Security.csproj">
+      <Project>{ea62f6d5-bb78-4e9d-8e7a-5d50e680d939}</Project>
+      <Name>Botwave.Security</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Workflow.Core\Botwave.Workflow.Core.csproj">
+      <Project>{9a4af51f-822c-4c0d-98fc-773f9ea89cf0}</Project>
+      <Name>Botwave.Workflow.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Workflow.Extension\Botwave.Workflow.Extension.csproj">
+      <Project>{6b5fa780-7be5-4225-a4c3-7247f6c11135}</Project>
+      <Name>Botwave.Workflow.Extension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Workflow.IBatisNet\Botwave.Workflow.IBatisNet.csproj">
+      <Project>{d7470de6-aab0-4d3a-b69c-7b94c2dc6f1a}</Project>
+      <Name>Botwave.Workflow.IBatisNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Botwave.Workflow.Routing\Botwave.Workflow.Routing.csproj">
+      <Project>{8EAEB57F-219C-4E5F-9488-AE49E535A043}</Project>
+      <Name>Botwave.Workflow.Routing</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <EmbeddedResource Include="Maps\SZIntelligentRemind.config" />
+    <EmbeddedResource Include="Maps\WorkflowRole.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Maps\WorkflowDefinition.config" />
+    <EmbeddedResource Include="Maps\Ucs_Reportforms.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

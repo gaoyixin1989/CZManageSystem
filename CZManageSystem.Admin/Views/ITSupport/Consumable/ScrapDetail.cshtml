@@ -1,0 +1,190 @@
+﻿
+@{
+    ViewBag.Title = "报废统计";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.GroupName = null;
+            $scope.queryBuilder = {
+                Type: "",
+                Name: "",
+                Model: "",
+                ApplyTime_start: "",
+                ApplyTime_end: ""
+            };
+            $scope.type = [{ "text": "是", "value": "1" }, { "text": "否", "value": "0" }];
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+
+
+
+
+            $scope.query = function () {
+                GetListData();
+            }
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'Consumable/StorageEdit?ID=' + obj.ID;
+                window.location.href = src;
+            }
+            $scope.getAttrByArr = function (arr, attr) {
+                return getAttrByArr(arr, attr);
+            }
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Consumable/GetListData_ScrapDetail', postData);
+            };
+            return serive;
+        }]);
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    耗材类别：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Type" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    耗材名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Name" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+                <td>
+                    耗材型号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Model" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td>
+                    报废发起时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="ApplyTime_start" date-Picker ng-model="queryBuilder.ApplyTime_start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td style="padding-left:5px;padding-right:5px;">至</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ApplyTime_end" date-Picker ng-model="queryBuilder.ApplyTime_end" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+
+                <th style="width:230px;">员工</th>
+                <th style="width:130px;">耗材类别</th>
+                <th style="width:130px;">耗材型号</th>
+                <th style="width:130px;">耗材名称</th>
+                <th style="width:130px;">报废数量</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="emp.ApplicantName"></td>
+                <td ng-bind="emp.Type"></td>
+                <td ng-bind="emp.Model"></td>
+                <td ng-bind="emp.Name"></td>
+                <td ng-bind="emp.ScrapNumber"></td>
+                
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../Consumable/ScrapDetailDownload?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>

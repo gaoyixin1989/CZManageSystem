@@ -1,0 +1,434 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $filter, $timeout, BusinessService, ngDialog) {
+            $scope.curObj = {
+                DinningRoomID: '@ViewData["DinningRoomID"]'
+            };
+            $scope.DpBuilder = {
+                CuisineName: "",
+                CuisineId: ""
+            };
+            $scope.PackageBuilder = {
+                PackageName: "",
+                CommandId: ""
+            };
+            var choseArr = new Array();
+            var id = '@ViewData["Id"]';
+            var getComData = false;
+            var getComData2 = false;
+            //获取周期类型
+            BusinessService.getDinningRoomAsDict().success(function (response) {
+                $scope.dictDinningRoom = response;
+
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData = true; });
+            //获取周期类型
+            BusinessService.getDictListByName('餐次').success(function (response) {
+                $scope.dictMealTimeType = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData2 = true; });
+
+            var loadCurData = function () {
+                $timeout(function () {
+                    if (getComData && getComData2) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            $scope.curObj = response.baseinfo;
+                            $scope.DpBuilder = response.cuisineinfo;
+                            $scope.PackageBuilder = response.packageinfo;
+                            ///$scope.curObj = response;
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+            if (id != "00000000-0000-0000-0000-000000000000") {
+                loadCurData();
+            }
+            $scope.ChangeCommand = function () {
+                var tmpdate = $scope.curObj.WorkingDate.split("-");
+                var yy = tmpdate[0];
+                var mm = tmpdate[1];
+                var dd = tmpdate[2];
+                //alert( mm );
+                $scope.curObj.MenuName = yy + "年" + mm + "月" + dd + "日菜谱";
+
+            };
+
+            //打开窗口
+            $scope.openWindow = function (type, value) {
+                if ($scope.curObj.DinningRoomID == null || $scope.curObj.DinningRoomID == '') {
+                    box.alert('请先选择所属食堂！', { icon: 'info' });
+                    return;
+                }
+                if (type == "Package")
+                {
+                    if ($scope.curObj.MealTimeType == null || $scope.curObj.MealTimeType == '') {
+                        box.alert('请先选择用餐时段！', { icon: 'info' });
+                        return;
+                    }
+                }
+
+                var iframeId = type + '_edit';
+                var title = "";
+                var strUrl = "";
+                var data = {};
+                var wWidth = 530;
+                var wHeight = 360;
+
+                switch (type) {
+                    case 'Cuisine': {//选择项目
+                        wWidth = 700;
+                        wHeight = 450;
+                        title = "选择菜式";
+                        strUrl = '../OrderMealMenu/SelectCuisine';
+                        data = {
+                            selectedId: value,
+                            DinningRoomId: $scope.curObj.DinningRoomID
+                        };
+                    } break;
+                    case 'Package': {//主办人
+                        wWidth = 760;
+                        title = "选择套餐";
+                        strUrl = '../OrderMealMenu/SelectPackage';
+                        data = {
+                            selectedId: value,
+                            MealTimeType: $scope.curObj.MealTimeType,
+                            DinningRoomId: $scope.curObj.DinningRoomID
+                        };
+                    } break;
+                    default: {
+                        box.alert('没有对应的窗口类型！', { icon: 'error' });
+                    } break;
+                }
+
+                box.popup('',
+                                    {
+                                        url: strUrl,
+                                        iframeData: data,
+                                        iframeId: iframeId,
+                                        title: title,
+                                        width: wWidth,//窗口宽度，默认400
+                                        wHeight: 380,//窗口高度，默认400
+                                        hasOk: true,
+                                        hasCancel: true,
+                                        onBeforeClose: function (data) {
+                                            if (data == true) {
+                                                var theWindow = window;
+                                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                                    theWindow = theWindow.parent;
+                                                }
+                                                if (!theWindow.frames[iframeId]) {
+                                                    box.alert('出错！', { icon: 'error' });
+                                                }
+                                                else {
+                                                    var result = theWindow.frames[iframeId].getResult();
+                                                    switch (type) {
+                                                        case 'Cuisine': {//选择项目
+                                                            if (result.length > 0) {
+                                                                $scope.DpBuilder.CuisineId = getAttrByArr(result, 'id').join(',');
+                                                                $scope.DpBuilder.CuisineName = getAttrByArr(result, 'text').join(',');
+                                                            }
+                                                        } break;
+                                                        case 'Package': {
+                                                            $scope.PackageBuilder.CommandId = getAttrByArr(result, 'id').join(',');
+                                                            $scope.PackageBuilder.PackageName = getAttrByArr(result, 'text').join(',');
+                                                            //alert($scope.PackageBuilder.CommandId);
+                                                            //alert($scope.PackageBuilder.PackageName);
+                                                        } break;
+                                                        default: break;
+                                                    }
+                                                    $scope.$apply();
+                                                }
+                                            }
+                                        }
+                                    });
+
+
+            }
+            //选择用户（管理人）
+            //$scope.editUser = function (CuisineId, DinningRoomId) {
+            //    var data = {
+            //        selectedId: CuisineId,
+            //        DinningRoomId: DinningRoomId
+            //    };
+            //    var iframeId = 'user_edit';
+            //    var strUrl = '../OrderMealMenu/SelectCuisine';
+            //    var iframeSrc = '../OrderMealMenu/SelectCuisine?selectedId=' + CuisineId + '&DinnningRoomId=' + DinningRoomId;
+            //    var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+            //    box.popup('',//iframeStr,
+            //        {
+            //            url: '../OrderMealMenu/SelectCuisine',
+            //            iframeData: data,
+            //            iframeId: iframeId,
+            //            title: '选择菜式',
+            //            width: 760,//窗口宽度，默认400
+            //            height: 380,//窗口高度，默认400
+            //            hasOk: true,
+            //            hasCancel: true,
+            //            onBeforeClose: function (data) {
+            //                if (data == true) {
+            //                    var theWindow = window;
+            //                    while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+            //                        theWindow = theWindow.parent;
+            //                    }
+            //                    if (!theWindow.frames[iframeId]) {
+            //                        box.alert('出错！', { icon: 'error' });
+            //                    }
+            //                    else {
+            //                        var result = theWindow.frames[iframeId].getResult();
+            //                        $scope.DpBuilder.CuisineId = getAttrByArr(result, 'id').join(',');
+            //                       // alert($scope.DpBuilder.CuisineId);
+            //                        $scope.DpBuilder.CuisineName = getAttrByArr(result, 'text').join(',');
+            //                        $scope.$apply();
+            //                    }
+            //                }
+            //            }
+            //        });
+            //}
+            $scope.save = function () {
+                var tempDatas = $filter('filter')($scope.ListPageData, function (obj) {
+                    return choseArr.indexOf(obj.Id) > -1;
+                });
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = {
+                        dataBase: $scope.curObj,
+                        CuisineId: $scope.DpBuilder.CuisineId,
+                        CommandId: $scope.PackageBuilder.CommandId
+                    }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'OrderMealMenu/Index?DinningRoomID=@ViewData["DinningRoomID"]';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OrderMealMenu/GetPlaceListData', postData);
+            };
+
+            serive.save = function (postData) {
+                //return $http({
+                //    method: 'POST',
+                //    url: CurPath + 'OrderMealMenu/Save',
+                //    data: postData
+                //});
+                return $http.post(CurPath + 'OrderMealMenu/Save', postData);
+            };
+            //获取服务信息作为字典
+            serive.getDinningRoomAsDict = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OrderMealDinningRoom/getDinningRoomAsDict'
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OrderMealMenu/GetDataByID/' + id
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table id="ForEdit">
+            <tr>
+                <th>
+                    菜谱可用日期：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="curObj.WorkingDate" name="WorkingDate" ng-change="ChangeCommand();" date-Picker datefmt='yyyy-MM-dd' style="width:70px;" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.WorkingDate.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-hide="editForm.WorkingDate.$valid">请输入菜谱可用日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>            
+                <th>
+                    所属食堂：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="curObj.DinningRoomID" required name="DinningRoomID" style="width:70px;" ng-options="x.DinningRoomID as x.DinningRoomName for x in dictDinningRoom">
+                                <option value="">全部</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.DinningRoomID.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.DinningRoomID.$valid">请选择所属食堂</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    用餐时段：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="curObj.MealTimeType" required name="MealTimeType" style="width:70px;" ng-options="x.text as x.text for x in dictMealTimeType">
+                                <option value="">全部</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.MealTimeType.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.MealTimeType.$valid">请选择用餐时段</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    菜谱名称：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="curObj.MenuName" name="MenuName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.MenuName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-hide="editForm.MenuName.$valid">请输入菜谱名称</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    是否提前一天预定：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="checkbox" ng-model="curObj.IsPreOrder" ng-checked="curObj.IsPreOrder" style="width:30px !important" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    套餐信息：
+                </th>
+                <td>
+                    <div class="the-text-area">
+                        <input type="text" style="display:none;" name="CommandId" ng-model="PackageBuilder.CommandId" ng- class="cell-input" />
+                        <textarea name="PackageName" ng-model="PackageBuilder.PackageName" required ng-click="openWindow('Package',PackageBuilder.CommandId)"></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.PackageName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.PackageName.$error.required"><i class="icon-error"></i>请选择套餐信息。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>
+                    菜式信息：
+                </th>
+                <td>
+                    <div class="the-text-area">
+                        <input type="text" style="display:none;" name="CuisineId" ng-model="DpBuilder.CuisineId" ng- class="cell-input" />
+                        <textarea name="CuisineName" ng-model="DpBuilder.CuisineName" required ng-click="openWindow('Cuisine',DpBuilder.CuisineId)" ></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.CuisineName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.CuisineName.$error.required"><i class="icon-error"></i>请选择菜式信息。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" id="ForEdit_saveOption" style="width:70px; margin-right:20px;">保存</a>
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->
+
+

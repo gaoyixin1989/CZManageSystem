@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{20CF5584-39AB-4274-BADA-0F50A4B6183A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Botwave</RootNamespace>
+    <AssemblyName>Botwave.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Botwave.Core.xml</DocumentationFile>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Botwave.Core.xml</DocumentationFile>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Common.Logging, Version=3.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Common.Logging.3.0.0\lib\net40\Common.Logging.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Common.Logging.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Common.Logging.Core.3.0.0\lib\net40\Common.Logging.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Spring.Core, Version=2.0.1.45000, Culture=neutral, PublicKeyToken=65e474d141e25e07, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Spring.Core.2.0.1\lib\net45\Spring.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Commons\CollectionUtils.cs" />
+    <Compile Include="Commons\DataTableValidator.cs" />
+    <Compile Include="Commons\DateTimeUtils.cs" />
+    <Compile Include="Commons\DbUtils.cs" />
+    <Compile Include="Commons\ExcelUtils.cs" />
+    <Compile Include="Commons\ExceptionLogger.cs" />
+    <Compile Include="Commons\Exceptions.cs" />
+    <Compile Include="Commons\FileUtils.cs" />
+    <Compile Include="Commons\MathUtils.cs" />
+    <Compile Include="Commons\OleDbHelper.cs" />
+    <Compile Include="Commons\SQLHelper.cs" />
+    <Compile Include="Commons\StringUtils.cs" />
+    <Compile Include="Commons\Threading\ISyncCaller.cs" />
+    <Compile Include="Commons\Threading\SyncCallerHost.cs" />
+    <Compile Include="Commons\TripleDESHelper.cs" />
+    <Compile Include="Commons\Validator.cs" />
+    <Compile Include="Configuration\ExceptionConfig.cs" />
+    <Compile Include="Crypto\CryptoManager.cs" />
+    <Compile Include="Crypto\ICryptoService.cs" />
+    <Compile Include="Crypto\MD5Service.cs" />
+    <Compile Include="Crypto\RijndaelService.cs" />
+    <Compile Include="Crypto\SHA1Service.cs" />
+    <Compile Include="Crypto\SHA256Service.cs" />
+    <Compile Include="Crypto\TripleDESService.cs" />
+    <Compile Include="Entities\BasicUser.cs" />
+    <Compile Include="Entities\TrackedEntity.cs" />
+    <Compile Include="Events\AppEvent.cs" />
+    <Compile Include="FileManager\FileManagerHelper.cs" />
+    <Compile Include="FileManager\FileManagerSectionHandler.cs" />
+    <Compile Include="FileManager\IFileService.cs" />
+    <Compile Include="FileManager\Support\FTPFileService.cs" />
+    <Compile Include="FileManager\Support\SharedDirectoryFileService.cs" />
+    <Compile Include="FileManager\Support\WebDAVFileService.cs" />
+    <Compile Include="GlobalSettings.cs" />
+    <Compile Include="Algorithms\Apriori\Apriori.cs" />
+    <Compile Include="Algorithms\Apriori\AprioriIn.cs" />
+    <Compile Include="Algorithms\Apriori\AprioriOut.cs" />
+    <Compile Include="Algorithms\Apriori\AprioriSqlDataIn.cs" />
+    <Compile Include="Algorithms\Apriori\AprioriSqlDataOut.cs" />
+    <Compile Include="Algorithms\Apriori\AprioriTxtDataOut.cs" />
+    <Compile Include="Algorithms\Apriori\DataCache.cs" />
+    <Compile Include="Algorithms\Apriori\DataItem.cs" />
+    <Compile Include="Algorithms\Apriori\IApriori.cs" />
+    <Compile Include="Algorithms\Apriori\LibConst.cs" />
+    <Compile Include="Algorithms\Apriori\StrUtils.cs" />
+    <Compile Include="Log\Appender\BotwaveAppender.cs" />
+    <Compile Include="Log\OperationLog.cs" />
+    <Compile Include="Log\Layout\OperationLogLayout.cs" />
+    <Compile Include="Log\Layout\Pattern\DescriptionPatternConverter.cs" />
+    <Compile Include="Log\Layout\Pattern\ExceptionIdPatternConverter.cs" />
+    <Compile Include="Log\Layout\Pattern\OperationIdPatternConverter.cs" />
+    <Compile Include="Log\Layout\Pattern\PortalIdPatternConverter.cs" />
+    <Compile Include="Message\DefaultMessageSender.cs" />
+    <Compile Include="Message\DefaultMessageSenderFactory.cs" />
+    <Compile Include="Message\EmailMessageSender.cs" />
+    <Compile Include="Message\IMessageSender.cs" />
+    <Compile Include="Message\IMessageSenderFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Web\Controls\DateTimePicker.cs" />
+    <Compile Include="Web\Controls\EmployeePicker.cs" />
+    <Compile Include="Web\Controls\ExtendedSiteMap\IDynamicSitePathHandler.cs" />
+    <Compile Include="Web\Controls\ExtendedSiteMap\MapPathNode.cs" />
+    <Compile Include="Web\Controls\ExtendedSiteMap\PathNode.cs" />
+    <Compile Include="Web\Controls\ExtendedSiteMap\PathNodeItem.cs" />
+    <Compile Include="Web\Controls\ExtendedSiteMap\TestDynamicSitePathHandler.cs" />
+    <Compile Include="Web\Controls\ExtendedSiteMap\SiteMapManager.cs" />
+    <Compile Include="Web\Controls\ExtendedSiteMap\SiteMapPath.cs" />
+    <Compile Include="Web\Controls\VirtualPager.cs" />
+    <Compile Include="Web\HttpHandler\CheckCodeHandler.cs" />
+    <Compile Include="Web\HttpHandler\DownloadHandler.cs" />
+    <Compile Include="Web\MasterPageBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\MessageHelper.cs" />
+    <Compile Include="Web\PageBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\PerformanceTracker\PerfLogger.cs" />
+    <Compile Include="Web\PerformanceTracker\PerformanceTrackerHttpModule.cs" />
+    <Compile Include="Web\RequestTracker\RequestLogger.cs" />
+    <Compile Include="Web\RequestTracker\RequestTrackerHttpModule.cs" />
+    <Compile Include="Web\Themes\ThemeContext.cs" />
+    <Compile Include="Web\Themes\ThemeHelper.cs" />
+    <Compile Include="Web\Themes\ThemeInfo.cs" />
+    <Compile Include="Web\Themes\ThemeSectionHandler.cs" />
+    <Compile Include="Web\UpDownLoadUtils.cs" />
+    <Compile Include="Web\UrlRewriter\RewriterProperty.cs" />
+    <Compile Include="Web\UrlRewriter\UrlRewriterContext.cs" />
+    <Compile Include="Web\UrlRewriter\UrlRewriterModule.cs" />
+    <Compile Include="Web\UrlRewriter\UrlRewriterSectionHandler.cs" />
+    <Compile Include="Web\UserControlBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\WebUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="doc\changelog.txt" />
+    <Content Include="Web\PerformanceTracker\design.txt" />
+    <Content Include="Web\RequestTracker\design.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="doc\Botwave.Core文档.chm" />
+    <None Include="packages.config" />
+    <None Include="Web\PerformanceTracker\Tracking_Performance.sql" />
+    <None Include="Web\RequestTracker\Tracking_Request.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

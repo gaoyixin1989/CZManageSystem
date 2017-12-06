@@ -1,0 +1,306 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    @*<script src="~/Content/app/number.js"></script>*@
+        <script src="~/Content/app/datePicker.js"></script>
+
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+<!--[if lte IE 8]>
+    <script>
+        document.createElement('treecontrol');
+        document.createElement('treeitem');
+    </script>
+<![endif]-->
+
+    <script>
+        var list = list || [];
+        function GetData() {
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10
+            };
+            $.ajax({
+                url: CurPath + 'Resources/GetAllSysDeptment',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    list = data.items;
+                }
+            });
+        }
+        var app = angular.module('CreateOrUpdate', ['treeControl']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('ResourcesController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.names = ["function", "page", "workflow"];
+            $scope.notice = {};
+            $scope.notice.dept = {};
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+            var tree;
+
+            GetData();
+
+            var rawTreeData = list;
+
+           
+            var myTreeData = getTree(rawTreeData, 'ResourceId', 'ParentId');
+            $scope.dataForTheTree = [];
+            //$scope.tree_data = myTreeData;
+            $scope.my_tree = tree = {};
+            $scope.dataForTheTree = myTreeData;
+            $scope.tree_data = function (sel, parent) {
+                $scope.selectedNode = sel;
+                $scope.notice.Namess = sel.Alias;
+                $scope.notice.dept.ParentId = sel.ResourceId;
+                $scope.showTree();
+            };
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#menuTree").toggle();
+            }
+            $scope.my_tree_handler = function (branch) {
+            }
+
+            function getTree(data, primaryIdName, parentIdName) {
+                if (!data || data.length == 0 || !primaryIdName || !parentIdName)
+                    return [];
+
+                var tree = [],
+                    rootIds = [],
+                    item = data[0],
+                    primaryKey = item[primaryIdName],
+                    treeObjs = {},
+                    parentId,
+                    parent,
+                    len = data.length,
+                    i = 0;
+
+                angular.forEach(data, function (curObj) {
+                    treeObjs[curObj[primaryIdName]] = curObj;
+                });
+
+                while (i < len) {
+                    item = data[i++];
+                    primaryKey = item[primaryIdName];
+                    //treeObjs[primaryKey] = item;
+                    parentId = item[parentIdName];
+                    parent = treeObjs[parentId];
+
+                    if (parentId && parent) {
+                        if (parent.children) {
+                            parent.children.push(item);
+                        } else {
+                            parent.children = [item];
+                        }
+                    } else {
+                        rootIds.push(primaryKey);
+                    }
+                }
+
+                for (var i = 0; i < rootIds.length; i++) {
+                    tree.push(treeObjs[rootIds[i]]);
+                };
+                return tree;
+            }
+
+            var id = '@ViewData["id"]';
+            $scope.saveType = "add";
+            $scope.notice = { EnableFlag: false };
+            //$scope.notice.EnableFlag = false;
+            if (id != null && id.toString().length > 0) {
+                $scope.saveType = "update";
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.notice = response;
+                    if (response.Alias != null) { 
+                        $scope.notice.Namess = response.Alias;
+                    }
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.notice;
+                    postData.type = $scope.saveType;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Resources/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.alert("出错！", { icon: 'error' });
+                    });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+            
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Resources/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Resources/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--资源编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="ResourcesController" name="editForm" novalidate>
+        <table>
+            @*<tr>
+                    <th>当前状态：</th>
+                    <td>
+                        {{(notice.NoticeId!=null && notice.NoticeId.toString().length>0)?"编辑":"新增"}}
+                    </td>
+                </tr>*@
+            @*<tr>
+                    <th>id：</th>
+                    <td>{{notice.NoticeId}}</td>
+                </tr>*@
+            <tr>
+                <th>资源编号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ResourceId" style="background:{{saveType=='update'?'#EBEBE4':''}}" ng-disabled="saveType=='update'" ng-model="notice.dept.ResourceId" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ResourceId.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ResourceId.$error.required">请输入资源编号</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>资源别名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Alias" ng-model="notice.dept.Alias" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Alias.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Alias.$error.required">请输入资源别名</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>父资源：</th>
+                <td>
+                    <div>
+                        @*<input type="text" ng-model="deptment.DpId" style="display:none" />*@
+                        <input type="text" ng-model="notice.dept.ParentId" style="display:none" />
+                        @*<input type="text" ng-model="notice.DpFullName" style="display:none" />*@
+                        <input type="text" ng-model="notice.Namess" class="cell-input" placeholder="请选择" ng-click="showTree(this)" />
+                        <div class="">
+                            <treecontrol id="menuTree" class="tree-light" style="display:none"
+                                         tree-model="dataForTheTree"
+                                         options="treeOptions"
+                                         on-selection="tree_data(node,$parentNode)">
+                                {{node.Alias}}
+                            </treecontrol>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>类型： </th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            @*<select class="cell-input" ng-model="notice.dept.Type" placeholder="请选择" ng-options="x for x in names"></select>*@
+                            <select class="cell-input" name="Type" required ng-model="notice.dept.Type" style="width:222px;">
+                                <option ng-repeat="x in names" value="{{x}}">{{x}}</option>
+                            </select>
+                        </div>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Type.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Type.$error.required">请选择类型</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>资源名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Name" ng-model="notice.dept.Name" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Name.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Name.$error.required">请输入资源名</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../Resources/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                    @*<input type="submit" ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;" ng-disabled="editForm.$invalid" value="保存" />
+                        <input type="button" class="cell-btn-gray" value="返回" style="width:70px;" onclick="window.location.href='/SysNotice/Index'" />*@
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

@@ -1,0 +1,684 @@
+﻿
+@{
+    ViewBag.Title = "排班管理编辑页面";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script>
+        var type = '@ViewData["type"]';
+        var id = '@ViewData["Id"]';
+        var deptId = '@ViewData["deptId"]';
+        var deptName = '@ViewData["deptName"]';
+
+        //$scope.curObj.zhibanInfo.DeptId = result[0].id;
+        //$scope.curObj.zhibanInfo.DeptId_Text = result[0].text;
+
+        $(function () {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+        });
+
+        //将数字生成数组，from-开始数字，to-结束数字
+        function getNumDict(from, to) {
+            var temp = [];
+            if (temp <= to) {
+                for (var cur = from; cur <= to; cur++) {
+                    temp.push(cur);
+                }
+            }
+            else {
+                for (var cur = from; cur >= to; cur--) {
+                    temp.push(cur);
+                }
+            }
+            return temp;
+        }
+        //将数字生成字符串数组，from-开始数字，to-结束数字，length-字符串长度
+        function getNumStrDict(from, to, length) {
+            var temp = [];
+            if (temp <= to) {
+                for (var cur = from; cur <= to; cur++) {
+                    temp.push(padLeft(cur, length));
+                }
+            }
+            else {
+                for (var cur = from; cur >= to; cur--) {
+                    temp.push(padLeft(cur, length));
+                }
+            }
+            return temp;
+        }
+        //将num的长度补齐到n位，左侧加defaultValue，defaultValue默认0
+        function padLeft(num, n, defaultValue) {
+            if (defaultValue == null || defaultValue == '')
+                defaultValue = '0';
+            return Array(n > ('' + num).length ? (n - ('' + num).length + 1) : 0).join(defaultValue) + num;
+        }
+
+        var app = angular.module('CreateOrUpdate', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            $scope.curObj = {
+                zhibanInfo: {
+                    DeptId: deptId,
+                    DeptId_Text: deptName,
+                    Lb_Num: 1,
+                    Bc_Num: 1
+                    //Year: '2017'
+                    //Month: '',
+                    //DeptId_Text: ''
+                },
+                banciList: [],
+                lunbanList: []
+            };
+
+            $scope.banciModelList = [];
+            //查询当前用户的班次信息，作为模板提供给页面引用
+            BusinessService.getBanciListAsModel().success(function (response) {
+                $scope.banciModelList = response;
+            }).error(function (response) {
+                //alert("错误！");
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+
+            //获取当前数据
+            var getCurData = false;
+            if (id != null && id.toString().length > 0) {
+                //loadCurData();
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+            else {
+                getCurData = true;
+            }
+
+            //设置相关的配置信息
+            var setConfigureData = function () {
+                $timeout(function () {
+                    if (getCurData) {
+                        $scope.dictHour = getNumStrDict(0, 23, 2);//小时字符串值
+                        $scope.dictMinute = getNumStrDict(0, 59, 2);//分钟字符串值
+                        $scope.dictBcNum = getNumDict(1, 4);//班次个数下拉框内容
+                        $scope.dictStaffNum = getNumDict(0, 20);//值班人数
+                        $scope.dictLunBanNum = getNumDict(1, 4);//轮班个数
+                        $scope.dictLunBanDay = getNumStrDict(1, 31, 2);//轮班日期
+
+                        //获取字典“年”
+                        BusinessService.getDictListByName('年').success(function (response) {
+                            $scope.dictYear = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.zhibanInfo.Year && !!response.defaultvalue) {
+                                    $scope.curObj.zhibanInfo.Year = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                        //获取字典“月份”
+                        BusinessService.getDictListByName('月份').success(function (response) {
+                            $scope.dictMonth = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.zhibanInfo.Month && !!response.defaultvalue) {
+                                    $scope.curObj.zhibanInfo.Month = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        setConfigureData();
+                    }
+                }, 100);
+            }
+            setConfigureData();//设置相关的配置信息
+
+
+            //保存按钮
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    box.load("保存数据");
+                    BusinessService.save(postData).success(function (response) {
+                        box.ready("保存数据");
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                if (id == null || id.toString() == '')
+                                    window.location.href = CurPath + 'Shift/ZhiBanEdit?type=' + type + '&Id=' + response.Message;
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) {
+                        box.ready("保存数据");
+                        box.alert('网络出错！', { icon: 'error' });
+                    });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //选择部门
+            $scope.editDept = function (ids) {
+                var iframeId = 'user_edit';
+                var iframeSrc = '../UsersGrounp/SelectDepts?startId=' + deptId + '&selectedId=' + ids;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择部门机构',
+                        width: 550,//窗口宽度，默认400
+                        height: 390,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();//只取第一个
+                                    if (result.length > 0) {
+                                        $scope.curObj.zhibanInfo.DeptId = result[0].id;
+                                        $scope.curObj.zhibanInfo.DeptId_Text = result[0].text;
+                                    }
+                                    else {
+                                        $scope.curObj.zhibanInfo.DeptId = null;
+                                        $scope.curObj.zhibanInfo.DeptId_Text = null;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //修改班次名称
+            $scope.changeTitle = function () {
+                if (!!$scope.curObj.zhibanInfo.Year && !!$scope.curObj.zhibanInfo.Month && !!$scope.curObj.zhibanInfo.DeptId_Text)
+                    $scope.curObj.zhibanInfo.Title = $scope.curObj.zhibanInfo.Year + '年' + $scope.curObj.zhibanInfo.Month + '月' + $scope.curObj.zhibanInfo.DeptId_Text + '排班';
+            }
+            //监视
+            //修改班次名称
+            $scope.$watch(function () {
+                var newValue = $scope.curObj.zhibanInfo.Year + $scope.curObj.zhibanInfo.Month + $scope.curObj.zhibanInfo.DeptId_Text;
+                return newValue;
+            }, $scope.changeTitle);
+
+            //修改班次个数
+            $scope.changeBcNum = function (num) {
+                while ($scope.curObj.banciList.length > num) {
+                    $scope.curObj.banciList.pop();
+                }
+                while ($scope.curObj.banciList.length < num) {
+                    $scope.curObj.banciList.push({
+                        Id: '',
+                        BcName: '',
+                        StartHour: '00',
+                        StartMinute: '00',
+                        EndHour: '00',
+                        EndMinute: '00'
+                    });
+                }
+                //$scope.$apply();
+            }
+            $scope.changeBcNum($scope.curObj.zhibanInfo.Bc_Num)
+            //修改轮班个数
+            $scope.changeLbNum = function (num) {
+                while ($scope.curObj.lunbanList.length > num) {
+                    $scope.curObj.lunbanList.pop();
+                }
+                while ($scope.curObj.lunbanList.length < num) {
+                    $scope.curObj.lunbanList.push({
+                        Id: '',
+                        StartDay: '01',
+                        EndDay: '01'
+                    });
+                }
+            }
+            $scope.changeLbNum($scope.curObj.zhibanInfo.Lb_Num);
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+            $scope.editMenberForLunban = function (type, obj) {
+                if (!$scope.curObj.zhibanInfo.DeptId) {
+                    box.alert('请先选择部门！', { icon: 'info' });
+                    return;
+                }
+                var selectedId = '';//已经选择的用户ID
+                if (!!obj.ShiftLbusers) {
+                    selectedId = getAttrByArr(obj.ShiftLbusers, 'UserId').join(",")
+                }
+
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'user': {
+                        title = '用户选择';
+                        iframeSrc = '../UsersGrounp/SelectUsers?startDeptId=' + $scope.curObj.zhibanInfo.DeptId + '&selectedId=' + selectedId;
+                        wWidth = 760;
+                    } break;
+                    case 'group': {
+                        title = '群组选择';
+                        iframeSrc = '../UsersGrounp/SelectGroupToUsers?selectedId=' + selectedId;
+                        wWidth = 550;
+                    } break;
+                    default: title = type;
+                }
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                                    {
+                                        title: title,
+                                        width: wWidth,//窗口宽度，默认400
+                                        height: 390,//窗口高度，默认400
+                                        hasOk: true,
+                                        hasCancel: true,
+                                        onBeforeClose: function (data) {
+                                            if (data == true) {
+                                                var theWindow = window;
+                                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                                    theWindow = theWindow.parent;
+                                                }
+                                                if (!theWindow.frames[iframeId]) {
+                                                    box.alert('出错！', { icon: 'error' });
+                                                }
+                                                else {
+                                                    var result = theWindow.frames[iframeId].getResult();
+                                                    obj.ShiftLbusers = [];
+                                                    switch (type) {
+                                                        case 'user': {
+                                                            $.each(result, function (i, item) {
+                                                                obj.ShiftLbusers.push({
+                                                                    UserId: item.id,
+                                                                    UserRealName: item.text
+                                                                });
+                                                            });
+                                                        } break;
+                                                        case 'group': {
+                                                            $.each(result, function (i, item) {
+                                                                obj.ShiftLbusers.push({
+                                                                    UserId: item.id,
+                                                                    UserRealName: item.text
+                                                                });
+                                                            });
+                                                        } break;
+                                                        default: break;
+                                                    }
+                                                    $scope.$apply();
+                                                }
+                                            }
+                                        }
+                                    });
+
+
+            }
+            $scope.showShiftLbusersText = function (obj) {
+                var temp = '';//已经选择的用户ID
+                if (!!obj.ShiftLbusers) {
+                    temp = getAttrByArr(obj.ShiftLbusers, 'UserRealName').join("，")
+                }
+                return temp;
+            }
+
+            //获取验证信息
+            $scope.getVerification = function (name, index) {
+                var res = {
+                    $valid: true,
+                    $invalid: false,
+                    $error: {}
+                };
+                var ele = $("[name='" + name + "']")[index];
+
+                if (!!$(ele).attr('required')) {
+                    res.$error.required = false;
+                    if (ele.value == null || ele.value.toString().length == 0) {
+                        res.$valid = false;
+                        res.$invalid = true;
+                        res.$error.required = true;
+                    }
+                }
+                if (!!$(ele).attr('ng-maxlength')) {
+                    res.$error.maxlength = false;
+                    var len = parseInt($(ele).attr('ng-maxlength'));
+                    if (ele.value.length > len) {
+                        res.$valid = false;
+                        res.$invalid = true;
+                        res.$error.maxlength = true;
+                    }
+                }
+                return res;
+            }
+
+            //查看排班
+            $scope.viewDetail = function () {
+                if (id == null || id.toString().length == 0) {
+                    box.alert('请先保存数据！', { icon: 'info' });
+                    return;
+                }
+                window.location.href = CurPath + 'Shift/BanCiDetail?ZhiBanId=' + id;
+            }
+            //排班方式一
+            $scope.editMode1 = function () {
+                if (id == null || id.toString().length == 0) {
+                    box.alert('请先保存数据！', { icon: 'info' });
+                    return;
+                }
+                window.location.href = CurPath + 'Shift/SetRichMode1?ZhiBanId=' + id;
+            }
+            //排班方式二
+            $scope.editMode2 = function () {
+                if (id == null || id.toString().length == 0) {
+                    box.alert('请先保存数据！', { icon: 'info' });
+                    return;
+                }
+                window.location.href = CurPath + 'Shift/SetRichMode2?ZhiBanId=' + id;
+            }
+
+            //提交
+            $scope.submit = function () {
+                if (id == null || id.toString().length == 0) {
+                    box.alert('请先保存数据！', { icon: 'info' });
+                    return;
+                }
+                box.load("提交数据");
+                BusinessService.submit(id).success(function (response) {
+                    box.ready("提交数据");
+                    if (response.IsSuccess) {
+                        box.alert("提交成功", { icon: 'success' });
+                    }
+                    else {
+                        box.alert(response.Message.length > 0 ? response.Message : "提交失败", { icon: 'error' });
+                    }
+                }).error(function (response) {
+                    box.ready("提交数据");
+                    box.alert('网络出错！', { icon: 'error' });
+                });
+            }
+
+            //引用班次模板
+            $scope.yinyongModel = function (obj) {
+                if (obj != null) {
+                    $scope.curObj.zhibanInfo.Bc_Num = obj.banciList.length;
+                    $scope.curObj.banciList = [];
+                    $.each(obj.banciList, function (i, item) {
+                        $scope.curObj.banciList.push({
+                            Id: '',
+                            BcName: item.BcName,
+                            StartHour: item.StartHour,
+                            StartMinute: item.StartMinute,
+                            EndHour: item.EndHour,
+                            EndMinute: item.EndMinute
+                        });
+                    })
+                }
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //保存数据
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/Save_ZhiBan',
+                    data: postData
+                });
+            };
+            //提交数据
+            serive.submit = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/Submit_ZhiBan',
+                    data: { ZhiBanId: id }
+                });
+            };
+            //根据id获取数据
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/GetDataByID_ZhiBan/' + id
+                });
+            };
+            //查询当前用户的班次信息，作为模板提供给页面引用
+            serive.getBanciListAsModel = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Shift/GetBanciListAsModel'
+                });
+            };
+
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table cellspacing="0" cellpadding="0">
+            <tr>
+                <th><span class="p-title">基本信息</span></th>
+            </tr>
+            <tr>
+                <th>部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input style="display:none;" type="text" name="DeptId" ng-model="curObj.zhibanInfo.DeptId" required class="cell-input" />
+                        <input style="width:180px;" type="text" ng-model="curObj.zhibanInfo.DeptId_Text" class="cell-input" readonly ng-click="editDept(curObj.zhibanInfo.DeptId)" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DeptId.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block"><i class="icon-error"></i>请选择部门</div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>年度：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select name="Year" required ng-model="curObj.zhibanInfo.Year" ng-options="a.value as a.text for a in dictYear" class="cell-input" style="width:80px;"></select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Year.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择年度</div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>月份：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select name="Month" ng-model="curObj.zhibanInfo.Month" ng-options="a.value as a.text for a in dictMonth" class="cell-input" style="width:80px;"></select>
+                            @*<select name="Month" required ng-model="curObj.zhibanInfo.Month" class="cell-input" style="width:80px;">
+                                    <option ng-repeat="a in dictMonth" value="{{a.value}}">{{a.text}}</option>
+                                </select>*@
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Month.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择月份</div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr><th><span class="p-title">班次信息</span></th></tr>
+            <tr>
+                <th>班次名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="width:180px;" name="Title" ng-model="curObj.zhibanInfo.Title" ng-maxlength="100" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited ">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Title.$error.required">请输入班次名称</span>
+                                <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>班次个数：</th>
+                <td>
+                    <div class="selectdrapdown">
+                        <select name="Bc_num" ng-model="curObj.zhibanInfo.Bc_Num" ng-options="a for a in dictBcNum" ng-change="changeBcNum(curObj.zhibanInfo.Bc_Num)" class="cell-input" style="width:50px;"></select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>引用模板：</th>
+                <td>
+                    <div class="selectdrapdown" style="float:left;">
+                        <select ng-model="banciModel" ng-options="a.zhibanTitle for a in banciModelList" ng-change="changeModel(banciModel)" class="cell-input" style="width:200px;"></select>
+                    </div>
+                    <a ng-click="yinyongModel(banciModel)" class="cell-btn-blue forEdit" style="width:50px;float:left; line-height:26px;height:26px;">引用</a>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding:0px;">
+                    <div class="public-table-main" style="margin-left:120px;">
+                        <table style="width:670px;">
+                            <tr>
+                                <th style="width:370px;">班次名称</th>
+                                <th style="width:270px;">时间</th>
+                            </tr>
+                            <tr ng-repeat="x in curObj.banciList">
+                                <td>
+                                    <div class="ui-input">
+                                        <input type="text" style="width:180px;" name="BcName" ng-model="x.BcName" required ng-maxlength="50" class="cell-input" />
+                                        <strong class="must-options">*</strong>
+                                        <div class="ui-tips" ng-show="getVerification('BcName',$index).$invalid&&editForm.failSubmited">
+                                            <div class="error" style="display:block">
+                                                <i class="icon-error"></i>
+                                                <span ng-show="getVerification('BcName',$index).$error.required">请输入班次{{$index+1}}的名称</span>
+                                                <span ng-show="getVerification('BcName',$index).$error.maxlength">输入文本过长</span>
+                                            </div>
+                                            <div class="correct"><i class="icon-correct"></i></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="selectdrapdown" style="margin:0px;">
+                                        <select name="StartHour" ng-model="x.StartHour" ng-options="a for a in dictHour" class="cell-input" style="width:50px;"></select>
+                                        <select name="StartMinute" ng-model="x.StartMinute" ng-options="a for a in dictMinute" class="cell-input" style="width:50px;"></select>
+                                        <span style="margin-left:10px;margin-right:10px;">到</span>
+                                        <select name="EndHour" ng-model="x.EndHour" ng-options="a for a in dictHour" class="cell-input" style="width:50px;"></select>
+                                        <select name="EndMinute" ng-model="x.EndMinute" ng-options="a for a in dictMinute" class="cell-input" style="width:50px;"></select>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+
+            </tr>
+            <tr><th><span class="p-title">轮班信息</span></th></tr>
+            <tr>
+                <th>本月轮班个数：</th>
+                <td colspan="3">
+                    <div class="selectdrapdown">
+                        <select name="Lb_Num" ng-model="curObj.zhibanInfo.Lb_Num" ng-options="a for a in dictLunBanNum" ng-change="changeLbNum(curObj.zhibanInfo.Lb_Num)" class="cell-input" style="width:50px;"></select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding:0px;">
+                    <div class="public-table-main" style="margin-left:120px;">
+                        <table style="width:670px;">
+                            <tr>
+                                <th style="width:160px;">排班日期</th>
+                                <th style="width:400px;">排班人员</th>
+                                <th style="width:100px;">操作</th>
+                            </tr>
+                            <tr ng-repeat="x in curObj.lunbanList">
+                                <td>
+                                    <div class="selectdrapdown" style="margin:0px;">
+                                        <select name="StartDay" ng-model="x.StartDay" ng-options="a for a in dictLunBanDay" class="cell-input" style="width:50px;"></select>
+                                        <span style="margin-left:10px;margin-right:10px;">到</span>
+                                        <select name="EndDay" ng-model="x.EndDay" ng-options="a for a in dictLunBanDay" class="cell-input" style="width:50px;"></select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="divOverflow" ng-mouseenter="showTitle($event)" style="width:370px; float:left;">{{showShiftLbusersText(x)}}</div>
+                                </td>
+                                <td>
+                                    <a style="color:blue;" ng-click="editMenberForLunban('user',x)">按用户</a>
+                                    <a style="margin:0px 5px; color:blue;" ng-click="editMenberForLunban('group',x)">按群组</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <a ng-click="viewDetail()" class="cell-btn-blue" style="width:75px; margin-right:20px; float:right;">查看排班</a>
+                    <a ng-click="editMode2()" class="cell-btn-blue forEdit" style="width:80px; margin-right:20px; float:right;">排班方式二</a>
+                    <a ng-click="editMode1()" class="cell-btn-blue forEdit" style="width:80px; margin-right:20px; float:right;">排班方式一</a>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <span style="color:red;">排班方式一：</span><span>根据“轮班信息”的日期和人员关系，设置每一天每一个班次的值班人员</span>
+                    <br />
+                    <span style="color:red;">排班方式二：</span><span>收集“轮班信息”中的所以人员，按人员勾选需要值班的班次</span>
+                </td>
+            </tr>
+            <tr>
+                <th></th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                    <a href="../Shift/ZhiBanList" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

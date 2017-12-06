@@ -1,0 +1,28 @@
+﻿--- 2009-03-16 17:57
+
+if exists (select * from dbo.sysobjects where id = object_id(N'[dbo].[bwrpt_BaseItemSP]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)
+drop table [dbo].[bwrpt_BaseItemSP]
+GO
+
+CREATE TABLE [dbo].[bwrpt_BaseItemSP] (
+	[ID] [int] IDENTITY (1, 1) NOT NULL ,
+	[ReportID] [int] NOT NULL ,
+	[Parameter] [varchar] (100) COLLATE Chinese_PRC_CI_AS NOT NULL ,
+	[DataType] [varchar] (50) COLLATE Chinese_PRC_CI_AS NOT NULL ,
+	[DefaultValue] [varchar] (200) COLLATE Chinese_PRC_CI_AS NULL 
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[bwrpt_BaseItemSP] WITH NOCHECK ADD 
+	CONSTRAINT [PK_bwrpt_BaseItemSP] PRIMARY KEY  CLUSTERED 
+	(
+		[ID]
+	)  ON [PRIMARY] 
+GO
+
+ALTER TABLE [dbo].[bwrpt_BaseItemSP] ADD 
+	CONSTRAINT [DF_bwrpt_BaseItemSP_DefaultValue] DEFAULT ('') FOR [DefaultValue]
+GO
+
+ CREATE  INDEX [IX_bwrpt_BaseItemSP] ON [dbo].[bwrpt_BaseItemSP]([ID]) ON [PRIMARY]
+GO

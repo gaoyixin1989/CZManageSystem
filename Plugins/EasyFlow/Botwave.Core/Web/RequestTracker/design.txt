@@ -1,0 +1,19 @@
+﻿目标：
+跟踪HttpRequest请求，以便于对系统/功能模块/页面的进行访问量分析
+
+需要能够配置请求的资源类型，如*.aspx
+
+Botwave.RequestTracker.CacheSize
+Botwave.RequestTracker.MatchPattern
+
+实体Tracking_Request：
+Id				标识			(int, pk, identity(1,1))
+Path			路径			(nvarchar(255))
+Query			查询字符串		(nvarchar(1024))
+UserHostAddress	IP				(nvarchar(255))
+UserAgent		用户代理		(nvarchar(255))
+BrowserType		浏览器类型		(nvarchar(255))
+BrowserName		浏览器名称		(nvarchar(255))
+BrowserVersion	浏览器版本		(nvarchar(255))
+Platform		操作系统/平台	(nvarchar(255))
+RequestTime		访问时间		(datetime)

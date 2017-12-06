@@ -1,0 +1,679 @@
+﻿@{
+    ViewBag.Title = "编辑服营厅";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@{ var user = ViewBag.User as CZManageSystem.Data.Domain.SysManger.Users;}
+@section Scripts{
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['tm.pagination', 'executor.aftersubmit', 'number', 'ngDialog', ]);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        // 例子,如何设置所有对话框的默认值
+        app.config(['ngDialogProvider', function (ngDialogProvider) {
+            ngDialogProvider.setDefaults({
+                className: 'ngdialog-theme-default',
+                plain: false,
+                showClose: true,
+                closeByDocument: true,
+                closeByEscape: true,
+                appendTo: false,
+                closeByDocument: false
+            });
+        }]);
+
+        app.controller('CreateController', ['$scope', '$rootScope', '$filter', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $rootScope, $filter, $timeout, BusinessService, ngDialog) {
+            $rootScope.rootPayeesID = "";
+            $rootScope.rootHallID = '';
+            $rootScope.rootTrue = false;
+            $scope.ui = {
+                DeptNames: ''
+            };//model.HallID, model.HallName, model.PaymentPayees, model?.Depts.DpFullName, model.DpId
+            $scope.curObj = { DpId: '', HallID: '', HallName: '', PaymentPayees: [], DpFullName: '' };
+            //获取列表
+            var GetListData = function () {
+                $scope.master = false;
+                if ($scope.curObj.HallID == '')
+                    return;
+                box.load("GetListData");
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    hallID: $scope.curObj.HallID
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.data.count;
+                    $scope.curObj.PaymentPayees = response.data.list;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            var id = '@ViewData["id"]';
+            var startId = '@ViewData["startId"]';
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getDataByID(id).success(function (response) {
+                    if (response.IsSuccess) {
+                        $scope.curObj = response.data;
+                        $scope.ui.DeptNames = $scope.curObj.DpFullName;
+                        GetListData();
+                    }
+                    else {
+                        box.alert(response.Message, { icon: 'error' });
+                    }
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.curObj.PaymentPayees, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.curObj.PaymentPayees.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.curObj.DpId + '&startId=' + startId;
+                    } break;
+                    case 'role': {
+                        title = '角色';
+                        // iframeSrc = '../UsersGrounp/SelectRoles?selectedId=' + $scope.roles.arrId.join(",");
+                    } break;
+                        //case 'user': {
+                        //    title = '用户';
+                        //    iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.curObj.UserId.join(",") + '&startDeptId=' + startId;
+                        //    wWidth = 760;
+                        //} break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.curObj.DpId = getAttrByArr(result, 'id')[0];
+                                            $scope.ui.DeptNames = getAttrByArr(result, 'fullName')[0];
+                                        } break;
+                                        case 'role': {
+                                            //$scope.roles.arrId = getAttrByArr(result, 'id');
+                                            //$scope.roles.arrText = getAttrByArr(result, 'text');
+                                        } break;
+                                            //case 'user': {
+                                            //    $scope.curObj.UserId = getAttrByArr(result, 'id');
+                                            //    $scope.ui.UserNames = getAttrByArr(result, 'text').join();
+                                            //} break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            };
+
+            //弹出层
+
+            $scope.editDialog = function (id) {
+                $rootScope.rootPayeesID = id;
+                $rootScope.rootHallID = angular.copy($scope.curObj.HallID); 
+                var dialog = ngDialog.open({
+                    title: '编辑收款人账号',
+                    template: 'editDialogId',// 'deptDialogId',//
+                    controller: 'editDialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 500,
+                    height: 520,
+                    top: -80
+                });
+                dialog.closePromise.then(function (data) { 
+                    if ($rootScope.rootTrue) { 
+                        GetListData();
+                    }
+                });
+            };
+
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                console.info(choseArr);
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.IsSuccess) {
+                                box.alert("成功删除" + response.data.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.Message.length > 0 ? response.Message : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = { hall: $scope.curObj };
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            $scope.curObj.HallID = response.data;
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                // window.location.href = CurPath + 'BasicDataSet/HallIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert(response.Message, { icon: 'error' }) });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        app.controller('editDialogController', ['$scope', '$rootScope', '$compile', 'BusinessService', '$filter', 'ngDialog', function ($scope, $rootScope, $compile, BusinessService, $filter, ngDialog) {
+
+            $scope.curObj = { PayeeID: '', Account: '', Name: '', BranchCode: '', Branch: '', OpenBank: '', Bank: '', BankCode: '', AddressCode: '', AreaCode: '', HallID: $rootScope.rootHallID };
+            var id = $rootScope.rootPayeesID;
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getPaymentPayeesDataByID(id).success(function (response) {
+                    if (response.IsSuccess) {
+                        $scope.curObj = response.data;
+                        console.info($scope.curObj);
+                    }
+                    else {
+                        box.alert(response.Message, { icon: 'error' });
+                    }
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.savePayees = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var data = { paymentPayees: $scope.curObj };
+                    BusinessService.savePaymentPayees(data).success(function (response) { 
+                        $rootScope.rootTrue = response.IsSuccess; 
+                        if (response.IsSuccess) {
+                            $scope.closeThisDialog();
+                            var dialog = ngDialog.open({
+                                template: '<div  class="msg_icon blackbox_icon_success"><p>保存成功！</p> </div>',
+                                plain: true,
+                                closeByDocument: false,
+                                closeByEscape: false,
+                                showClose: false,
+                                title: '信息提示',
+                                disableAnimation: true,
+                                width: 400,
+                                height: 140
+                            });
+                            setTimeout(function () {
+                                dialog.close();
+                            }, 2000);
+                        }
+                        else { 
+                            var dialog = ngDialog.open({
+                                template: '<div  class="msg_icon blackbox_icon_error"><p>保存失败！' + response.Message + '</p> </div>',
+                                plain: true,
+                                closeByDocument: false,
+                                closeByEscape: false,
+                                showClose: false,
+                                title: '信息提示',
+                                disableAnimation: true,
+                                width: 400,
+                                height: 140
+                            });
+                            setTimeout(function () {
+                                dialog.close();
+                            }, 2000);
+                        }
+                    }).error(
+                    function (response) {
+                        var dialog = ngDialog.open({
+                            template: '<div  class="msg_icon blackbox_icon_error"><p>保存失败！' + response.Message + '</p> </div>',
+                            plain: true,
+                            closeByDocument: false,
+                            closeByEscape: false,
+                            showClose: false,
+                            title: '信息提示',
+                            disableAnimation: true,
+                            width: 400,
+                            height: 140
+                        });
+                        setTimeout(function () {
+                            dialog.close();
+                        }, 2000);
+                    }
+
+                    );
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BasicDataSet/HallSave',
+                    data: postData
+                });
+            };
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'BasicDataSet/GetPaymentPayeesList', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BasicDataSet/PaymentPayeesDelete',
+                    data: ids
+                });
+            };
+            serive.savePaymentPayees = function (data) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BasicDataSet/PaymentPayeesSave',
+                    data: data
+                });
+            };
+            serive.getPaymentPayeesDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BasicDataSet/GetPaymentPayeesDataByID?id=' + id
+                });
+            };
+
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BasicDataSet/GetDataByID?id=' + id
+                });
+            };
+
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController">
+    <form action="" method="post" name="editForm" novalidate>
+
+        <div class="subject-management">
+            <span class="p-title">详细信息</span>
+        </div>
+        <table>
+            <tr>
+                <th>服营厅名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="HallName" ng-model="curObj.HallName" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.HallName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.HallName.$error.required">请输入标题</span>
+                                <span ng-show="editForm.HallName.$error.maxlength">输入标题过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>关联服营厅：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DeptNames" ng-model="ui.DeptNames" ng-click="editMember('dept')" ng-maxlength="50" required class="cell-input" placeholder="请选择" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DeptNames.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DeptNames.$error.required">请输入选择关联服营厅</span>
+                                <span ng-show="editForm.DeptNames.$error.maxlength">输入标题过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    @*<a ng-click="submit()" class="cell-btn-blue" style="width:70px; margin-right:20px;">提交</a>*@
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+        <div class="subject-management">
+            <span class="p-title">申请明细</span>
+        </div>
+        <div class="public-table-main">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <th style="width:30px;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                    <th style="width:230px;">收款人帐号</th>
+                    <th style="width:100px;">收款人账户名称</th>
+                    <th style="width:100px;">收款人开户行</th>
+                    <th style="width:100px;">所属分行</th>
+                    <th style="width:100px;">所属银行</th>
+                </tr>
+                <tr ng-repeat="emp in curObj.PaymentPayees">
+                    <td>
+                        <input type="checkbox" id="{{emp.PayeeID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.PayeeID)" />
+                    </td>
+                    <td>
+                        <a href="javascript:void(0);" ng-click="editDialog(emp.PayeeID)">{{emp.Account}}</a>
+                    </td>
+                    <td ng-bind="emp.Name"></td>
+                    <td ng-bind="emp.OpenBank"></td>
+                    <td ng-bind="emp.Branch"></td>
+                    <td ng-bind="emp.Bank"></td>
+                </tr>
+
+            </table>
+        </div>
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li><a ng-click="editDialog('')" class="btn-add"><i></i>添加</a></li>
+                    @*<li><a href="javascript:void(0);" ng-click="editData()" class="btn-edit"><i></i>编辑</a></li>*@
+                    <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                </ul>
+
+            </div>
+            <tm-pagination conf="paginationConf"></tm-pagination>
+        </div>
+    </form>
+    <script type="text/ng-template" id="editDialogId">
+        <form name="editForm" novalidate>
+            <div class="public-form">
+                <table>
+                    <tr>
+                        <th>收款人账户：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="Account" ng-model="curObj.Account" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Account.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.Account.$error.required">请输入收款人账户</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>收款人账户名称：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="Name" ng-model="curObj.Name" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Name.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.Name.$error.required">请输入收款人账户名称</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>收款人开户行：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="OpenBank" ng-model="curObj.OpenBank" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.OpenBank.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.OpenBank.$error.required">请输入收款人开户行</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>所属分行：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="Branch" ng-model="curObj.Branch" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Branch.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.Branch.$error.required">请输入所属分行</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>所属分行代码：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="BranchCode" ng-model="curObj.BranchCode" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.BranchCode.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.BranchCode.$error.required">请输入所属分行代码</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>所属银行：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="Bank" ng-model="curObj.Bank" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Bank.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.Bank.$error.required">请输入所属银行</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>所属银行代码：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="BankCode" ng-model="curObj.BankCode" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.BankCode.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.BankCode.$error.required">请输入所属银行代码</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>属地代码：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="AddressCode" ng-model="curObj.AddressCode" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.AddressCode.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.AddressCode.$error.required">请输入属地代码</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>区域代码：</th>
+                        <td>
+                            <div class="ui-input" style="margin-right:0px;">
+                                <input type="text" name="AreaCode" ng-model="curObj.AreaCode" ng-maxlength="50" required class="cell-input" placeholder="请输入" />
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.AreaCode.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.AreaCode.$error.required">请输入区域代码</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    @*<tr class="forEdit">
+                            <td colspan="2">
+                                <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                            </td>
+                        </tr>*@
+                    <tr>
+                        <th>&nbsp;</th>
+                        <td>
+                            <a ng-click="savePayees()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                            <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </script>
+
+</div>
+<!--公告编辑 end--->

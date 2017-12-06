@@ -1,0 +1,53 @@
+﻿@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <link href="~/Content/css/treeGrid.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/Content/Javascript/angular/tree-grid-directive.js" charset="UTF-8"></script>
+    <script src="~/Content/Javascript/treeGridTest.js" charset="UTF-8"></script>
+
+
+}
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="treeGridTest" ng-controller="treeGridController">
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    部门名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input class="cell-input" style="width:120px;" type="text" data-ng-model="filterString" placeholder="部门名称" />
+                    </div>
+                </td>
+                
+            </tr>
+        </table>
+        
+    </div>
+    <div class="public-table-main">
+
+        <tree-grid tree-data="tree_data" tree-control="my_tree" col-defs="col_defs" expand-on="expanding_property" 
+                   on-select="my_tree_handler(branch)" expand-level="2" icon-leaf="glyphicon glyphicon-globe"></tree-grid>
+
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../SysDeptment/Edit" class="btn-add"><i></i>添加</a></li>
+                @*<li><a href="javascript:void(0);" class="btn-ok"><i></i>确认</a></li>
+                <li><a ng-click="delete()" class="btn-del"><i></i>删除</a></li>
+                <li><a href="javascript:void(0);" class="lia-4"><i></i>导入</a></li>*@
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+     
+    </div>
+    <!--content--->
+
+</div>

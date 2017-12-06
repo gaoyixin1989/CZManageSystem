@@ -1,0 +1,909 @@
+﻿
+@{
+    ViewBag.Title = "休假申请编辑页";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <link href="~/Content/Javascript/Uploadify/uploadify.css" rel="stylesheet" />
+    <script src="~/Content/Javascript/Uploadify/jquery.uploadify-3.1.min.js"></script>
+    <script src="~/Content/app/filesuploadify.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        var workflowName = '@ViewData["workflowName"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number', 'datePicker', 'filesuploadify', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', '$timeout', 'ngDialog', function ($scope, BusinessService, $filter, $timeout, ngDialog) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            var ApplyID = '@ViewData["ApplyID"]';
+            var RealName = '@ViewData["RealName"]';
+            var DeptName = '@ViewData["DeptName"]';
+            var Mobile = '@ViewData["Mobile"]';
+            var NewTitle = '@ViewData["NewTitle"]';
+            var CurDate = '@ViewData["CurDate"]';
+            var AthId = '@ViewData["AthId"]';
+            $scope.curObj = {
+                Apply: {
+                    Editor_Text: RealName,
+                    DeptName: DeptName,
+                    Mobile: Mobile,
+                    ApplyTitle: NewTitle,
+                    Attids: AthId
+                },
+                Meeting: {},
+                Courses: {},
+                Teaching: {},
+                Other: {},
+                Attachments: {}
+            }
+            $scope.ActivitiesCompleted = [];
+
+            //年休假情况
+            $scope.CurAnnualLeaveInfo = {};
+            $scope.UpdateCurAnnualLeaveInfo = function (userID, date) {
+                BusinessService.GetCurAnnualLeaveInfo(userID, date).success(function (response) {
+                    $scope.CurAnnualLeaveInfo = response;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                })
+            }
+            //$scope.UpdateCurAnnualLeaveInfo();
+
+            var getCurData = false;
+            var getData = function () {
+                BusinessService.getDataByID(ApplyID).success(function (response) {
+                    $scope.curObj = response;
+                    //附近id
+                    if ($scope.curObj.Apply.Attids == null || $scope.curObj.Apply.Attids == '') {
+                        $scope.curObj.Apply.Attids = AthId;
+                    }
+
+                    if ($scope.curObj.Apply.ApplyTitle == null || $scope.curObj.Apply.ApplyTitle == '') {
+                        $scope.curObj.Apply.ApplyTitle = NewTitle;
+                    }
+                    if ($scope.curObj.Apply.Editor_Text == null || $scope.curObj.Apply.Editor_Text == '') {
+                        $scope.curObj.Apply.Editor_Text = RealName;
+                        $scope.curObj.Apply.DeptName = DeptName;
+                        $scope.curObj.Apply.Mobile = Mobile;
+                    }
+
+                    if ($scope.curObj.Meeting == null) $scope.curObj.Meeting = {};
+                    if ($scope.curObj.Courses == null) $scope.curObj.Courses = {};
+                    if ($scope.curObj.Meeting == null) $scope.curObj.Meeting = {};
+                    if ($scope.curObj.Teaching == null) $scope.curObj.Teaching = {};
+                    if ($scope.curObj.Other == null) $scope.curObj.Other = {};
+                    if ($scope.curObj.Attachments == null) $scope.curObj.Attachments = {};
+
+                    if ($scope.curObj.Apply.StartTime) $scope.curObj.Apply.StartTime = $scope.curObj.Apply.StartTime.replace('T', ' ');
+                    if ($scope.curObj.Apply.EndTime) $scope.curObj.Apply.EndTime = $scope.curObj.Apply.EndTime.replace('T', ' ');
+                    if ($scope.curObj.Apply.EditTime) $scope.curObj.Apply.EditTime = $scope.curObj.Apply.EditTime.replace('T', ' ');
+                    if ($scope.curObj.Meeting.StartTime) $scope.curObj.Meeting.StartTime = $scope.curObj.Meeting.StartTime.replace('T', ' ');
+                    if ($scope.curObj.Meeting.EndTime) $scope.curObj.Meeting.EndTime = $scope.curObj.Meeting.EndTime.replace('T', ' ');
+                    if ($scope.curObj.Courses.StartTime) $scope.curObj.Courses.StartTime = $scope.curObj.Courses.StartTime.replace('T', ' ');
+                    if ($scope.curObj.Courses.EndTime) $scope.curObj.Courses.EndTime = $scope.curObj.Courses.EndTime.replace('T', ' ');
+                    if ($scope.curObj.Teaching.StartTime) $scope.curObj.Teaching.StartTime = $scope.curObj.Teaching.StartTime.replace('T', ' ');
+                    if ($scope.curObj.Teaching.EndTime) $scope.curObj.Teaching.EndTime = $scope.curObj.Teaching.EndTime.replace('T', ' ');
+                    if ($scope.curObj.Other.StartTime) $scope.curObj.Other.StartTime = $scope.curObj.Other.StartTime.replace('T', ' ');
+                    if ($scope.curObj.Other.EndTime) $scope.curObj.Other.EndTime = $scope.curObj.Other.EndTime.replace('T', ' ');
+
+                    //获取流程步骤执行情况信息
+                    if ($scope.curObj.Apply.WorkflowInstanceId != null && $scope.curObj.Apply.WorkflowInstanceId != '')
+                        BusinessService.getActivitiesCompletedByID($scope.curObj.Apply.WorkflowInstanceId).success(function (response2) {
+                            $scope.ActivitiesCompleted = response2.items;
+                        })
+
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+
+            //获取当前数据
+            if (ApplyID != null && ApplyID.toString().length > 0) {
+                getData();
+            }
+            else {
+                getCurData = true;
+            }
+
+            //设置相关的配置信息
+            var setConfigureData = function () {
+                $timeout(function () {
+                    if (getCurData) {
+                        //获取字典“休假类型”
+                        BusinessService.getDictListByName('休假类型').success(function (response) {
+                            $scope.dictVacationType = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.Apply.VacationType && !!response.defaultvalue) {
+                                    $scope.curObj.Apply.VacationType = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                        //获取字典“公假类型”
+                        BusinessService.getDictListByName('公假类型').success(function (response) {
+                            $scope.dictVacationClass = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.Apply.VacationClass && !!response.defaultvalue) {
+                                    $scope.curObj.Apply.VacationClass = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                        //获取字典“培训-课程类别”
+                        BusinessService.getDictListByName('培训课程').success(function (response) {
+                            $scope.dictCoursesType = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.Courses.CoursesType && !!response.defaultvalue) {
+                                    $scope.curObj.Courses.CoursesType = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                        //获取字典“培训-主办单位”
+                        BusinessService.getDictListByName('主办单位').success(function (response) {
+                            $scope.dictProvinceCity = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.Courses.ProvinceCity && !!response.defaultvalue) {
+                                    $scope.curObj.Courses.ProvinceCity = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                        //获取字典“内部讲师授课-讲师级别”
+                        BusinessService.getDictListByName('讲师级别').success(function (response) {
+                            $scope.dictTeacherType = response.items;
+                            $timeout(function () {
+                                if (!$scope.curObj.Teaching.TeacherType && !!response.defaultvalue) {
+                                    $scope.curObj.Teaching.TeacherType = response.defaultvalue;
+                                }
+                            }, 1);
+                        }).error(function (err) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                    }
+                    else {
+                        setConfigureData();
+                    }
+                }, 100);
+            }
+            setConfigureData();//设置相关的配置信息
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+
+                    if ($scope.curObj.Apply.VacationType == "年休假" && $scope.curObj.Apply.PeriodTime > $scope.CurAnnualLeaveInfo.All) {
+                        box.alert("你申请的年休假超过你可用的年休假", { icon: 'error' });
+                        return;
+                    }
+
+                    var postData = $scope.curObj;
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'VacationApply/Edit?type=edit&ApplyID=' + response.Message;
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //提交数据，提交数据时先执行保存数据
+            $scope.submit = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+
+                    if ($scope.curObj.Apply.VacationType == "年休假" && $scope.curObj.Apply.PeriodTime > $scope.CurAnnualLeaveInfo.All) {
+                        box.alert("你申请的年休假超过你可用的年休假", { icon: 'error' });
+                        return;
+                    }
+
+                    if ($scope.curObj.Attachments == null || $scope.curObj.Attachments.length <= 0) {
+                        box.alert("请上传相关证明文件", { icon: 'error' });
+                        return;
+                    }
+
+                    var postData = $scope.curObj;
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            {
+                                var sumbitData = {
+                                    applyID: response.Message,
+                                    nextActivity: nextInfo.nextActivity,
+                                    nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                    nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                                };
+                                box.load("submit");
+                                BusinessService.submit(sumbitData).success(function (response2) {
+                                    box.ready("submit");
+                                    if (response2.IsSuccess) {
+                                        box.alert("提交成功", { icon: 'success' }, function () {
+                                            window.location.href = CurPath + 'VacationApply/Index';
+                                        });
+                                    }
+                                    else {
+                                        box.alert(response2.Message.length > 0 ? response2.Message : "提交失败", { icon: 'error' });
+                                    }
+                                }).error(function (response2) {
+                                    box.ready("submit");
+                                    box.alert("网络出错！", { icon: 'error' });
+                                });
+                            }
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+
+
+
+            };
+
+            $scope.print = function () {
+                if ($scope.curObj.Apply.WorkflowInstanceId == null || $scope.curObj.Apply.WorkflowInstanceId.length <= 0)
+                    box.alert("没有流程实例ID，请先提交数据！", { icon: 'error' });
+                else
+                    window.open(CurPath + 'plugins/easyflow/contrib/workflow/pages/print.aspx?wiid=' + $scope.curObj.Apply.WorkflowInstanceId);
+            }
+
+            //修改休假类型事件
+            var resetVacationType = function () {
+                $scope.UpdateCurAnnualLeaveInfo(null, $scope.curObj.Apply.StartTime);
+                $(".gongjia,.kaihui,.peixun,.shouke,.qita").hide();
+                if ($scope.curObj.Apply.VacationType == "公假")
+                    $(".gongjia").show();
+                else {
+                    $scope.curObj.Apply.VacationClass = "";
+                    $scope.curObj.Apply.OutAddress = "";
+                    $scope.curObj.Apply.ApplyTitle = NewTitle;
+                }
+            }
+            //修改公假类型事件
+            var resetVacationClass = function () {
+                $(".kaihui,.peixun,.shouke,.qita").hide();
+                switch ($scope.curObj.Apply.VacationClass) {
+                    case '开会': $(".kaihui").show(); break;
+                    case '培训': $(".peixun").show(); break;
+                    case '内部讲师授课': $(".shouke").show(); break;
+                    case '其他': $(".qita").show(); break;
+                    default: break;
+                }
+
+                $scope.curObj.Apply.ApplyTitle = RealName + "的休假申请-" + $scope.curObj.Apply.VacationClass + "(" + CurDate + ")";
+            }
+
+            var resetStartTime = function () {
+                if ($scope.curObj.Apply.VacationType == "年休假")
+                    $scope.UpdateCurAnnualLeaveInfo(null, $scope.curObj.Apply.StartTime);
+            };
+
+            $scope.$watch('curObj.Apply.VacationType', resetVacationType);
+            $scope.$watch('curObj.Apply.VacationClass', resetVacationClass);
+            $scope.$watch('curObj.Apply.StartTime', resetStartTime);
+
+
+            //上传附件
+            $scope.fileUploadDialog = function () {
+                var _AttachmentId = $scope.curObj.Apply.Attids; //导入的类型
+                var _filepath = "VacationApply";
+                var dialog = ngDialog.openConfirm({
+                    title: '上传附件',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Upload/Index?Upguid=" + _AttachmentId + "&FilePath=" + _filepath + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        BusinessService.getAttachmentDataByID(_AttachmentId).success(function (response) {
+                            //box.ready("loadding");
+                            $scope.curObj.Attachments = response.data;
+                        }).error(function (response) {
+                            //box.ready("loadding");
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                });
+
+            };
+
+            //删除附件
+            $scope.deleteUpload = function (id) {
+                //调用删除服务
+                BusinessService.deleteUpload(id).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("删除成功", { icon: 'success' });
+                        $scope.curObj.Attachments = response.data;
+                    }
+                    else {
+                        box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                    }
+                });
+            };
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.GetCurAnnualLeaveInfo = function (userID, date) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationApply/GetCurAnnualLeaveInfo',
+                    data: { userID: userID, date: date }
+                });
+            };
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationApply/Save_Apply',
+                    data: postData
+                });
+            };
+            serive.submit = function (postData) {//提交
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationApply/Sumbit_Apply',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationApply/GetDataByID_Apply?id=' + id
+                });
+            };
+
+
+            serive.getActivitiesCompletedByID = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Workflow/GetActivitiesCompletedByID?WorkflowInstanceId=' + id
+                });
+            };
+
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            //删除附件
+            serive.deleteUpload = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Upload/FileUploadDelete/' + id
+                });
+            };
+            //查询附件信息
+            serive.getAttachmentDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Upload/GetOGSMDataByID/' + id
+                });
+            };
+            return serive;
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            setByType();
+                        });
+                    }
+                }
+            };
+        });
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .cell-input-data {
+            width: 120px;
+        }
+
+        .cell-input {
+            width: 120px;
+        }
+
+        .selectdrapdown select.cell-input {
+            width: 140px;
+        }
+
+        .public-form table tr th {
+            width: 13%;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>标题：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:540px;" name="ApplyTitle" ng-model="curObj.Apply.ApplyTitle" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ApplyTitle.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ApplyTitle.$error.required">请输入标题</span>
+                                    <span ng-show="editForm.ApplyTitle.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>单号：</th>
+                    <td>{{(curObj.Apply.State==null||curObj.Apply.State==0)?'(提交时自动生成)':curObj.Apply.ApplySn}}</td>
+                    <th class="editWithout">所在部门：</th>
+                    <td class="editWithout" ng-bind="curObj.Apply.DeptName"></td>
+                </tr>
+                <tr class="editWithout">
+                    <th>申请人：</th>
+                    <td ng-bind="curObj.Apply.Editor_Text"></td>
+                    <th>手机号码：</th>
+                    <td ng-bind="curObj.Apply.Mobile"></td>
+                </tr>
+                <tr>
+                    <th>休假类型:</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="VacationType" required ng-model="curObj.Apply.VacationType" ng-options="a.value as a.text for a in dictVacationType" class="cell-input"></select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.VacationType.$invalid&&editForm.failSubmited">
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择休假类型</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>休假天数:</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" number max="1000" min="0" precision="1" name="PeriodTime" ng-model="curObj.Apply.PeriodTime" required class="cell-input" />
+                            <div style="float:left;" ng-show="curObj.Apply.VacationType=='年休假'">你可休年假：上年度剩余{{CurAnnualLeaveInfo.LastYear}}天、 本年度剩余{{CurAnnualLeaveInfo.CurYear}}天、本年度补充剩余{{CurAnnualLeaveInfo.Add}}天</div>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PeriodTime.$invalid&&editForm.failSubmited">
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.PeriodTime.$error.required">请输入休假天数</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>休假开始时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="StartTime" name="StartTime" required date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Apply.StartTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入休假开始时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                    <th>休假结束时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="EndTime" name="EndTime" required date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Apply.EndTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.EndTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入休假结束时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>休假事由:</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea name="Reason" ng-model="curObj.Apply.Reason" ng-maxlength="200" style="width:540px; height:50px;" required></textarea>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Reason.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Reason.$error.required">请输入休假事由</span>
+                                    <span ng-show="editForm.Reason.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="gongjia">
+                    <th>公假类型:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="VacationClass" ng-model="curObj.Apply.VacationClass" ng-options="a.value as a.text for a in dictVacationClass" class="cell-input"></select>
+                                <strong class="must-options">*</strong>
+                            </div>
+                        </div>
+                    </td>
+                    <th>外出地点:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" name="OutAddress" ng-model="curObj.Apply.OutAddress" ng-maxlength="200" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="kaihui">
+                    <th>会议开始时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="kaihui_StartTime" name="kaihui_StartTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Meeting.StartTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                    <th>会议结束时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="kaihui_EndTime" name="kaihui_EndTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Meeting.EndTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="kaihui">
+                    <th>会议天数:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" number max="1000" min="0" precision="1" name="kaihui_PeriodTime" ng-model="curObj.Meeting.PeriodTime" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="kaihui">
+                    <th>会议名称:</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="kaihui_MeetingName" style="width:540px;" ng-model="curObj.Meeting.MeetingName" ng-maxlength="500" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="kaihui">
+                    <th>备注:</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea name="kaihui_Remark" ng-model="curObj.Meeting.Remark" style="width:540px; height:50px;"></textarea>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="peixun">
+                    <th>培训开始时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="peixun_StartTime" name="peixun_StartTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Courses.StartTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                    <th>培训结束时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="peixun_EndTime" name="peixun_EndTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Courses.EndTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="peixun">
+                    <th>培训天数:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" number max="1000" min="0" precision="1" name="peixun_PeriodTime" ng-model="curObj.Courses.PeriodTime" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                    <th>课程类别:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="CoursesType" ng-model="curObj.Courses.CoursesType" ng-options="a.value as a.text for a in dictCoursesType" class="cell-input"></select>
+                                <strong class="must-options">*</strong>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="peixun">
+                    <th>课程名称:</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="peixun_CoursesName" style="width:540px;" ng-model="curObj.Courses.CoursesName" ng-maxlength="500" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+
+                </tr>
+                <tr class="peixun">
+                    <th>主办单位:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="peixun_ProvinceCity" ng-model="curObj.Courses.ProvinceCity" ng-options="a.value as a.text for a in dictProvinceCity" class="cell-input"></select>
+                                <strong class="must-options">*</strong>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="peixun">
+                    <th>备注:</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea name="peixun_Remark" ng-model="curObj.Courses.Remark" style="width:540px; height:50px;"></textarea>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="shouke">
+                    <th>授课开始时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="shouke_StartTime" name="shouke_StartTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Teaching.StartTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                    <th>授课结束时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="shouke_EndTime" name="shouke_EndTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Teaching.EndTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="shouke">
+                    <th>授课天数:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" number max="1000" min="0" precision="1" name="shouke_PeriodTime" ng-model="curObj.Teaching.PeriodTime" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                    <th>讲师级别:</th>
+                    <td>
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select name="shouke_TeacherType" ng-model="curObj.Teaching.TeacherType" ng-options="a.value as a.text for a in dictTeacherType" class="cell-input"></select>
+                                <strong class="must-options">*</strong>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="shouke">
+                    <th>授课课程名称:</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:540px;" name="shouke_TeachingPlan" ng-model="curObj.Teaching.TeachingPlan" ng-maxlength="500" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+
+                </tr>
+                <tr class="shouke">
+                    <th>备注:</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea name="shouke_Remark" ng-model="curObj.Teaching.Remark" style="width:540px; height:50px;"></textarea>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="qita">
+                    <th>事件开始时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="qita_StartTime" name="qita_StartTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Other.StartTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                    <th>事件结束时间:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="qita_EndTime" name="qita_EndTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.Other.EndTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="qita">
+                    <th>事件天数:</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" number max="1000" min="0" precision="1" name="qita_PeriodTime" ng-model="curObj.Other.PeriodTime" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="qita">
+                    <th>事件名称:</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="qita_OtherName" style="width:540px;" ng-model="curObj.Teaching.OtherName" ng-maxlength="50" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="qita">
+                    <th>备注:</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea name="qita_Remark" ng-model="curObj.Other.Remark" style="width:540px; height:50px;"></textarea>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="vertical-align:top;">申请证明:</th>
+                    <td colspan="3">
+                        <div class="attachemnt-table">
+                            <table id="AttachmentTable" cellpadding="0" cellspacing="0">
+                                <tr class="forEdit">
+                                    <td colspan="3">
+                                        <a ng-click="fileUploadDialog()" class="cell-btn-blue" style="width:70px; margin-right:20px;">上传附件</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="350px">附件名称</td>
+                                    <td>附件大小</td>
+                                    <td width="50px">操作</td>
+                                </tr>
+                                <tr ng-repeat="x in curObj.Attachments" on-finish-render-filters>
+                                    <td style="text-align:left;" width="350px">
+                                        <a class="ico_download" style="color: Blue;" ng-href="/Upload/FileDownload?id={{x.Id}}" title="点击下载">{{x.FileName}}</a>
+                                    </td>
+                                    <td>{{x.FileSize}}</td>
+                                    <td width="50px">
+                                        <div>
+                                            <a class="forEdit" href="javascript:void(0);" ng-click="deleteUpload(x.Id)" style="width:70px;">删除</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="vertical-align:top;">各类假期所需证明材料：</th>
+                    <td colspan="3">
+                        <div style="color:red;">
+                            <div>婚假（结婚证扫描件）</div>
+                            <div>产假（准生证）</div>
+                            <div>剖腹产假（剖腹产证明）</div>
+                            <div>独生子女假（独生子女光荣证）</div>
+                            <div>病假（病假证明）</div>
+                            <div>看护假（准生证）</div>
+                            <div>计划生育假（相关病历证明）</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="4">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li>
+                        <a id="btnSave" ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                    </li>
+                    <li>
+                        <a id="btnSumbit" ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                    </li>
+                    <li><a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a></li>
+                    <li>
+                        <a ng-click="print()" class="cell-btn-blue editWithout" style="width:70px; margin-right:20px;">打印</a>
+                    </li>
+                </ul>
+
+            </div>
+            <tm-pagination conf="paginationConf"></tm-pagination>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

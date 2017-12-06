@@ -1,0 +1,554 @@
+﻿
+@{
+    ViewBag.Title = "历史项目暂估申请编辑页";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        var workflowName = '@ViewData["workflowName"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+
+        function addJsCroll(elememt) {
+            if ($(elememt).length > 0) {
+                $(elememt).jscroll({
+                    W: "8px",
+                    BgUrl: "",
+                    Bg: "#f4f4f4",
+                    Bar: {
+                        //Pos: "bottom",
+                        Bd: { Out: "#f4f4f4", Hover: "#f4f4f4" },
+                        Bg: { Out: "#0085d1", Hover: "#03a3fe", Focus: "#03a3fe" }
+                    },
+                    Btn: { btn: false }
+                });
+            }
+        }
+
+
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', 'ngDialog', function ($scope, BusinessService, $filter, ngDialog) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            var ApplyID = '@ViewData["ApplyID"]';
+            var RealName = '@ViewData["RealName"]';
+            var DeptName = '@ViewData["DeptName"]';
+            var Mobile = '@ViewData["Mobile"]';
+            var NewTitle = '@ViewData["NewTitle"]';
+            $scope.curObj = {
+                appData: { Title: NewTitle },
+                detailDatas: {},
+                sumbitUser: { RealName: RealName, Mobile: Mobile }
+            }
+            $scope.ActivitiesCompleted = [];
+
+            $scope.getDetails = function () {
+                //获取申请明细信息
+                box.load("getDataDetailByApplyID");
+                BusinessService.getDataDetailByApplyID(ApplyID).success(function (response) {
+                    box.ready("getDataDetailByApplyID");
+                    $scope.curObj.detailDatas = response;
+                    choseArr = [];
+                }).error(function (err) {
+                    box.ready("getDataDetailByApplyID");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            //获取当前数据
+            if (ApplyID != null && ApplyID.toString().length > 0) {
+
+                BusinessService.getDataByID(ApplyID).success(function (response) {
+                    $scope.curObj.appData = response.appData;
+                    $scope.curObj.sumbitUser = response.sumbitUser;
+                    if ($scope.curObj.appData.Title == null || $scope.curObj.appData.Title == '') {
+                        $scope.curObj.appData.Title = NewTitle;
+                    }
+                    if ($scope.curObj.sumbitUser == null) {
+                        $scope.curObj.sumbitUser = { RealName: RealName, Mobile: Mobile, DeptName: DeptName };
+                    }
+
+                    //获取流程步骤执行情况信息
+                    if ($scope.curObj.appData.WorkflowInstanceId != null && $scope.curObj.appData.WorkflowInstanceId != '')
+                        BusinessService.getActivitiesCompletedByID($scope.curObj.appData.WorkflowInstanceId).success(function (response2) {
+                            $scope.ActivitiesCompleted = response2.items;
+                        })
+
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+                $scope.getDetails();
+            }
+
+
+
+
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    BusinessService.save($scope.curObj.appData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'AgoEstimate/AgoEstimateApplyEdit?type=edit&ApplyID=' + response.Message;
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //提交数据，提交数据时先执行保存数据
+            $scope.submit = function () {
+                if ($scope.curObj.detailDatas.length <= 0) {
+                    box.alert("没有申请明细数据！", { icon: 'warning' });
+                    return;
+                }
+
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    BusinessService.save($scope.curObj.appData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var sumbitData = {
+                                ApplyID: response.Message,
+                                nextActivity: nextInfo.nextActivity,
+                                nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                            };
+                            box.load("submit");
+                            BusinessService.submit(sumbitData).success(function (response2) {
+                                box.ready("submit");
+                                if (response2.IsSuccess) {
+                                    box.alert("提交成功", { icon: 'success' }, function () {
+                                        window.location.href = CurPath + 'AgoEstimate/AgoEstimateApplyIndex';
+                                    });
+                                }
+                                else {
+                                    box.alert(response2.Message.length > 0 ? response2.Message : "提交失败", { icon: 'error' });
+                                }
+                            }).error(function (response2) {
+                                box.ready("submit");
+                                box.alert("网络出错！", { icon: 'error' });
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.curObj.detailDatas, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.curObj.detailDatas.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            //添加明细
+            $scope.addDetails = function () {
+                if (ApplyID != null && ApplyID.toString().length > 0) {
+                    window.location.href = CurPath + 'AgoEstimate/AgoEstimateApplyDetailEdit?type=edit&ApplyID=' + ApplyID;
+                }
+                else {
+                    box.alert("请先保存申请单！", { icon: 'warning' });
+                    return;
+                }
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'AgoEstimate/AgoEstimateApplyDetailEdit?ID=' + obj.ID;
+                src += '&type=look';
+                window.location.href = src;
+            }
+
+            //编辑明细
+            $scope.editDetails = function () {
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                window.location.href = CurPath + 'AgoEstimate/AgoEstimateApplyDetailEdit?type=edit&ID=' + choseArr[0];
+            }
+
+            //删除数据
+            $scope.delDetails = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.delDetails(choseArr).success(function (response) {
+                            if (response.isSuccess) {
+                               box.alert("成功删除" + response.successCount + "条数据", { icon: 'success' }); choseArr = new Array();
+                                $scope.getDetails();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+
+            $scope.print = function () {
+                if ($scope.curObj.appData.WorkflowInstanceId == null || $scope.curObj.appData.WorkflowInstanceId.length <= 0)
+                    box.alert("没有流程实例ID，请先提交数据！", { icon: 'error' });
+                else
+                    window.open(CurPath + 'plugins/easyflow/contrib/workflow/pages/print.aspx?wiid=' + $scope.curObj.appData.WorkflowInstanceId);
+            }
+
+
+            //导入按钮
+            $scope.importDetails = function () {
+
+                if (ApplyID == null || ApplyID.toString().length <= 0) {
+                    box.alert("请先保存申请单！", { icon: 'warning' });
+                    return;
+                }
+
+
+                var _type = 'AgoEstimateApplyDetail';
+                var title = '历史项目暂估申请明细';
+
+                var dialog = ngDialog.openConfirm({
+                    title: title,
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "&data=" + ApplyID + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //获取会议室资料信息
+                        $scope.getDetails();
+                    }
+                });
+
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/Save_AgoEstimateApply',
+                    data: postData
+                });
+            };
+            serive.submit = function (postData) {//提交
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/Sumbit_AgoEstimateApply',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/GetDataByID_AgoEstimateApply?id=' + id
+                });
+            };
+            serive.getDataDetailByApplyID = function (ApplyID) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/GetDataByApplyID_AgoEstimateApplyDetail?ApplyID=' + ApplyID
+                });
+            };
+
+            serive.getActivitiesCompletedByID = function (id) {//根据ID获取流程信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Workflow/GetActivitiesCompletedByID?WorkflowInstanceId=' + id
+                });
+            };
+
+            serive.delDetails = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/Delete_AgoEstimateApplyDetail',
+                    data: { ids: ids }
+                });
+            };
+
+            return serive;
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            setByType();
+                            //scope.$emit('ngRepeatFinished');
+                            addJsCroll(element.parents('.jscroll'));
+                        });
+                    }
+                }
+            };
+        });
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>标题：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="Title" ng-model="curObj.appData.Title" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Title.$error.required">请输入标题</span>
+                                    <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="width:20%">申请单号：</th>
+                    <td>{{(curObj.appData.State==null||curObj.appData.State==0)?'(提交时自动生成)':curObj.appData.Series}}</td>
+                    <th class="editWithout" style="width:20%">所在部门：</th>
+                    <td class="editWithout" ng-bind="curObj.sumbitUser.DeptName"></td>
+                </tr>
+                <tr class="editWithout">
+                    <th>申请人：</th>
+                    <td ng-bind="curObj.sumbitUser.RealName"></td>
+                    <th>手机号码：</th>
+                    <td ng-bind="curObj.sumbitUser.Mobile"></td>
+                </tr>
+                <tr>
+                    <th>申请原因：</th>
+                    <td colspan="4">
+                        <div class="ui-input">
+                            <input type="text" style="width:550px;" name="Content" ng-model="curObj.appData.Content" required ng-maxlength="200" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Content.$error.required">请输入申请原因</span>
+                                    <span ng-show="editForm.Content.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li>
+                        <a id="btnSave" ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                    </li>
+                    <li>
+                        <a id="btnSumbit" ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                    </li>
+                    <li><a href="../AgoEstimate/AgoEstimateApplyIndex" class="cell-btn-orange" style="width:70px;">返回</a></li>
+                    <li>
+                        <a ng-click="print()" class="cell-btn-blue editWithout" style="width:70px; margin-right:20px;">打印</a>
+                    </li>
+                </ul>
+
+            </div>
+            @*<tm-pagination conf="paginationConf"></tm-pagination>*@
+        </div>
+
+        <div class="public-table-main">
+            <div style="color:blue;font-size:13px; margin-top:10px;">申请明细：</div>
+
+            <div class="main-flip forEdit">
+
+                <div class="the-operation1" style="float:left">
+                    <ul>
+                        <li>
+                            <a id="btnSave" ng-click="importDetails()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">导入</a>
+                        </li>
+                        <li>
+                            <a id="btnSumbit" ng-click="addDetails()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">添加</a>
+                        </li>
+                        <li>
+                            <a id="btnSumbit" ng-click="editDetails()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">编辑</a>
+                        </li>
+                        <li>
+                            <a id="btnSumbit" ng-click="delDetails()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">删除</a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+            <div style="margin-bottom:20px;">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                        <th>年份</th>
+                        <th>月份</th>
+                        <th>项目名称</th>
+                        <th>项目编号</th>
+                        <th>合同名称</th>
+                        <th>合同编号</th>
+                        <th>合同金额(元)</th>
+                        <th>实际合同金额(元)</th>
+                        <th>形象进度(%)</th>
+                        <th>已付款金额(元)</th>
+                        <th>暂估金额(元)</th>
+                    </tr>
+                    <tr ng-repeat="emp in curObj.detailDatas" on-finish-render-filters>
+                        <td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                        <td ng-bind="emp.Year"></td>
+                        <td ng-bind="emp.Month"></td>
+                        <td><a ng-click="clickTitle(emp)" style="color:blue;">{{emp.ProjectName}}</a></td>
+                        <td ng-bind="emp.ProjectID"></td>
+                        <td ng-bind="emp.ContractName"></td>
+                        <td ng-bind="emp.ContractID"></td>
+                        <td ng-bind="emp.SignTotal"></td>
+                        <td ng-bind="emp.PayTotal"></td>
+                        <td ng-bind="emp.Rate+'%'"></td>
+                        <td ng-bind="emp.Pay"></td>
+                        <td ng-bind="emp.NotPay"></td>
+                    </tr>
+
+                </table>
+            </div>
+
+            <div @*ng-show="curObj.appData.State!=0"*@ style="display:none;">
+                <div style="color:blue; margin-top:5px;">处理信息</div>
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th>步骤</th>
+                        <th>处理人</th>
+                        <th>执行时间</th>
+                        <th>处理意见</th>
+                    </tr>
+                    <tr ng-repeat="emp in ActivitiesCompleted">
+                        <td><span style="color:red;">{{emp.Command=='reject'?'【退还】':''}}</span><span>{{emp.ActivityName}}</span></td>
+                        <td ng-bind="emp.ActorDescription"></td>
+                        <td ng-bind="emp.FinishedTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                        <td>{{emp.ActivityName=='提单'?'提交工单':emp.Reason}}</td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+
+    </form>
+</div>
+<!--公告编辑 end--->

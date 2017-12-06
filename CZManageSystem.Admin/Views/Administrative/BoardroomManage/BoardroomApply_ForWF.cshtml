@@ -1,0 +1,370 @@
+﻿
+@{
+    ViewBag.Title = "会议室申请信息查看";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <script>
+        var type = '@ViewData["type"]';
+        var step = '@ViewData["step"]';
+        //$(function () {
+        //    switch (type) {
+        //        case "easyflow": $('#btnTR').hide(); break;
+        //        default: break;
+        //    }
+        //})
+
+        //保存评价
+        function getSaveJudgeResult() {
+            var appElement = document.querySelector('[ng-controller=CreateController]');
+            var $scope = angular.element(appElement).scope();
+            var mm = false;
+            mm = $scope.saveJudge();
+            return mm;
+        }
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            $scope.curObj = {
+                ISTVMeeting: false,//是否电视会议
+                Fugle: '普通会议'//领导参加情况
+            };
+            $scope.EquipSelected = [];//选中设备情况
+
+            //获取会议室设备
+            BusinessService.getDictListByName('会议室设备').success(function (response) {
+                $scope.dictEquip = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            //服务质量
+            BusinessService.getDictListByName('服务质量评价').success(function (response) {
+                $scope.JudgeServiceQualityDict = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            //环境卫生
+            BusinessService.getDictListByName('环境卫生评价').success(function (response) {
+                $scope.JudgeEnvironmentalDict = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+
+            var id = '@ViewData["id"]';
+            if (id != null && id.toString().length > 0) {
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response.item;
+                    for (var item in response.att) {
+                        $scope.curObj[item] = response.att[item];
+                    }
+                    $scope.EquipSelected = [];
+                    var arrNeedEquip = [];
+                    if ($scope.curObj.NeedEquip != null && $scope.curObj.NeedEquip.length > 0)
+                        arrNeedEquip = $scope.curObj.NeedEquip.split(',');
+                    for (var index = 0 ; index < arrNeedEquip.length; index++) {
+                        if (arrNeedEquip[index] != null && arrNeedEquip[index].length > 0) {
+                            var temp = arrNeedEquip[index].split(':');
+                            var num = 1;
+                            if (temp.length > 1 && temp[1] != '' && !isNaN(temp[1])) {
+                                num = parseInt(temp[1]);
+                            }
+                            var temp2 = $filter('filter')($scope.dictEquip, { 'value': temp[0] });
+                            $scope.EquipSelected.push({ name: temp[0], num: num, text: temp2[0].text });
+                        }
+                    }
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            else {
+                var BoardroomID = '@ViewData["BoardroomID"]';
+                var strDate = '@ViewData["strDate"]';
+                $scope.curObj['Room'] = BoardroomID;
+                $scope.curObj['MeetingDate'] = strDate + " 08:00";
+                $scope.curObj['EndDate'] = strDate + " 18:00";
+                $scope.curObj['BookTime'] = new Date().Format('yyyy-MM-dd HH:mm');
+
+                //获取新的申请信息
+                BusinessService.GetNewApplyInfo().success(function (response) {
+                    for (var item in response) {
+                        $scope.curObj[item] = response[item];
+                    }
+                }).error(function (err) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            $scope.getEquip = function (EquipSelected, strOtherEquip) {
+                if (strOtherEquip == null)
+                    strOtherEquip = '';
+                var result = '';
+                $.each(EquipSelected, function (index, item) {
+                    result += (result.length > 0 ? '，' : '') + (item.text.length > 0 ? item.text : item.name) + '：' + item.num;
+                })
+                result += (result.length > 0 && strOtherEquip.length > 0) ? '，' : '';
+                result += strOtherEquip;
+                return result;
+            }
+
+            //保存评价
+            $scope.saveJudge = function () {
+                var isSuccess = false;
+                if (!!$scope.curObj.JudgeServiceQuality && !!$scope.curObj.JudgeEnvironmental) {
+                    var postData = $scope.curObj;
+
+                    $.ajax({
+                        url: CurPath + 'BoardroomManage/SaveBoardroomApply_Judge',
+                        data: JSON.stringify(postData),
+                        type: 'POST',
+                        async: false,
+                        contentType: 'application/json;charset=utf-8',
+                        success: function (response) {
+                                if (response.IsSuccess) {
+                                    isSuccess = true;
+                                }
+                                else {
+                                    box.alert("保存评价失败", { icon: 'error' });
+                                }
+                        },
+                        error: function () {
+                            box.alert("网络出错！", { icon: 'error' })
+                        }
+                    });
+
+                    //BusinessService.saveJudge(postData).success(function (response) {
+                    //    if (response.IsSuccess) {
+                    //        isSuccess = true;
+                    //    }
+                    //    else {
+                    //        box.alert("保存评价失败", { icon: 'error' });
+                    //    }
+                    //}).error(function (response) {
+                    //    box.alert("网络出错！", { icon: 'error' })
+                    //});
+
+                }
+                else {
+                    box.alert("评价时“服务质量”和“环境卫生”必须填写！", { icon: 'error' })
+                }
+                return isSuccess;
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.getDataByID = function (id) {//获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/GetBoardroomApplyDataByID?id=' + id
+                });
+            };
+            serive.GetNewApplyInfo = function () {//获取新的申请信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/getNewApplyInfo'
+                });
+            };
+            serive.saveJudge = function (postData) {//保存评价
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BoardroomManage/SaveBoardroomApply_Judge',
+                    data: postData
+                });
+            };
+
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            return serive;
+        }]);
+
+        Date.prototype.Format = function (fmt) { //author: meizz
+            var o = {
+                "M+": this.getMonth() + 1, //月份
+                "d+": this.getDate(), //日
+                "H+": this.getHours(), //小时
+                "m+": this.getMinutes(), //分
+                "s+": this.getSeconds(), //秒
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+                "S": this.getMilliseconds() //毫秒
+            };
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (var k in o)
+                if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        }
+    </script>
+    <style>
+        .ui-label label {
+            margin-right: 10px;
+            line-height: 30px;
+            float: left;
+        }
+
+        .showMulti {
+            /*background-color: #F9F9F9;*/
+        }
+        .WF_Table{width:100%;border: 1px solid #EAEAEA;border-width: 1px 0px 0px 1px;border-collapse:collapse;}
+        .WF_Table tr th{background:white;padding:7px;font-weight: bold;border: 1px solid #EAEAEA;border-width: 0px 1px 1px 0px;text-align: center;}
+        .WF_Table tr td{padding:5px;border: 1px solid #EAEAEA;border-width: 0px 1px 1px 0px; width:35%;}
+        .WF_Table tr th {background:#F4F4F4; width:15%;}
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <div id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController">
+        <form action="" method="post" name="judgeForm" novalidate>
+            <table id="ForJudge" class="WF_Table" cellpadding="0" cellspacing="0">
+                <tr><td style="color:red;" colspan="4">评价</td></tr>
+                <tr>
+                    <th>服务质量：</th>
+                    <td>
+                        <div class="ui-input ui-label">
+                            <label>
+                                <input type="radio" value="好" ng-model="curObj.JudgeServiceQuality" name="JudgeServiceQuality" />好
+                            </label>
+                            <label>
+                                <input type="radio" value="较好" ng-model="curObj.JudgeServiceQuality" name="JudgeServiceQuality" />较好
+                            </label>
+                            <label>
+                                <input type="radio" value="一般" ng-model="curObj.JudgeServiceQuality" name="JudgeServiceQuality" />一般
+                            </label>
+                            <label>
+                                <input type="radio" value="差" ng-model="curObj.JudgeServiceQuality" name="JudgeServiceQuality" />差
+                            </label>
+                        </div>
+                    </td>
+                    <th>环境卫生：</th>
+                    <td>
+                        <div class="ui-input ui-label">
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="好" ng-model="curObj.JudgeEnvironmental" name="JudgeEnvironmental" />好
+                            </label>
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="较好" ng-model="curObj.JudgeEnvironmental" name="JudgeEnvironmental" />较好
+                            </label>
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="一般" ng-model="curObj.JudgeEnvironmental" name="JudgeEnvironmental" />一般
+                            </label>
+                            <label style="margin-right:10px;">
+                                <input type="radio" value="差" ng-model="curObj.JudgeEnvironmental" name="JudgeEnvironmental" />差
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>其他建议：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:390px;" name="JudgeOtherSuggest" ng-model="curObj.JudgeOtherSuggest" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </form>
+        <table id="ForEdit" class="WF_Table" cellpadding="0" cellspacing="0">
+            <tr><td style="color:red;" colspan="4">申请信息如下</td></tr>
+            <tr>
+                <th>申请人：</th>
+                <td ng-bind="curObj.AppPerson_text"></td>
+                <th>申请时间：</th>
+                <td ng-bind="curObj.AppTime"></td>
+            </tr>
+            @*<tr>
+        <th>所在部门：</th>
+        <td ng-bind="curObj.AppDept_text"></td>
+        <th>联系电话：</th>
+        <td ng-bind="curObj.ContactMobile"></td>
+    </tr>*@
+            <tr>
+                <th>会议主题：</th>
+                <td ng-bind="curObj.ApplyTitle" colspan="3"></td>
+            </tr>
+            <tr>
+                <th>流程单号：</th>
+                <td ng-bind="curObj.Code"></td>
+                <th>会议室：</th>
+                <td ng-bind="curObj.RoomName"></td>
+            </tr>
+            <tr>
+                <th>与会人数：</th>
+                <td ng-bind="curObj.JoinNum"></td>
+                <th>与会人员：</th>
+                <td ng-bind="curObj.JoinPeople_text"></td>
+            </tr>
+            <tr>
+                <th>开始时间：</th>
+                <td ng-bind="curObj.MeetingDate"></td>
+                <th>结束时间：</th>
+                <td ng-bind="curObj.EndDate"></td>
+            </tr>
+            <tr>
+                <th>实际结束时间：</th>
+                <td ng-bind="curObj.EndDate_Real"></td>
+                <th>订会时间：</th>
+                <td ng-bind="curObj.BookTime"></td>
+            </tr>
+            <tr>
+                <th>领导参加情况：</th>
+                <td>{{curObj.Fugle}}<span ng-show="curObj.Fugle=='公司领导参加'&&curObj.Fugle_pro==true">（有省公司领导参加）</span></td>
+                <th>是否电视会议：</th>
+                <td>
+                    <span>{{curObj.ISTVMeeting?'是':'否'}}</span>
+                </td>
+            </tr>
+            <tr>
+                <th>所需设备：</th>
+                <td ng-bind="getEquip(EquipSelected,curObj.OtherEquip)" colspan="3"></td>
+            </tr>
+            <tr>
+                <th>横幅：</th>
+                <td class="showMulti" colspan="3">
+                    <div>
+                        <span>内&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;容：</span>
+                        <span>{{curObj.BannerContent}}</span>
+                    </div>
+                    <div>
+                        <div style="width:150px; float:left;"><span>长&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;度：</span><span>{{curObj.BannerLength}}</span></div>
+                        <div style="width:150px; float:left;"><span style="margin-left:20px;">宽度：</span><span style="width:100px;">{{curObj.BannerWidth}}</span></div>
+                        <div style="width:150px; float:left;"><span style="margin-left:20px;">模式：</span><span>{{curObj.BannerMode}}</span></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>欢迎词：</th>
+                <td class="showMulti" colspan="3">
+                    <div>
+                        <span>内&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;容：</span><span>{{curObj.WelcomeContent}}</span>
+                    </div>
+                    <div>
+                        <span>播放时间：</span>{{curObj.WelcoomeTime}}<span></span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td ng-bind="curObj.Remark" colspan="3"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<!--公告编辑 end--->

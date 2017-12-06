@@ -1,0 +1,5 @@
+﻿
+# 修改 contrb/dynamicform/pages/Template.aspx.cs 文件参数错误引发的异常.
+# 修改或新增 WorkflowDesigner 目录下全部文件，目录：apps/xqp2/pages/workflows/designer/. (frank)
+# Botwave.XQP 中新增类：Botwave.XQP.Designer.WorkflowActivity,Botwave.XQP.Designer.WorkflowComponent, Botwave.XQP.Designer.WorkflowDesignerHandler, Botwave.XQP.Designer.WorkflowDesignerService. (frank)
+# Botwave.XQP 中新增 SqlMap 文件 WorkflowDesigner.config, 在 Web 中路径为: apps/xqp2/res/maps/WorkflowDesigner.config. (frank)

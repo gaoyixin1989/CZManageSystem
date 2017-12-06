@@ -1,0 +1,213 @@
+﻿
+@{
+    ViewBag.Title = "流程跟踪";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('ProjectPayController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                $scope.queryBuilder.Status = "终止";
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    $scope.total = response.total;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.Send = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+                //box.confirm("确定要短信提示选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    //if (result) {
+                        box.popup('<div class="ui-input" style="margin-right:0px;">'
+                       + '<input type="text" id="SendMessage" class="cell-input cell-input-data" style="width:350px;height:70px;margin-left: 15px;margin-bottom: 0px;" value="投资项目系统提醒您：请处理当月进度填报！^-^" />'
+                       + '<div id="SendMessage_tip" style="margin-left: 15px; color:red; display:none;">*  要发送的消息不能为空！</div>'
+                       + '</div>',
+                    {
+                        title: '请填写要发送的消息：',
+                        width: 400,
+                        height: 100,
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (result) {
+                            var message = box.getWindow()[0].document.getElementById("SendMessage").value;
+                            if (result == true) {
+                                if (message.length < 1) {
+                                    $(box.getWindow()[0].document.getElementById("SendMessage_tip")).show();
+                                    box.boxShake();
+                                    return false;
+                                }
+                                //调用服务
+                                BusinessService.Send(choseArr, message).success(function (response) {
+                                    if (response.isSuccess) {
+                                        box.alert("成功短信提示" + response.successCount + "条数据", { icon: 'success' });
+                                        GetListData();
+                                    }
+                                    else {
+                                        box.alert(response.messsage.length > 0 ? response.messsage : "短信提示失败", { icon: 'error' });
+                                    }
+                                }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                            }
+                        }
+                    });
+
+                       
+                    //}
+                //});
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'ProjectPay/FollowDetail?ID=' + obj.ApplyID;
+                src += '&type=look';
+                window.location.href = src;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'ProjectPay/GetFollow', postData);
+            };
+            serive.Send = function (Id, message) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ProjectPay/Send',
+                    data: { Ids: Id, Message: message }
+                });
+            };
+         
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ProjectPayController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    序列号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Series" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                        @*<a ng-click="Send()" class="cell-btn-blue" style="*margin-bottom:8px;">短信提示</a>*@
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>标题</th>
+                <th>序列号</th>
+                <th>当前环节</th>
+                <th>处理人</th>
+                @*<th>提交人部门</th>*@
+                <th>提交时间</th>
+
+            </tr>
+            <tr ng-repeat="temp in ListPageData">
+                <td><input type="checkbox" id="{{temp.ApplyID}}" ng-model="x" ng-checked="x" ng-click="chk($event,temp.ApplyID)" /></td>
+                <td style="color:blue;" ng-bind="temp.Title" ng-click="clickTitle(temp)"></td>
+                <td ng-bind="temp.Series"></td>
+                <td ng-bind="temp.State"></td>
+                <td ng-bind="temp.ActorName"></td>
+                @*<td ng-bind="temp.DpName"></td>*@
+                <td ng-bind="temp.ApplyTime|date:'yyyy-MM-dd'"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

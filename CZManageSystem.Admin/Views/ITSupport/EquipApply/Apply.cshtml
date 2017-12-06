@@ -1,0 +1,457 @@
+﻿
+@{
+    ViewBag.Title = "办公设备申请";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script>
+        var workflowName = '@ViewData["workflowName"]';
+        var startDeptId = '@ViewData["startDeptId"]';
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EquipApplyController', ['$scope', '$filter', 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+            $scope.Equip = [];
+            var ApplyId = '@ViewData["ApplyId"]';                   
+            $scope.apply = {};
+            if (ApplyId != null && ApplyId.toString().length > 0) {
+
+                BusinessService.getDataByID(ApplyId).success(function (response) {
+                    $scope.apply = response[0];
+                    $scope.Equip = [];
+                    $scope.Equip.push({ AssetSn: response[0]["AssetSn"], EquipInfo: response[0]["EquipInfo"], ProjSn: response[0]["ProjSn"], StockType: response[0]["StockType"] });
+                    $scope.apply.Equip = response[0]["AssetSn"];
+
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            else {
+                BusinessService.GetNewApplyInfo().success(function (response) {
+                    for (var item in response) {
+                        $scope.apply[item] = response[item];
+                    }
+                }).error(function (err) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.GetInfo = function (Equip) {
+                $scope.apply.EquipInfo = Equip.EquipInfo;
+                $scope.apply.ProjSn = Equip.ProjSn;
+                $scope.apply.StockType = Equip.StockType;
+                //$scope.apply.AssetSn = Equip.AssetSn;
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.apply.ApplyId = ApplyId;
+                    if ($scope.apply.Nature == "私用") {
+                        if ($scope.apply.BUsername.split(',').length > 1) {
+                            box.alert("使用性质选择“私用”时，一次只能为一个使用人分配一台设备");
+                            return;
+                        }
+                        if ($scope.apply.EquipClass.split(',').length > 1) {
+                            box.alert("使用性质选择“私用”时，一次只能为一个使用人分配一台设备");
+                            return;
+                        }
+                    }
+                    $scope.apply.AppNum = $scope.apply.BUsername.split(',').length;
+                    var postData = $scope.apply;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'EquipApply/ApplyList';
+                            });
+                        } else {
+                            box.alert(response.Message, { icon: 'warning' });
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+            //-------------------------------------
+            $scope.submit = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.apply.ApplyId = ApplyId;
+                    if ($scope.apply.Nature == "私用") {
+                        if ($scope.apply.BUsername.split(',').length > 1) {
+                            box.alert("使用性质选择“私用”时，一次只能为使用人分配一台设备");
+                            return;
+                        }
+                        if ($scope.apply.EquipClass.split(',').length > 1) {
+                            box.alert("使用性质选择“私用”时，一次只能为使用人分配一台设备");
+                            return;
+                        }
+                    }
+                    $scope.apply.AppNum = $scope.apply.BUsername.split(',').length;
+                    var postData = $scope.apply;
+                    //先保存数据再提交
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var postData2 = {
+                                appid: response.Message,
+                                //assid: $scope.apply.Asse.Id,
+                                nextActivity: nextInfo.nextActivity,
+                                nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                            }
+                            BusinessService.SubmitApply(postData2).success(function (response) {
+                                if (response.IsSuccess) {
+                                    //提交--------------------
+
+                                    box.alert("提交成功", { icon: 'success' }, function () {
+                                        window.location.href = CurPath + 'EquipApply/ApplyList';
+                                    });
+                                } else {
+                                    box.alert(response.Message, { icon: 'warning' });
+                                }
+                            }
+                            ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                            //提交------------------------------------------------
+                        } else {
+                            box.alert(response.Message, { icon: 'warning' });
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+
+                    //------------------------------
+
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+            //-------------------------------------
+            $scope.editMember = function (type) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                //------------------------
+                //---------------------------
+                switch (type) {
+                    case 'user': {
+                        wWidth = 760;
+                        title = '选择用户';
+                        iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.apply.BUsername + '&startDeptId=' + startDeptId
+                    } break;
+                    case 'equip': {
+                        title = '设备类型';
+                        iframeSrc = '../Equip/EquipWindow?selected=' + $scope.apply.EquipClass;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe Id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'user': {
+                                            $scope.apply.BUsernameId = getAttrByArr(result, 'id').join(",");
+                                            $scope.apply.BUsername = getAttrByArr(result, 'text').join(",");
+                                        } break;
+                                        case 'equip': {
+                                            $scope.apply.EquipClassId = getAttrByArr(result, 'Id').join(",");
+                                            $scope.apply.EquipClass = getAttrByArr(result, 'text').join(',');
+                                            BusinessService.GetAssetSn($scope.apply.EquipClass).success(function (response) {
+                                                if (response.length <= 0) {
+                                                    box.alert("请先为该资产类型分配资产编码", { icon: 'warning' });
+                                                    return;
+                                                }
+                                                else {
+                                                    $scope.Equip = response;
+                                                }
+                                            })
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //-------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetNewApplyInfo = function () {//获取新的申请信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'EquipApply/getNewApplyInfo'
+                });
+            };
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'EquipApply/EquipAppSave',
+                    data: postData
+                });
+            };
+            serive.SubmitApply = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'EquipApply/SubmitApply',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (ApplyId) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'EquipApply/GetApplyID?ApplyId=' + ApplyId
+                });
+            };
+            serive.GetAssetSn = function (EquipClass) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'EquipApply/GetAssetSn?EquipClass=' + EquipClass
+                });
+            };
+            return serive;
+        }]);
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="CreateOrUpdate" ng-controller="EquipApplyController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr class="editWithout">
+                    <th style="width:20%">申请人：</th>
+                    <td style="width:30%" ng-bind="apply.ApplyName"></td>
+                    <th class="editWithout" style="width:10%">流程单号：</th>
+                    <td class="editWithout" style="width:30%" ng-bind="apply.ApplySn"></td>
+                </tr>
+                <tr class="editWithout">
+                    <th>所在部门：</th>
+                    <td ng-bind="apply.Deptname"></td>
+                    <th>申请日期：</th>
+                    <td ng-bind="apply.ApplyTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                </tr>
+                <tr class="editWithout">
+                    <th>联系电话：</th>
+                    <td ng-bind="apply.Tel"></td>
+                    <th>岗位：</th>
+                    <td ng-bind="apply.Job"></td>
+                </tr>
+                <tr>
+                    <th>流程说明：</th>
+                    <td colspan="3" style="COLOR: red; ">
+                        1)使用性质选择“私用”时，一次只能为使用人分配一台设备。<br />
+                        2)使用性质选择“共用”时，同一设备一次可以选择多个使用人。
+                    </td>
+                </tr>
+                <tr>
+                    <th>主题：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="ApplyTitle" ng-model="apply.ApplyTitle" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ApplyTitle.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ApplyTitle.$error.required">请输入主题</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>使用性质：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="Nature" required ng-model="apply.Nature" style="width:222px;">
+                                    <option selected value="私用">私用</option>
+                                    <option value="共用">共用</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Nature.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择使用性质</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>固定资产负责人：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="Chief" ng-model="apply.Chief" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Chief.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Chief.$error.required">请输入固定资产人</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>设备类型：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="EquipClass" ng-click="editMember('equip')" ng-model="apply.EquipClass" ng-change="GetAssetSn(apply.EquipClass)" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.EquipClass.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.EquipClass.$error.required">请选择设备类型</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>固定资产编码：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select required class="cell-input" name="AssetSn" ng-model="apply.AssetSn" placeholder="请选择" ng-options="x.AssetSn for x in Equip" ng-change="GetInfo(apply.AssetSn)"></select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.AssetSn.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.AssetSn.$error.required">请选择固定资产编码</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>使用人：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="BUsername" ng-model="apply.BUsername" required class="cell-input" readonly ng-click="editMember('user')" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.BUsername.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.BUsername.$error.required">请选择使用人</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>申请原因：</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea class="onfocus" style="height: 35px;width:300px;" name="ApplyReason" ng-model="apply.ApplyReason" required></textarea>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ApplyReason.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.ApplyReason.$error.required">请输入申请原因说明</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="Remark" ng-model="apply.Remark" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="4">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td colspan="4">
+                        <a id="btnAdd" ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a id="btnSave" ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                        <a href="../EquipApply/ApplyList" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+
+

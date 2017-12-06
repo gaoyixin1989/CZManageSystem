@@ -1,0 +1,1 @@
+﻿<%@ WebService Language="C#" Class="Botwave.Security.Extension.WebServices.SecurityAjaxService, Botwave.Security.Extension" %>

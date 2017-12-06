@@ -1,0 +1,226 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <link href="~/Content/Javascript/Uploadify/uploadify.css" rel="stylesheet" />
+    <script src="~/Content/Javascript/Uploadify/jquery.uploadify-3.1.min.js"></script>
+
+    <script>
+        var app = angular.module('CreateOrUpdate', ['datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$timeout', function ($scope, BusinessService, $timeout) {
+            //加载附件内容表
+            $scope.GetAttachmentFileData = function (item) {
+                $scope.ListPageData = item;
+            };
+            var id = '@ViewData["Upguid"]';   
+            $scope.Tips = "";
+            if (id != null && id.toString().length > 0) {
+                //alert(id);
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.GetAttachmentFileData(response.data);
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            $scope.deleteUpload = function (id) {
+                //调用删除服务
+                BusinessService.deleteUpload(id).success(function (response) {
+                    if (response.IsSuccess) {
+                        //box.alert("删除成功", { icon: 'success' });
+                        $scope.GetAttachmentFileData(response.data);
+                    }
+                    else {
+                        box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                    }
+                });
+            };
+            $scope.StartUpload = function () {
+                
+                $scope.Tips = $('#uploadfile').data('uploadify').queueData.queueLength;
+                var num = $('#uploadfile').data('uploadify').queueData.queueLength;
+                if (num == "0")
+                {
+                    $scope.Tips = "请选择要上传的文件！";
+                }
+                else
+                {
+                    $scope.Tips = "文件正在上传中.....";
+                    $('#uploadfile').uploadify('upload', '*');
+                }
+                
+            };
+        }]);
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.deleteUpload = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Upload/FileUploadDelete/' + id
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Upload/GetOGSMDataByID/' + id
+                });
+            };
+            return serive;
+        }]);
+
+        app.directive('uploadfiledata', function ($timeout) {
+            return {
+                restrict: 'A',//属性
+                link: function ($scope, element, attr) {
+                    var auth = "@(Request.Cookies[FormsAuthentication.FormsCookieName]==null ? string.Empty : Request.Cookies[FormsAuthentication.FormsCookieName].Value)";
+                    var ASPSESSID = "@Session.SessionID";
+                    var Upguid = '@ViewData["Upguid"]';
+                    var FilePath = '@ViewData["FilePath"]';
+                    element.uploadify({
+                        formData: { folder: '/Upload/FileUpload', ASPSESSID: ASPSESSID, AUTHID: auth },
+                        auto: false,
+                        'swf': '/Content/Javascript/Uploadify/uploadify.swf',
+                        'uploader': '/Upload/FileUpload?FilePath=' + FilePath + "&Upguid=" + Upguid,//图片上传方法
+                        'buttonText': '上传文件',
+                        'width': 60,
+                        'height': 15,
+                        'cancelImg': '/Content/Javascript/Uploadify/uploadify-cancel.png',
+                        'method': 'post',
+                        'multi': true,
+                        'onSelect': function () {//当每个文件添加至队列后触发
+                        },
+                        'onUploadStart': function (file) {
+                        },
+                        'onUploadSuccess': function (file, d, response) {
+                            //alert(d);
+                            var result = eval("[" + d + "]")[0];
+                            if (result.IsSuccess == true) {
+                               // alert(result.data);
+                                $scope.$apply(function () {
+                                    $scope.GetAttachmentFileData(result.data);
+                                    $scope.Tips = "上传文件成功！";
+                                });
+                            } else {
+                                //box.alert("上传失败，请联系管理员！", { icon: 'error' });
+                                $scope.$apply(function () {
+                                    $scope.Tips = "上传失败，请联系管理员！";
+                                });                                
+                            }
+                        },
+                        'onUploadError': function (file, errorCode, errorMsg, errorString) {
+                            var msgText = "上传失败\n";
+                            switch (errorCode) {
+                                case SWFUpload.UPLOAD_ERROR.HTTP_ERROR:
+                                    msgText += "HTTP 错误\n" + errorMsg;
+                                    break;
+                                case SWFUpload.UPLOAD_ERROR.MISSING_UPLOAD_URL:
+                                    msgText += "上传文件丢失，请重新上传";
+                                    break;
+                                case SWFUpload.UPLOAD_ERROR.IO_ERROR:
+                                    msgText += "IO错误";
+                                    break;
+                                case SWFUpload.UPLOAD_ERROR.SECURITY_ERROR:
+                                    msgText += "安全性错误\n" + errorMsg;
+                                    break;
+                                case SWFUpload.UPLOAD_ERROR.UPLOAD_LIMIT_EXCEEDED:
+                                    msgText += "每次最多上传 " + this.settings.uploadLimit + "个";
+                                    break;
+                                case SWFUpload.UPLOAD_ERROR.UPLOAD_FAILED:
+                                    msgText += errorMsg;
+                                    break;
+                                case SWFUpload.UPLOAD_ERROR.SPECIFIED_FILE_ID_NOT_FOUND:
+                                    msgText += "找不到指定文件，请重新操作";
+                                    break;
+                                case SWFUpload.UPLOAD_ERROR.FILE_VALIDATION_FAILED:
+                                    msgText += "参数错误";
+                                    break;
+                                default:
+                                    msgText += "文件:" + file.name + "\n错误码:" + errorCode + "\n"
+                                        + errorMsg + "\n" + errorString + "\若导入的文件内容有格式要求，请确保使用正确的格式！";
+                            }
+                            $scope.$apply(function () {
+                                $scope.Tips = "文件:" + file.name + msgText;
+                            });                            
+                            console.info("文件:" + file.name + msgText);
+                        }
+                    });
+                }
+            };
+        });
+    </script>
+}
+<style>
+/*.attachemnt-table{width:450px; background:#fff; border:1px solid #eaeaea; border-width:1px 1px 0px 1px; border-collapse:collapse;empty-cells:show;}
+.attachemnt-table table tr th{padding:7px; border:1px solid #eaeaea; border-width:0px 1px 1px 0px; text-align:center;white-space: nowrap; }
+.attachemnt-table table tr td{ padding:5px; border:1px solid #eaeaea; border-width:0px 1px 1px 0px; text-align:center;white-space: nowrap;}*/
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table> 
+            <tr>
+                <th></th>
+                <td>
+                    <div>
+                        <input type="file" id="uploadfile" name="uploadfile" uploadfiledata />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>操作：</th>
+                <td>
+                    <div class="the-operation1" style="float:left">
+                        <ul>
+                            @*<li><a href="javascript:$('#uploadfile').uploadify('upload', '*')" class="btn-import"><i></i>开始上传</a></li>*@
+                            <li><a ng-click="StartUpload()" class="btn-import"><i></i>开始上传</a></li>
+                            @*<li><a href="javascript:$('#uploadfile').uploadify('cancel', '*')" class="btn-del"><i></i>清空文件</a></li>*@
+                        </ul>
+                    </div>
+                </td>
+            </tr> 
+            <tr>
+                <th>提示：</th>
+                <td>
+                    <div>
+                        <div style="font-size:15px; color:Red"><label>{{Tips}}</label></div>
+                    </div>
+                </td>
+            </tr>  
+            <tr>
+                <th>文件：</th>
+                <td>
+                    <div class="attachemnt-table">
+                        <table id="AttachmentTable" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td width="350px">附件名称</td>
+                                <td>附件大小</td>
+                                <td width="50px">操作</td>
+                            </tr>
+                            <tr ng-repeat="x in ListPageData">
+                                <td style="text-align:left;" width="350px">
+                                    <a class="ico_download" style="color: Blue;" ng-href="/Upload/FileDownload?id={{x.Id}}" title="点击下载">{{x.FileName}}</a>
+                                </td>
+                                <td>{{x.FileSize}}</td>
+                                <td width="50px">
+                                    <div>
+                                        <a href="javascript:void(0);" ng-click="deleteUpload(x.Id)"  style="width:70px;">删除</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>     
+        </table>
+    </form>
+</div>
+<!-- end--->

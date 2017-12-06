@@ -1,0 +1,335 @@
+﻿@{
+    ViewBag.Title = "会议室申请信息日历";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        var curDate = new Date();
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+
+            $scope.type = '@ViewData["type"]';
+            $scope.queryBuilder = {
+                MeetingDate_start: curDate.Format('yyyy-MM-dd')
+            };
+            $scope.dateList = [];
+            $scope.ListPageData_apply = [];
+            $scope.setDateList = function (strValue) {
+                $scope.dateList = [];
+                for (var i = 0; i < 5; i++) {
+                    var temp = parseToDate(strValue).addDays(i);
+                    $scope.dateList.push({
+                        value: temp.Format('yyyy-MM-dd'),
+                        //value:temp,
+                        text: temp.Format('yyyy-MM-dd') + '(' + getWeekDay(temp) + ')'
+                    });
+                }
+            }
+            $scope.setDateList($scope.queryBuilder.MeetingDate_start);
+
+            //获取会议室信息数据
+            var GetListData_info = function () {
+                var postData2 = {
+                    pageIndex: 1,
+                    pageSize: 1000
+                };
+                box.load("GetListData_info");
+                BusinessService.list_info(postData2).success(function (response) {
+                    box.ready("GetListData_info");
+                    $scope.ListPageData_info = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData_info");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            GetListData_info();
+
+            //获取申请信息数据
+            var GetListData_apply = function () {
+
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        isManager: true,
+                        pageIndex: 1,
+                        pageSize: 1000,
+                        MeetingDate_start: $scope.queryBuilder.MeetingDate_start,
+                        MeetingDate_end: parseToDate($scope.queryBuilder.MeetingDate_start).addDays(4).Format('yyyy-MM-dd')
+                    };
+                }
+                else {
+                    $scope.queryBuilder.MeetingDate_start = postData.MeetingDate_start;
+                    $scope.setDateList($scope.queryBuilder.MeetingDate_start);
+                }
+
+                box.load("GetListData_apply");
+                BusinessService.list_apply(postData).success(function (response) {
+                    box.ready("GetListData_apply");
+                    $scope.ListPageData_apply = response.items;
+                    //$scope.$apply();
+
+                }).error(function (err) {
+                    box.ready("GetListData_apply");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            GetListData_apply();
+
+            $scope.query = function () {
+                $scope.setDateList($scope.queryBuilder.MeetingDate_start);
+                GetListData_apply();
+            }
+            //前翻
+            $scope.prevPage = function () {
+                $scope.queryBuilder.MeetingDate_start = parseToDate($scope.queryBuilder.MeetingDate_start).addDays(-5).Format('yyyy-MM-dd');
+                $scope.query();
+            }
+            //后翻
+            $scope.nextPage = function () {
+                $scope.queryBuilder.MeetingDate_start = parseToDate($scope.queryBuilder.MeetingDate_start).addDays(5).Format('yyyy-MM-dd');
+                $scope.query();
+            }
+
+            //查询需要的数据
+            $scope.getDataForShow = function (roomID, strDate) {
+                var arrResult = [];
+                $.each($scope.ListPageData_apply, function (i, item) {
+                    //
+                    if (item.Room == roomID && ($filter('date')(item.MeetingDate, 'yyyy-MM-dd') <= strDate) && ($filter('date')(item.EndDate, 'yyyy-MM-dd') >= strDate))
+                        arrResult.push(item);
+                });
+                return arrResult;
+            }
+
+            //点击格子
+            $scope.clickCalendar = function (obj, strDate) {
+
+                roomID = obj.BoardroomID;
+                if ($scope.type == 'user') {
+                    if (obj.State == '停用') {
+                        box.alert("该会议室已经停用，请选择其他会议室！", { icon: 'warning' });
+                        return;
+                    }
+                    //保存最近一次的查询条件
+                    if (parent.pageParamList != undefined) {
+                        var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                        parent.pageParamList.push(pageParam);
+                    }
+                    //普通用户点击，进入申请页面
+                    window.location.href = CurPath + 'BoardroomManage/BoardroomApplyEdit?type=edit&BoardroomID=' + roomID + '&strDate=' + strDate;
+                }
+                else if ($scope.type == 'manager') {
+                    //管理员点击
+                }
+            }
+
+            //查看会议室信息
+            $scope.LookRoom = function (BoardroomID) {
+                box.popup('', {
+                    url: '../BoardroomManage/BoardroomInfoLook?BoardroomID='+ BoardroomID,
+                    title: '会议室信息',
+                    width: 450,//窗口宽度，默认400
+                    height: 450//窗口高度，默认400
+                });
+            }
+
+            $scope.ShowDateContent = function (curDate, obj) {
+                var strResult = '';
+                if (obj != null) {
+                    strResult += curDate == obj.MeetingDate ? obj.StartTime : '上班';
+                    strResult += '-';
+                    strResult += curDate == $filter('date')(obj.EndDate_Real, 'yyyy-MM-dd') ? $filter('date')(obj.EndDate_Real, 'HH:mm') : '下班';
+                    strResult += '(' + obj.AppPerson_text + ')';
+                }
+                return strResult;
+                //(x.value == m.MeetingDate ? m.StartTime : '上班') + '-' + (x.value == $filter('date')(m.EndDate_Real, 'yyyy-MM-dd') ? $filter('date')(m.EndDate_Real, 'HH:mm') : '下班') + '(' + m.AppPerson_text + ')'
+            }
+
+            $scope.sqgl = function () {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'BoardroomManage/BoardroomApply_List';
+            }
+
+            $scope.wdsq = function () {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'BoardroomManage/BoardroomApply_MyList';
+            }
+
+        }]);
+
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取会议室信息数据
+            serive.list_info = function (postData) {
+                return $http.post(CurPath + 'BoardroomManage/GetBoardroomInfoListData', postData);
+            };
+            //获取会议室申请信息数据
+            serive.list_apply = function (postData) {
+                return $http.post(CurPath + 'BoardroomManage/GetBoardroomApplyDataForCalendar', postData);
+            };
+
+            return serive;
+        }]);
+
+        //格式化时间
+        function parseToDate(value) {
+            if (value == null || value == '') {
+                return undefined;
+            }
+
+            var dt;
+            if (value instanceof Date) {
+                dt = value;
+            }
+            else {
+                if (!isNaN(value)) {
+                    dt = new Date(value);
+                }
+                else if (value.indexOf('/Date') > -1) {
+                    value = value.replace(/\/Date\((-?\d+)\)\//, '$1');
+                    dt = new Date();
+                    dt.setTime(value);
+                } else if (value.indexOf('/') > -1) {
+                    dt = new Date(Date.parse(value.replace(/-/g, '/')));
+                } else {
+                    //dt = new Date(value);
+                    dt = new Date(value.replace(/-/g, "/"));
+                }
+            }
+            return dt;
+        }
+        //格式化日期时间
+        Date.prototype.Format = function (fmt) { //author: meizz
+            var o = {
+                "M+": this.getMonth() + 1, //月份
+                "d+": this.getDate(), //日
+                "H+": this.getHours(), //小时
+                "m+": this.getMinutes(), //分
+                "s+": this.getSeconds(), //秒
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+                "S": this.getMilliseconds() //毫秒
+            };
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (var k in o)
+                if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        }
+        Date.prototype.addDays = function (d) {
+            this.setDate(this.getDate() + d);
+            return this;
+        }
+        function getWeekDay(date) {
+            var strResult = '';
+            var mm = date.getDay();
+            switch (mm) {
+                case 0: strResult = '周日'; break;
+                case 1: strResult = '周一'; break;
+                case 2: strResult = '周二'; break;
+                case 3: strResult = '周三'; break;
+                case 4: strResult = '周四'; break;
+                case 5: strResult = '周五'; break;
+                case 6: strResult = '周六'; break;
+                default: break;
+            }
+            return strResult;
+        }
+    </script>
+    <style>
+        .calendar_name, .calendar_null, .calendar_data {
+            cursor: pointer;
+        }
+
+        .calendar_null {
+            color: blue;
+        }
+
+        .calendar_data {
+            color: red;
+        }
+    </style>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    开会日期：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="MeetingDate_start" date-Picker ng-model="queryBuilder.MeetingDate_start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="prevPage()" class="cell-btn-blue" style="*margin-bottom:8px;">&lt;&lt;向前五天</a>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="nextPage()" class="cell-btn-blue" style="*margin-bottom:8px;">向后五天&gt;&gt;</a>
+                    </div>
+                </td>
+                <td ng-show="type=='manager'">
+                    <div class="ui-input">
+                        <a ng-click="sqgl()" href="../BoardroomManage/BoardroomApply_List" class="cell-btn-blue" style="*margin-bottom:8px;">申请管理</a>
+                    </div>
+                </td>
+                <td ng-show="type=='user'">
+                    <div class="ui-input">
+                        <a ng-click="wdsq()" href="../BoardroomManage/BoardroomApply_MyList" class="cell-btn-blue" style="*margin-bottom:8px;">我的申请</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main" style="height:400px;">
+        <table cellpadding="0" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>会议室名称</th>
+                    <th>所属单位</th>
+                    <th>地点</th>
+                    <th width="50px">最大人数</th>
+                    <th ng-repeat="x in dateList">{{x.text}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="emp in ListPageData_info">
+                    <td><div class="calendar_name" ng-click="LookRoom(emp.BoardroomID)">{{emp.Name}}<span ng-show="emp.State=='停用'" style="color:red;">({{emp.State}})</span></div></td>
+                    <td ng-bind="emp.CorpID_text"></td>
+                    <td ng-bind="emp.Address"></td>
+                    <td ng-bind="emp.MaxMan"></td>
+                    <td ng-repeat="x in dateList">
+                        <div class="calendar_null" ng-click="clickCalendar(emp,x.value)" ng-show="getDataForShow(emp.BoardroomID,x.value).length==0">空闲</div>
+                        <div class="calendar_data" ng-click="clickCalendar(emp,x.value)" ng-repeat="m in getDataForShow(emp.BoardroomID,x.value)" title="{{m.WF_CurActivityName}}">{{ShowDateContent(x.value,m)}}</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!--content--->
+</div>

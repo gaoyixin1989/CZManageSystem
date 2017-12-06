@@ -1,0 +1,584 @@
+﻿
+@{
+    ViewBag.Title = "CarInfoEdit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var CarId = '@ViewData["CarId"]';
+            $scope.carInfo = {};
+            $scope.CarBrandList = [];
+            $scope.CarTypeList = [];
+            $scope.CorpIdList = [];
+            $scope.Driver = [];
+            $scope.CarTonnageList = [];
+            //-----------------------------
+            if (CarId != null && CarId.toString().length > 0) {
+                BusinessService.getDataByID(CarId).success(function (response) {
+                    $scope.carInfo = response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+            else {
+                //获取自动汽车编号
+                BusinessService.getAutoSn().success(function (response) {
+                    if (response.IsSuccess) {
+                        $scope.carInfo.SN = response.data;
+                    }
+
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' })
+                });
+            }
+            //获取下拉框
+            BusinessService.GetDropList().success(function (response) {
+                $scope.CarBrandList = response.CarBrandList;
+                $scope.CarTypeList = response.CarTypeList;
+                $scope.CorpIdList = response.CorpIdList;
+                $scope.CarTonnageList = response.CarTonnageList;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            //获取司机
+            BusinessService.GetDrive().success(function (response) {
+                $scope.Driver = response;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.carInfo.CarId = CarId;
+                    var postData = { carInfo: $scope.carInfo }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'CarInfo/CarInfoList';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            //-------------------------
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.carInfo.DptId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.carInfo.DeptId = getAttrByArr(result, 'id').join(',');
+                                            $scope.carInfo.DeptName = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            //------------------------------
+            ////点击返回
+            //$scope.clickBack = function () {
+            //    var src = CurPath;
+            //    if (type == 'look') {
+            //         src += 'CarInfo/CarStatus';
+            //    }
+            //    else {
+            //        src += 'CarInfo/CarInfoList';
+            //    }
+            //    window.location.href = src;
+            //}
+            //----------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetDropList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarInfo/GetDropList'
+                });
+            };
+            serive.GetDrive = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarInfo/GetDrive'
+                });
+            };
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarInfo/Save_CarInfo',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (CarId) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarInfo/CarInfoGetByID?CarId=' + CarId
+
+                });
+            };
+            serive.getAutoSn = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarInfo/getAutoSn'
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>所属单位：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="CorpId" required ng-model="carInfo.CorpId" style="width:222px;">
+                                    <option ng-repeat="x in CorpIdList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                                </select>
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.CorpIdList.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择所属单位</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                @*<tr>
+                    <th>车辆编号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="SN" ng-model="carInfo.SN" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.SN.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.SN.$error.required">请输入车辆编号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>*@
+                <tr>
+                    <th>车牌号码：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="LicensePlateNum" ng-model="carInfo.LicensePlateNum" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.LicensePlateNum.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.LicensePlateNum.$error.required">请输入车牌号码</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>车辆品牌：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="CarBrand" required ng-model="carInfo.CarBrand" style="width:222px;">
+                                    <option ng-repeat="x in CarBrandList" value="{{x.DDText}}">{{x.DDText}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.CarBrand.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择车辆品牌</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>车辆型号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CarModel" ng-model="carInfo.CarModel" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CarModel.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CarModel.$error.required">请输入车辆型号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>发动机号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CarEngine" ng-model="carInfo.CarEngine" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CarEngine.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CarEngine.$error.required">请输入发动机号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>车架号：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CarNum" ng-model="carInfo.CarNum" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CarNum.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CarNum.$error.required">请输入车架号</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>车辆类型：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="CarType" required ng-model="carInfo.CarType" style="width:222px;">
+                                    <option ng-repeat="x in CarTypeList" value="{{x.DDText}}">{{x.DDText}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.CarType.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择车辆类型</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>吨位/人数：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            @*<input type="text" name="CarTonnage" ng-model="carInfo.CarTonnage" ng-maxlength="200" required class="cell-input" />*@
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="CarTonnage" required ng-model="carInfo.CarTonnage" style="width:222px;">
+                                    <option ng-repeat="x in CarTonnageList" value="{{x.DDText}}">{{x.DDText}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.CarTonnage.$invalid&&editForm.failSubmited ">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.CarTonnage.$error.required">请输入吨位/人数</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>管理部门：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="display:none;" name="DeptId" ng-model="carInfo.DeptId" ng- class="cell-input" />
+                            <input type="text" style="width:400px;" name="DeptName" ng-model="carInfo.DeptName" required class="cell-input" ng-click="editMember('dept')" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.DeptName.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.DeptName.$error.required">请选择管理部门</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>购买日期：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="BuyDate" name="BuyDate" required date-Picker dateFmt="yyyy-MM-dd" ng-model="carInfo.BuyDate" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.BuyDate.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入购买日期</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>购买价：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CarPrice" ng-model="carInfo.CarPrice" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CarPrice.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CarPrice.$error.required">请输入购买价</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>折旧年限：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CarLimit" ng-model="carInfo.CarLimit" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CarLimit.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CarLimit.$error.required">请输入折旧年限</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>每月折旧：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CarNum" ng-model="carInfo.Depre" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Depre.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Depre.$error.required">请输入每月折旧</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>租赁开始时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="RentTime1" name="RentTime1" date-Picker dateFmt="yyyy-MM-dd " ng-model="carInfo.RentTime1" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>租赁结束时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="RentTime2" name="RentTime2" date-Picker dateFmt="yyyy-MM-dd " ng-model="carInfo.RentTime2" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>保险开始时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="PolicyTime1" name="PolicyTime1" date-Picker dateFmt="yyyy-MM-dd " ng-model="carInfo.PolicyTime1" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>保险结束时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="PolicyTime2" name="PolicyTime2"  date-Picker dateFmt="yyyy-MM-dd " ng-model="carInfo.PolicyTime2" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>年审开始时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="AnnualTime1" name="AnnualTime1"  date-Picker dateFmt="yyyy-MM-dd " ng-model="carInfo.AnnualTime1" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>年审结束时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="AnnualTime2" name="AnnualTime2" date-Picker dateFmt="yyyy-MM-dd " ng-model="carInfo.AnnualTime2" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>驾驶员：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="DriverId" required ng-model="carInfo.DriverId" style="width:222px;">
+                                    <option ng-repeat="x in Driver" value="{{x.DriverId}}">{{x.Name}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.DriverId.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择驾驶员</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>车辆状态：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="Status" required ng-model="carInfo.Status" style="width:222px;">
+                                    <option value="0">空闲</option>
+                                    <option value="1">出车中</option>
+                                    <option value="2">送修</option>
+                                    <option value="3">保养</option>
+                                    <option value="4">停用</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Status.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择车辆类型</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:400px;" name="Remark" ng-model="carInfo.Remark"  ng-maxlength="200" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+      
+    </form>
+</div>
+<!--公告编辑 end--->

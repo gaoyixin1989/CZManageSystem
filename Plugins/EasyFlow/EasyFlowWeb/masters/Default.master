@@ -1,0 +1,58 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="masters_Default" Codebehind="Default.master.cs" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>潮州流程易平台</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <asp:ContentPlaceHolder id="cphHead" runat="server">        
+    </asp:ContentPlaceHolder>
+</head>
+<body style="background: none !important;">
+    <form id="form1" runat="server" enctype="multipart/form-data">
+    <div style="display:none;" id="navbar">    
+        <bw:SiteMapPath ID="sitePath1" SkipLinkText="" Target="rightFrame" DisplaySize="5" runat="server"></bw:SiteMapPath>    
+    </div>    
+    <div class="mainContent" style="padding:3px;">
+        <div class="content2">
+            <asp:ContentPlaceHolder ID="cphBody" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+    </div>
+    <div class="clearDiv">
+    </div>
+    </form>
+</body>
+</html>
+<script language="javascript" type="text/javascript">
+    $(function() {
+        if (parent && parent.topFrame && parent.topFrame.setNavBar) {
+            parent.topFrame.setNavBar($("#navbar").html());
+        }
+
+        $("input:text").each(function() {
+            this.className = "inputbox";
+        });
+        $("textarea").each(function() {
+            this.className = "inputbox";
+        });
+        $("input:text").focus(function() {
+            this.className = "inputbox_focus";
+        });
+        $("input:text").blur(function() {
+            this.className = "inputbox";
+        });
+        $("textarea").focus(function() {
+            this.className = "inputbox_focus";
+        });
+        $("textarea").blur(function() {
+            this.className = "inputbox";
+        });
+
+        //gyx修改_20160708
+        $('.btn2').each(function () {
+            this.style.color = '';
+        })
+        $('[title=跳转]').parents('.toolBlock').attr('style', '');
+        $('[title=跳转]').parents('.toolBlock').addClass('toolPaging');
+    });
+</script>

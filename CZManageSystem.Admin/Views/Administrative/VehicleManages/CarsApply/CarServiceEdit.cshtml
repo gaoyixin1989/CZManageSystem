@@ -1,0 +1,497 @@
+﻿
+@{
+    ViewBag.Title = "员工有偿服务用车编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@{ var user = ViewBag.User as CZManageSystem.Data.Domain.SysManger.Users;}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var workflowName = '@ViewData["workflowName"]';
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'datePicker', 'number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            $scope.curObj = {};
+            $scope.CorpList = [];
+            $scope.RoadList = [];
+            $scope.CarTonnageList = [];
+            var id = '@ViewData["id"]';
+            if (id != null && id.toString().length > 0) {
+                box.load("load");
+                var _data = { id: id, type: 1 };//id与类别
+                BusinessService.getDataByID(_data).success(function (response) {
+                    $scope.curObj = response.Items;
+                    $scope.CorpList = response.CorpList;
+                    $scope.RoadList = response.RoadList;
+                    $scope.CarTonnageList = response.CarTonnageList;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("load");
+            }
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                title = '用户';
+                iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.curObj.DriverIds;
+                wWidth = 760;
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.curObj.DriverIds = getAttrByArr(result, 'id').join();
+                                    $scope.curObj.Driver = getAttrByArr(result, 'text').join();
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            $scope.save = function (isTrue) {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var nextInfo = $scope.aftersubmitConf.getValue();
+                    if (isTrue) {
+                        if (!nextInfo.isSuccess) {
+                            box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                            return;
+                        }
+                        if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                            box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                            return;
+                        }
+                    }
+                    $scope.curObj.ApplyType = 1;//有偿用车服务
+                    var postData = isTrue == true ? {
+                        carApply: $scope.curObj,
+                        isAction: true,
+                        nextActivity: nextInfo.nextActivity,
+                        nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                        nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                    } : $scope.curObj;
+                    box.load("loadding");
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var msg = isTrue == true ? "提交成功" : "保存成功";
+                            box.alert(msg, { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'CarsApply/CarServiceIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert(response.Message, { icon: 'error' }) });
+                    box.ready("loadding");
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarsApply/Save',
+                    data: postData
+                });
+            };
+
+            serive.submit = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarsApply/Submit',
+                    data: postData
+                });
+            };
+
+
+            serive.getDataByID = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarsApply/GetDataByID',
+                    data: postData
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+
+
+            <tr class="editWithout">
+                <th>申请人：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ApplyCant" ng-model="curObj.ApplyCant" required readonly class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ApplyCant.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ApplyCant.$error.required">请输入申请人</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+
+            <tr class="editWithout">
+                <th>所在部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DeptName" ng-model="curObj.DeptName" required readonly class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.DeptName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DeptName.$error.required">请输入所在部门</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr class="editWithout">
+                <th>申请日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="CreateTime" ng-model="curObj.CreateTime" required readonly class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.CreateTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.CreateTime.$error.required">请输入申请日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Mobile" ng-model="curObj.Mobile" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Mobile.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Mobile.$error.required">请输入联系电话</span>
+                                <span ng-show="editForm.Mobile.$error.maxlength">输入联系电话</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>主题名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ApplyTitle" ng-model="curObj.ApplyTitle" ng-maxlength="150" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ApplyTitle.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ApplyTitle.$error.required">请输入主题名称</span>
+                                <span ng-show="editForm.ApplyTitle.$error.maxlength">输入主题名称过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>所属单位：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="CorpId" required ng-model="curObj.CorpId" style="width:222px;">
+                                <option ng-repeat="x in CorpList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CorpId.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择所属单位</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>用车人：</th>
+                <td>
+                    <div class="the-text-area">
+                        <input style="display:none" ng-model="curObj.DriverIds" />
+                        <textarea class="onfocus" name="Driver" required readonly ng-model="curObj.Driver" placeholder="请选择用车人！必填！" ng-click="editMember('user')" style='height:35px;width:200px'>内容</textarea>
+                        @*<a ng-click="editMember('user')">编辑</a>*@
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Driver.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Driver.$error.required">请选择用车人</span>
+
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+
+            <tr>
+                <th>用车时间段：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="StartTime" name="StartTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.StartTime" class="cell-input cell-input-data" required>
+                        <i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" id="EndTime" name="EndTime" date-Picker dateFmt="yyyy-MM-dd HH:mm" ng-model="curObj.EndTime" class="cell-input cell-input-data" required>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="(editForm.StartTime.$invalid||editForm.EndTime.$invalid)&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请选择时间段</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>吨位/人数：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Road" required ng-model="curObj.CarTonnage" style="width:222px;">
+                                <option ng-repeat="x in CarTonnageList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Road.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择吨位/人数</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>总人数：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PersonCount" ng-model="curObj.PersonCount" ng-pattern="/^[0-9]+$/" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.PersonCount.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.PersonCount.$error.required">请输入总人数(数字)</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>路途类别：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Road" required ng-model="curObj.Road" style="width:222px;">
+                                <option ng-repeat="x in RoadList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Road.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择路途类别</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>车辆用途：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="UseType" ng-model="curObj.UseType" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.UseType.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.UseType.$error.required">请输入车辆用途</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>出发地点：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Starting" ng-model="curObj.Starting" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Starting.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Starting.$error.required">请输入出发地点</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>目的地1：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Destination1" ng-model="curObj.Destination1" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Destination1.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Destination1.$error.required">请输入标题</span>
+                                <span ng-show="editForm.Destination1.$error.maxlength">输入标题过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>目的地2：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Destination2" ng-model="curObj.Destination2" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>目的地3：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Destination3" ng-model="curObj.Destination3" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>目的地4：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Destination4" ng-model="curObj.Destination4" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>目的地5：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Destination5" ng-model="curObj.Destination5" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea class="onfocus" name="Remark" ng-model="curObj.Remark">内容</textarea>
+                    </div>
+
+                </td>
+            </tr>
+
+            <tr class="forEdit">
+                <td colspan="2">
+                    <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save(false)" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="save(true)" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">提交</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--编辑 end--->

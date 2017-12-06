@@ -1,0 +1,167 @@
+﻿
+@{
+    ViewBag.Title = "ViewApply";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var app = angular.module('EquipApply', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('EquipApplyController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+            var ApplyId = '@ViewData["ApplyId"]';
+            $scope.apply = {};
+            if (ApplyId != null && ApplyId.toString().length > 0) {
+                BusinessService.GetApplyDetail(ApplyId).success(function (response) {
+                    $scope.apply = response[0];
+
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            //-------------------------------------
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetApplyDetail = function (ApplyId) {
+                return $http({
+                        method: 'POST',
+                        url: CurPath + 'EquipApply/GetApplyID?ApplyId=' + ApplyId
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 100%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+    }
+
+        .WF_Table tr th {
+            background: white;
+            padding: 7px;
+            font-weight: bold;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            text-align: center;
+        }
+
+        .WF_Table tr td {
+            padding: 5px;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            width: 35%;
+        }
+
+        .WF_Table tr th {
+            background: #F4F4F4;
+            width: 15%;
+        }
+</style>
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" Id="ng-app" ng-app="EquipApply" ng-controller="EquipApplyController" name="editForm" novalidate>
+        <table class="WF_Table">
+            <tr>
+                <th>申请人：</th>
+                <td>{{apply.ApplyName}}</td>
+                <th>所在部门：</th>
+                <td>{{apply.Deptname}} </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td> {{apply.Tel}}  </td>
+                <th>申请日期：</th>
+                <td>
+                     {{apply.ApplyTime}} 
+                </td>
+            </tr>
+            <tr>
+                <th>标题：</th>
+                <td>
+                     {{apply.ApplyTitle}} 
+                </td>
+                <th>固定资产人：</th>
+                <td>
+                    {{apply.Chief}}
+                </td>
+            </tr>
+            <tr>
+                <th>岗位：</th>
+                <td>
+                     {{apply.Job}} 
+                </td>
+                <th>使用性质：</th>
+                <td>
+                    {{apply.Nature}}
+                </td>
+            </tr>
+            <tr>
+
+                <th>流程单号：</th>
+                <td>
+                     {{apply.ApplySn}} 
+                </td>
+                <th>设备类型：</th>
+                <td>
+                    {{apply.EquipClass}}
+                </td>
+            </tr>
+            <tr>
+                <th>设备型号：</th>
+                <td>
+                     {{apply.EquipInfo}} 
+                </td>
+                <th>固定资产编码：</th>
+                <td>
+                    {{apply.AssetSn}}
+                </td>
+            </tr>
+            <tr>
+                
+            </tr>
+            <tr>
+                <th>使用人：</th>
+                <td>
+                     {{apply.BUsername}} 
+                </td>
+                <th>申请原因：</th>
+                <td>
+                    {{apply.ApplyReason}}
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                     {{apply.Remark}} 
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>

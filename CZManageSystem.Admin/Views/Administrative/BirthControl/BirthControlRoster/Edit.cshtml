@@ -1,0 +1,274 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>       
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $timeout, BusinessService, ngDialog) {
+            $scope.curObj = {
+                userId : "",
+                id:""
+            };
+            var userid = '@ViewData["userid"]';
+            var id= '@ViewData["id"]';
+            if (userid != null && userid.toString().length > 0) {
+                BusinessService.getDataByID(userid).success(function (response) {
+                    $scope.curObjBase = response.birthcontrolbaseinfo;
+                    $scope.curObj = response.BirthControlRoster;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }                     
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'BirthControlRoster/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };            
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlRoster/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (userid) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'BirthControlRoster/GetDataByID/' + userid
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table> 
+            <tr>
+                <th>员工编号：</th>
+                <td>
+                    {{curObjBase.EmployeeId}}
+                </td>
+            </tr>
+            <tr>
+                <th>员工姓名：</th>
+                <td>
+                    {{curObjBase.RealName}}
+                </td>
+            </tr>
+            <tr>
+                <th>出生日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="FemaleBirthday" name="FemaleBirthday" required style="width:80px;" date-Picker ng-model="curObj.FemaleBirthday" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.FemaleBirthday.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.FemaleBirthday.$error.required"><i class="icon-error"></i>请输入出生日期。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>女方姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="FemaleName" ng-model="curObj.FemaleName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.FemaleName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.FemaleName.$error.required"><i class="icon-error"></i>请输入女方姓名。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>工作单位或地址：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="FemaleWorkingPlace" ng-model="curObj.FemaleWorkingPlace" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.FemaleWorkingPlace.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.FemaleWorkingPlace.$error.required"><i class="icon-error"></i>请输入工作单位或地址。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>男方姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="MaleName" ng-model="curObj.MaleName" style="width:70px;" class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>工作单位或地址：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="MaleWorkingPlace" ng-model="curObj.MaleWorkingPlace"  class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>第一胎性别：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="FirstEmbryoSex" ng-model="curObj.FirstEmbryoSex" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>第一胎出生时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="FirstEmbryoBirthday" name="FirstEmbryoBirthday" date-Picker ng-model="curObj.FirstEmbryoBirthday" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>第二胎性别：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="SecondEmbryoSex" ng-model="curObj.SecondEmbryoSex" style="width:70px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>第二胎出生时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="SecondEmbryoBirthday" name="SecondEmbryoBirthday" date-Picker ng-model="curObj.SecondEmbryoBirthday" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>生三个孩子以上男：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OverThreeChildrenMele" ng-model="curObj.OverThreeChildrenMele"  class="cell-input" />
+                    </div>
+                </td>
+            </tr>  
+            <tr>
+                <th>生三个孩子以上女：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OverThreeChildrenFemele" ng-model="curObj.OverThreeChildrenFemele" class="cell-input" />
+                    </div>
+                </td>
+            </tr>  
+            <tr>
+                <th>男结扎：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="MeleLigation" ng-model="curObj.MeleLigation"class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>女结扎：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="FemeleLigation" ng-model="curObj.FemeleLigation"class="cell-input" />
+                    </div>
+                </td>
+            </tr>  
+            <tr>
+                <th>放环：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PutAnnulus" ng-model="curObj.PutAnnulus" class="cell-input" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>其他：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Others" ng-model="curObj.Others" class="cell-input" />
+                    </div>
+                </td>
+            </tr>   
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark"></textarea>
+                    </div>
+                </td>
+            </tr>                      
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue"  style="width:70px; margin-right:20px;">保存</a>
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->
+
+

@@ -1,0 +1,115 @@
+﻿@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        .public-form {
+            margin: 10px !important;
+            width: inherit !important;
+        }
+
+        body {
+            min-width: inherit !important;
+        }
+
+        .uploadify-queue-item {
+            max-width: 530px !important;
+        }
+
+        .public-form table tr th {
+            width: 80px;
+        }
+
+        .a-Style {
+            font-size: 12px;
+            color: #000;
+            text-decoration: none;
+        }
+
+        a:hover {
+            font-size: 12px;
+            color: #000;
+            text-decoration: underline;
+        }
+
+        .style a {
+            text-decoration: underline;
+        }
+    </style>
+    <!--[导入]-->
+    <link href="~/Content/Javascript/Uploadify/uploadify.css" rel="stylesheet" />
+    <!--[导入end]-->
+}
+@section Scripts{
+    <!--[导入]-->
+    <script src="~/Content/Javascript/Uploadify/jquery.uploadify-3.1.min.js"></script>
+    <script src="~/Content/app/filesuploadify.js"></script>
+    <!--[导入end]-->
+    <script>
+
+        var type = "";
+        var Questions = []; 
+        data = '@ViewData["data"]';
+        type = '@ViewData["type"]';
+        var fileTypeExts = '*.xls;*.xlsx;*.xltx;*.xlsm;*.xltm;*.xlam;*.xlsb';//设置可以选择的文件的类型，格式如：’*.doc;*.pdf;*.rar’ 。
+        var fileTypeDesc = 'Excel文件';//这个属性值必须设置fileTypeExts属性后才有效，用来设置选择文件对话框中的提示文本，如设置fileTypeDesc为“请选择rar doc pdf文件”
+        var filesApp = angular.module('FilesUp', ['fileImport']);
+        filesApp.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+
+        filesApp.controller('FilesController', ['$scope', '$rootScope', '$compile', '$filter', function ($scope, $rootScope, $compile, $filter) {
+            box.load("loadding");
+            $scope.AttachmentId = "";
+            $scope.type = type;
+            $scope.saveName = '@ViewData["saveName"]';
+            switch (type) {
+                case 'Question':
+                    fileTypeExts = '*.xls;*.xlsx;*.xltx;*.xlsm;*.xltm;*.xlam;*.xlsb';//格式如：’*.doc;*.pdf;*.rar’ 。
+                    fileTypeDesc = 'Excel文件';
+                    break;
+                default:
+                    break;
+            }
+            box.ready("loadding");
+        }]);
+    </script>
+}
+
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="FilesUp" ng-controller="FilesController" name="editForm" novalidate>
+
+        <table id="ForEdit">
+          
+            <tr>
+                <th>模板下载：</th>
+                <td>
+                    <a href="../Import/Download?type={{type}}" class="a-Style">{{saveName}}</a>
+                </td>
+            </tr>
+            <tr>
+                <th>附件：</th>
+                <td>
+                    <div class="the-text-area" id="ForEdit_Attachment">
+                        <input type="file" ng-model="AttachmentId" tempdata="{{AttachmentId}}" id="uploadfile" name="uploadfile" importdata />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>操作：</th>
+                <td>
+                    <div class="the-operation1" style="float:left">
+                        <ul>
+                            <li><a href="javascript:$('#uploadfile').uploadify('upload', '*')" class="btn-import"><i></i>开始导入</a></li>
+                            @*<li><a href="javascript:$('#uploadfile').uploadify('cancel', '*')" class="btn-del"><i></i>清空附件</a></li>*@
+                        </ul>
+
+                    </div>
+
+
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>

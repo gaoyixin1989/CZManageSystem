@@ -1,0 +1,144 @@
+﻿
+@{
+    ViewBag.Title = "上班日期设置";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+
+            var keys = '@ViewData["key"]';
+            $scope.HolidayWork = {
+                ID: '',
+                EndTime: '',
+                StartTime: ''
+            };
+            $scope.isTrue = false;
+            //获取当前数据
+            if (keys != null && keys.toString() != '00000000-0000-0000-0000-000000000000' && keys != "undefined") {
+                box.load("loading");
+                $scope.isTrue = true;
+                BusinessService.getDataByID(keys).success(function (response) {
+                    $scope.HolidayWork = response;
+                    //$scope.HolidayWork.Billcyc = $scope.HolidayWork.Billcyc.toString('HH:mm');
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.HolidayWork
+                    if ($scope.HolidayWork.StartTime > $scope.HolidayWork.EndTime) {
+                        box.alert("结束时间必须大于或等于开始时间！", { icon: 'error' });
+                        return;
+                    }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Attendance/HolidayWorkIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Attendance/SaveHolidayWork',
+                    data: postData
+                });
+            };
+
+            serive.getDataByID = function (key) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Attendance/GetHolidayWorkByID?key=' + key
+                });
+            };
+
+            return serive;
+        }]);
+
+
+
+    </script>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+
+            <tr>
+                <th>开始日期：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="StartTime" ng-model="HolidayWork.StartTime" date-Picker datefmt='yyyy-MM-dd' class="cell-input cell-input-data" required placeholder="开始日期">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.StartTime.$error.required">请选择开始日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>结束日期：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="EndTime" ng-model="HolidayWork.EndTime" date-Picker datefmt='yyyy-MM-dd' class="cell-input cell-input-data" required placeholder="结束日期">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.EndTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.EndTime.$error.required">请选择结束日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

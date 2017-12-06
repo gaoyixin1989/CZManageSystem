@@ -1,0 +1,8 @@
+﻿/* select_box */
+#find_item , .selected_title { padding:0px; height:20px; line-height:18px; vertical-align:middle; padding-bottom:5px}
+.selected_title { padding-left:8px; color:#BE5516; background:#FFF7C6; }
+.selected_title #selected_clear { float:right; text-decoration:none; color:#CB998D; }
+#find_item input , #find_item button { vertical-align:middle; }
+#find_item #find_clear { visibility:hidden; width:18px; height:18px; background:url("img/item_find_clear.gif") no-repeat center center; border:0; }
+#find_item .inputbox { padding-left:20px; height:16px; background:#FFF url("img/item_find.gif") no-repeat 2px 1px; border:solid 1.5px #B7CEE2; }
+.item_list { padding-top:2px; height:35px; overflow:auto; display:none }

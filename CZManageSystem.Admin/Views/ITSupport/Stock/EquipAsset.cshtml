@@ -1,0 +1,227 @@
+﻿
+@{
+    ViewBag.Title = "设备资产管理";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('StockController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                equip: { arrId: [], arrText: [] }
+
+            };
+           // $scope.status = [{ "text": "已调拨", "value": "0" }, { "text": "已签收", "value": "1" }];
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+          
+            $scope.query = function () {
+               // $scope.queryBuilder.StockType = $("[ng-model='queryBuilder.StockType']").val();
+                $scope.queryBuilder.EquipClass = $("[ng-model='queryBuilder.equip.arrText']").val();
+                //$scope.queryBuilder.StockStatus = $("[ng-model='queryBuilder.StockStatus']").val();
+                $scope.queryBuilder.EquipInfo = $("[ng-model='queryBuilder.EquipInfo']").val();
+                $scope.queryBuilder.AssetSn = $("[ng-model='queryBuilder.AssetSn']").val();
+                GetListData();
+            }
+            //---------------------------------
+            $scope.queryBuilder.equip = { arrId: [], arrText: [] };
+            $scope.editMember = function (type) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'equip': {
+                        title = '设备类型';
+                        iframeSrc = '../Equip/EquipWindow?selected=' + $scope.queryBuilder.equip.arrText;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'equip': {
+                                            $scope.queryBuilder.equip.arrId = getAttrByArr(result, 'id').join(",");
+                                            $scope.queryBuilder.equip.arrText = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            $scope.getRowspan = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'EquipInfo': obj.EquipInfo, 'EquipClass': obj.EquipClass, 'ProjSn': obj.ProjSn });
+                return temp.length;
+
+            }
+            $scope.isShowData = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'EquipInfo': obj.EquipInfo, 'EquipClass': obj.EquipClass, 'ProjSn': obj.ProjSn });
+                if (temp.indexOf(obj) == 0)
+                    return true;
+                else
+                    return false;
+            }
+            //----------------------------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Stock/GetEquipAsset', postData);
+            };
+            return serive;
+        }]);
+
+        //------------------------------------------
+
+    </script>
+}
+
+<div id="ng-app" ng-app="ListPage" ng-controller="StockController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    设备类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" placeholder="设备类型" ng-click="editMember('equip')" ng-model="queryBuilder.equip.arrText" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+                <td>
+                    设备型号：
+                </td>
+                <td>
+                    <div class="ui-input">                       
+                            <input type="text" placeholder="设备型号" ng-model="queryBuilder.EquipInfo" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    固定资产编码：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" placeholder="固定资产编码" ng-model="queryBuilder.AssetSn" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                @*<td>
+       状态：
+    </td>
+    <td>
+        <div class="ui-input">
+            <div class="selectdrapdown">
+                <select class="cell-input" ng-model="queryBuilder.StockStatus" placeholder="--请选择--" ng-options="x.text for x in status"></select>
+            </div>
+        </div>
+    </td>*@
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="white-space:nowrap">型号</th>
+                <th style="white-space:nowrap">固定资产号</th>
+                <th style="white-space:nowrap">部门</th>
+                <th style="white-space:nowrap">申请人</th>
+                <th style="white-space:nowrap">使用人</th>
+                <th style="white-space:nowrap">用途</th>
+                <th style="white-space:nowrap">调拨日期</th>
+                <th style="white-space:nowrap">总入库数量</th>
+                <th style="white-space:nowrap">调拨数量</th>
+                <th style="white-space:nowrap">剩余数量</th>
+            </tr>
+            <tr ng-repeat="app in ListPageData">
+                <td ng-bind="app.EquipInfo" rowspan="{{getRowspan(app)}}" ng-show="isShowData(app)"></td>
+                <td ng-bind="app.AssetSn"></td>
+                <td ng-bind="app.Deptname"></td>
+                <td><a ng-href="../EquipApply/ApplyDetail?ApplyId={{app.ApplyId}}">{{app.ApplyName}}</a></td>
+                <td ng-bind="app.BUsername"></td>
+                <td ng-bind="app.ApplyReason"></td>
+                <td ng-bind="app.ApplyTime|date:'yyyy-MM-dd'"></td>
+                <td ng-bind="app.enternum" rowspan="{{getRowspan(app)}}" ng-show="isShowData(app)"></td>
+                <td ng-bind="app.outnum"></td>
+                <td ng-bind="app.totalnum" rowspan="{{getRowspan(app)}}" ng-show="isShowData(app)"></td>
+              
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                @*<li><a href="../Stock/DownloadAsset?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>未完成*@
+                @*<li><a ng-href="/Stock/OutStock?stock={{choseArr}}" class="btn-del"><i></i>查看出库</a></li>*@
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

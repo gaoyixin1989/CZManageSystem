@@ -1,0 +1,543 @@
+.container1{
+	margin:0 auto;
+}
+.container2{
+	margin:0 auto;
+	text-align:center;
+	padding:0 5px;
+}
+.mainbox{
+	min-height:500px;margin:0 auto;
+}
+* html .mainbox{
+	height:500px;
+}
+.topHeader{
+	margin:0 auto;padding:15px 19px 0 19px; height:120px;
+}
+.footer_wrapper , .footer{
+	clear:both;height:40px;margin:0 auto;line-height:34px;padding-top:0px;
+}
+.topNav{
+	overflow:hidden;height:22px;line-height:20px;padding:0 10px;margin:0 auto;
+}
+	.topNav .navSite{
+		float:left;
+	}
+	.topNav .linkList{
+		float:right;
+	}
+		.topNav .linkList li{
+			float:left;text-indent:14px
+		}
+		.topNav .linkList .yellow{
+			color:#FC3;
+		}
+#header{
+	overflow:hidden;margin:0 auto; height:82px;
+}
+#header h1{
+	float:left;width:140px;height:65px;padding:10px;
+}
+	#header h1 a{
+		display:block;width:140px;height:55px;
+}
+	#header h1 span{
+		display:none;
+	}
+#header h2{
+	float:left;width:240px;height:75px; 
+}
+	#header h2 span{
+		display:none;
+	}
+#header .xqp{
+    margin-top:20px;font-size:25px;
+}
+#header .topMenu{
+	float:right;height:62px;padding-top:10px;padding-right:10px;
+}
+#header .topMenu li{
+	float:left;
+}
+#header .topMenu a{
+	display:block;width:79px;height:62px;
+}
+#header .topMenu a span{
+	display:none;
+}
+
+#header .topMenu a.index{
+	background-position:0px -124px;
+}
+#header .topMenu a.toMy{
+	background-position:-79px -124px;
+}
+#header .topMenu a.toOA{
+	background-position:-158px -124px;
+}
+#header .topMenu a.toKM{
+	background-position:-237px -124px;
+}
+#header .topMenu a.toPay{
+	background-position:-316px -124px;
+}
+#header .topMenu a.toLife{
+	background-position:-395px -124px;
+}
+#header .topMenu a.toMore{
+	background-position:-474px -124px;
+}
+#header .topMenu a.index:hover{
+	background-position:0px 0px;
+}
+#header .topMenu a.toMy:hover{
+	background-position:-79px 0px;
+}
+#header .topMenu a.toOA:hover{
+	background-position:-158px 0px;
+}
+#header .topMenu a.toKM:hover{
+	background-position:-237px 0px;
+}
+#header .topMenu a.toPay:hover{
+	background-position:-316px 0px;
+}
+#header .topMenu a.toLife:hover{
+	background-position:-395px 0px;
+}
+#header .topMenu a.toMore:hover{
+	background-position:-474px 0px;
+}
+
+#header .topMenu li.c a.index{
+	background-position:0px -62px;
+}
+#header .topMenu li.c a.toMy{
+	background-position:-79px -62px;
+}
+#header .topMenu li.c a.toOA{
+	background-position:-158px -62px;
+}
+#header .topMenu li.c a.toKM{
+	background-position:-237px -62px;
+}
+#header .topMenu li.c a.toPay{
+	background-position:-316px -62px;
+}
+#header .topMenu li.c a.toLife{
+	background-position:-395px -62px;
+}
+#header .topMenu li.c a.toMore{
+	background-position:-474px -62px;
+}
+.mainContent{
+	margin:auto;text-align:left;
+}
+.sidebar{
+	float:left;width:185px;display:inline;min-height:500px;
+}
+* html .sidebar{
+	height:500px;
+}
+.sidebar h3{
+	height:42px;font-size:14px;font-weight:bold;line-height:42px;text-indent:50px;
+}
+.sidebar .menuSidebar{
+	padding:10px;
+}
+.sidebar .leftControl{
+	width:165px;overflow:hidden;height:32px;line-height:21px;
+}
+.sidebar .leftControl ul{
+	
+}
+.sidebar .leftControl li{
+	float:left;width:82px;text-indent:30px;
+}
+.sidebar .leftControl a:visited{
+	text-decoration:none;
+}
+.sidebar .menuList{
+	height:500px;
+}
+.sidebar .menuList li{
+	padding-bottom:2px;
+}
+.sidebar .menuList h4{
+	height:26px;line-height:26px;font-size:12px;text-indent:18px;
+}
+.sidebar .menuList .menuContent{
+	display:none;padding:0 10px 0px 10px;
+}
+.sidebar .menuList .c .menuContent{
+	display:block;
+}
+.sidebar .menuList .menuContent a{
+	display:block;text-indent:10px;line-height:18px;
+}
+.sidebar .menuList .menuContent a img {
+ padding-right:3px;
+}
+.hidden{ display:none}
+/*3栏中部*/
+.content3{
+	float:left;width:600px;margin-left:7px;display:inline;min-height:500px;
+}
+* html .content3{
+	height:500px;
+}
+.content2 h3{
+	float:left;padding-top:0px;
+}
+.content2 h3 span{
+	float:left;font-size:14px;font-weight:bold;height:25px;line-height:25px;text-align:center; padding:0 16px; display:block;
+}
+
+/*2栏右侧*/
+.content2{
+	background:white;
+}
+* html .content2{
+	height:500px;
+}
+.content2 .titleContent {
+	height:25px;padding-left:10px; padding-top:6px;
+    border-bottom: 1px solid #1167AB;display:none;
+}
+/*.content2 h3 span{
+	font-size:12px;font-weight:normal;
+}*/
+.content2 .rightSite{
+	float:right;padding-right:10px;
+}
+.content2 .rightSite input{
+	margin-top:0px;
+}
+/*2栏结束*/
+.dataList{
+	padding:10px;
+}
+.dataList .dataControl{
+	width:100%;overflow:hidden;vertical-align:middle;height:22px;line-height:22px;padding-bottom:5px;
+}
+.dataList .showControl{
+	width:100%;overflow:hidden;height:26px;line-height:26px;margin-bottom:10px;
+}
+.dataList .showControl h4{
+	float:left;font-size:12px;
+}
+.dataList .showControl button{
+	float:right;width:20px;height:20px;border:0; cursor:pointer;margin-right:10px;margin-top:6px;
+}
+.dataList .showControl button span{
+	display:none;
+}
+.dataList .dataTable{
+	
+}
+.sidebarRight{
+	float:right;width:180px;display:inline;
+}
+.sidebarRight h3{
+	height:42px;font-size:14px;font-weight:bold;line-height:42px;text-indent:50px;
+}
+.sidebarRight .corner2{
+	padding:10px;
+}
+/*右侧新闻*/
+.topNews{
+	
+}
+.topNews li{
+	line-height:20px;text-indent:15px;
+}
+/*当日摘要信息*/
+.todayShow{
+	height:51px;padding:5px 0;
+}
+.todayShow .dayNumber{
+	float:left;line-height:50px;font-size:30px;width:50px;text-align:center;
+}
+.todayShow .dayInfo{
+	float:left;
+}
+.todayShow .dayInfo li{
+	text-indent:1em;line-height:16px;
+}
+
+.CalendarList{
+	
+}
+.CalendarList h4{
+	height:30px;line-height:30px;text-indent:10px;font-size:14px;font-weight:bold;
+}
+.CalendarList h4 span{
+	padding:0 4px;
+}
+.CalendarList li{
+	text-indent:22px;height:22px;line-height:20px;
+}
+/*系统提示信息*/
+.errInfo {
+	width:420px;margin:50px auto;height:250px; text-align:center;
+}
+.errInfo h4{
+	height:92px;
+}
+.errInfo h4 span{
+	display:none;
+}
+.errInfo p{
+	padding-left:100px;padding-top:36px;padding-right:10px;text-align:left
+}
+.errInfo input{
+	border:0;font-size:12px;height:25px;width:53px;margin-top:15px; line-height:25px;
+}
+/*系统提示信息*/
+.successInfo {
+	width:420px;margin:50px auto;height:250px; text-align:center;
+}
+.successInfo h4{
+	height:92px;
+}
+.successInfo h4 span{
+	display:none;
+}
+.successInfo p{
+	padding-left:100px;padding-top:36px;padding-right:10px;text-align:left
+}
+.successInfo input{
+	border:0;font-size:12px;height:25px;width:53px;margin-top:15px; line-height:25px;
+}
+/*2栏内容区域通屏按钮列表*/
+.btnControl{
+	height:25px;overflow:hidden;width:100%
+
+}
+.btnControl .btnLeft{
+	float:left;padding-left:10px;
+}
+.btnControl .btnLeft li{
+	float:left;
+}
+.btnControl .btnRight{
+	float:right;padding-right:10px;
+}
+.btnControl .btnRight input[value='+加入关注']{
+	display:none;
+}
+.btnControl input{
+	height:25px;line-height:25px;border:0;font-size:12px;
+}
+
+.searchBar {
+	padding:10px 10px 5px 10px;
+}
+.searchBar .searchTitle {
+	height:20px;padding:5px 10px;line-height:20px;
+}
+.searchBar .searchTitle h4{
+	float:left;margin-right:10px;
+}
+.searchBar .searchTitle span{
+	float:left;
+}
+.searchBar .searchTitle button{
+	float:right;width:20px;height:20px;border:0; cursor:pointer;
+}
+.searchBar .searchTitle button span{
+	display:none;
+}
+.searchBar .searchInfo{
+	clear:both;padding:0 10px 0px 10px;
+}
+.searchBar .searchInfo table{
+	width:100%;
+}
+.searchBar .searchInfo table td{
+	padding:4px 0;
+}
+.searchBar .searchInfo .selectClass{
+	width:200px;margin-left:1em;
+}
+.searchBar .searchInfo .txtDateClass{
+	width:90px;
+}
+.searchBar .searchInfo .divSubmit{
+	height:30px;text-align:center;padding-top:5px;
+}
+.searchBar .searchInfo .btnSearch{
+		border:0;height:26px;width:59px;text-indent:15px;line-height:26px;
+}
+
+/*页面底部按钮列表*/
+.pageButtonList{
+	text-align:center;width:100%;height:40px;padding-top:10px;line-height:30px; 
+}
+
+/*弹出窗口*/
+.newBody{
+	width:100%;
+}
+.newBody .content2{
+	width:100%;margin:0;min-height:320px;
+}
+.newBody .content2 .titleContent {
+	height:38px;padding-left:10px;
+}
+* html .newBody .content2{
+	height:320px;
+}
+.newBody .content2 h3{
+	font-size:14px;font-weight:bold;height:38px;line-height:38px;padding-top:0px;width:108px;text-align:center;
+}
+.newBody .content2 h3 span{
+	height:38px;line-height:38px;text-align:center; padding:0 16;font-size:14px;display:block;
+}
+.newBody .content2 .searchBar{
+	width:768px;margin:0 auto;text-align:left;
+}
+.newBody .closeBtnDiv{
+	height:30px;
+}
+.newBody .closeBtnDiv input{
+	border:0;font-size:12px;margin-top:10px;
+}
+.newBody .content2 .btnControl{
+	height:26px;
+}
+.newBody .content2 .btnControl input{
+	vertical-align:middle
+}
+.newBody .content2 .btnControl select{
+	vertical-align:middle
+}
+.newBody .newContent{
+	min-height:320px;
+}
+* html .newBody .newContent{
+	height:320px;
+}
+
+/*信息查看*/
+.msgContent{
+	padding:10px;
+}
+.msgContent h4{
+	height:40px;line-height:40px;font-size:14px;
+}
+.msgContent .msgHeader{
+	width:100%;overflow:hidden;height:30px;line-height:30px;
+}
+.msgHeader .msgInfo{
+	float:left;
+}
+.msgHeader .msgFont{
+	float:right;
+}
+.msgContent .msgBody2{
+	font-size:12px;
+}
+.msgContent .msgBody2 p{
+	line-height:24px;margin:5px 0;
+}
+.msgContent .msgBody{
+	font-size:14px;
+}
+.msgContent .msgBody p{
+	line-height:30px;margin:12px 0;
+}
+.msgContent .msgBody3{
+	font-size:16px;
+}
+.msgContent .msgBody3 p{
+	line-height:30px;margin:20px 0;
+}
+.msgLink{
+	height:28px;line-height:28px;
+}
+.msgLink  a{
+	padding-left:14px;
+}
+.comment li{
+	padding-left:10px;
+}
+.comment h5{
+	height:30px;line-height:30px;font-size:14px; font-weight:normal;
+}
+.addComment {
+	padding-left:10px;
+}
+.addComment textarea{
+	margin-bottom:10px;
+}
+/*
+登录页样式
+
+
+*/
+.loginClass {
+	width:500px;height:300px;margin:0 auto;margin-top:130px;
+}
+.loginClass .loginHead{
+	height:69px;width:300px;padding-left:200px;text-align:left;padding-top:40px;
+}
+.loginHead h1{
+	font-size:24px;height:36px;line-height:36px;
+}
+.loginHead h1 span{
+	
+}
+.loginHead span{
+	display:block;height:24px;line-height:24px;text-indent:1px;
+}
+.loginBody {
+	width:460px;height:160px;overflow:hidden;margin:0 auto;padding-top:5px;
+}
+.userLogo {
+	float:left;width:180px;height:160px;text-align:left;
+}
+.userLogo img{
+	width:80px;height:80px;padding:10px;margin-top:20px;margin-left:40px;
+}
+.formClass{
+	float:left;text-align:left;padding-top:20px;padding-left:30px;
+}
+.formClass label{
+	display:block;height:20px;line-height:20px;
+}
+.formClass input{
+	width:199px;height:20px;line-height:22px;border:0px;padding:1px 5px;margin-bottom:4px;
+}
+.formClass .btnSumbit{
+	margin-top:10px;
+}
+.formClass .btnLogin{
+	width:48px;height:24px;font-size:12px;margin-right:20px;
+}
+.btnSumbit input{
+	width:auto;height:auto;vertical-align:middle;margin-top:2px;
+}
+.btnSumbit label{
+	display:inline;
+}
+/*弹出窗口内容布局*/
+.newContent1 {
+	width:600px; overflow:hidden;
+}
+.divClass1{
+	padding:10px;width:280px;margin-top:10px;display:inline;
+}
+.divClass2{
+	border:1px silver solid; background:#F3F3F3;height:200px;
+}
+.divClass2 h5{
+	text-align:left;height:20px;line-height:20px;font-weight:normal;text-align:left;text-indent:10px;font-size:12px;
+}
+.fRight .divClass2 select{
+	width:95%;border:1px;
+}
+.divClass2 .selectClass{
+	width:160px;
+}

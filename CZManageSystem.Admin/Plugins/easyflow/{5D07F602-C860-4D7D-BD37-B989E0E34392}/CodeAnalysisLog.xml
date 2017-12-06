@@ -1,0 +1,1278 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="d:\program files (x86)\microsoft visual studio 10.0\team tools\static analysis tools\fxcop\Xml\CodeAnalysisReport.xsl"?>
+<FxCopReport Version="10.0">
+ <Targets>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_05vlvhej.dll">
+   <Modules>
+    <Module Name="app_web_05vlvhej.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_report_controls_TemplateConfig" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindPage()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\controls" File="TemplateConfig.ascx.cs" Line="77">在方法 'contrib_report_controls_TemplateConfig.BindPage()' 中，'dtData' 对象未按所有异常路径释放。请在对 'dtData' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_report_TableView" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Append2Table(System.Web.UI.WebControls.Table,System.Data.DataRowView)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\controls" File="TableView.ascx.cs" Line="154">在方法 'contrib_report_TableView.Append2Table(Table, DataRowView)' 中，'tc' 对象未按所有异常路径释放。请在对 'tc' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\controls" File="TableView.ascx.cs" Line="151">在方法 'contrib_report_TableView.Append2Table(Table, DataRowView)' 中，'tr' 对象未按所有异常路径释放。请在对 'tr' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#BindData(System.Int32)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\controls" File="TableView.ascx.cs" Line="119">在方法 'contrib_report_TableView.BindData(int)' 中，请在对 'new DataTable()' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_0e1kvqtd.dll">
+   <Modules>
+    <Module Name="app_web_0e1kvqtd.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_dynamicform_pages_config_AdvancedConfig" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\config" File="AdvancedConfig.aspx.cs" Line="49">在方法 'contrib_dynamicform_pages_config_AdvancedConfig.Page_Load(object, EventArgs)' 中，请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_0h0nhajl.dll">
+   <Modules>
+    <Module Name="app_web_0h0nhajl.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_mobile_ajax_CommonAjax" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\mobile\ajax" File="CommonAjax.aspx.cs" Line="14">在方法 'contrib_mobile_ajax_CommonAjax.Page_Load(object, EventArgs)' 中，请在对 'ws' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_1ey5km1m.dll">
+   <Modules>
+    <Module Name="app_web_1ey5km1m.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_pms_pages_Friend_ShowDialog" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="不要多次释放对象" Category="Microsoft.Usage" CheckId="CA2202" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\pms\pages" File="Friend_ShowDialog.aspx.cs" Line="54">可以在方法 'apps_pms_pages_Friend_ShowDialog.Page_Load(object, EventArgs)' 中多次释放对象 'fs'。若要避免生成 System.ObjectDisposedException，不应对一个对象多次调用 Dispose。: Lines: 54</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="apps_pms_pages_PMS_Export" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btn_All_Export_To_Exc_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\pms\pages" File="PMS_Export.ascx.cs" Line="501">在方法 'apps_pms_pages_PMS_Export.btn_All_Export_To_Exc_Click(object, EventArgs)' 中，请在对 'AllData' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#btn_All_Export_To_Txt_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\pms\pages" File="PMS_Export.ascx.cs" Line="614">在方法 'apps_pms_pages_PMS_Export.btn_All_Export_To_Txt_Click(object, EventArgs)' 中，请在对 'oStringWriter' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#btn_This_Expor_To_Txt_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\pms\pages" File="PMS_Export.ascx.cs" Line="847">在方法 'apps_pms_pages_PMS_Export.btn_This_Expor_To_Txt_Click(object, EventArgs)' 中，请在对 'oStringWriter' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#GetData(System.String,System.String,System.String,System.String)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\pms\pages" File="PMS_Export.ascx.cs" Line="774">在方法 'apps_pms_pages_PMS_Export.GetData(string, string, string, string)' 中，请在对 'AllData' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#Seach" Kind="Event" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="DeclareEventHandlersCorrectly" Category="Microsoft.Design" CheckId="CA1009" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="Breaking">
+             <Issue Name="First" Certainty="95" Level="Error">将 'apps_pms_pages_PMS_Export.DelegateSeachHander' 的第一个参数声明为一个名为“sender”的对象。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="apps_pms_pages_PMS_UserContor" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Seach" Kind="Event" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="DeclareEventHandlersCorrectly" Category="Microsoft.Design" CheckId="CA1009" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="Breaking">
+             <Issue Name="First" Certainty="95" Level="Error">将 'apps_pms_pages_PMS_UserContor.DelegateSeachHander' 的第一个参数声明为一个名为“sender”的对象。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="apps_pms_pages_Ucs_Serch" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Seach" Kind="Event" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="DeclareEventHandlersCorrectly" Category="Microsoft.Design" CheckId="CA1009" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="Breaking">
+             <Issue Name="First" Certainty="95" Level="Error">将 'apps_pms_pages_Ucs_Serch.DelegateSeachHander' 的第一个参数声明为一个名为“sender”的对象。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_2lwzhgvw.dll">
+   <Modules>
+    <Module Name="app_web_2lwzhgvw.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_xqp2_pages_workflows_controls_ActivityStat" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindWorkflowData(Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\controls" File="ActivityStat.ascx.cs" Line="122">在方法 'apps_xqp2_pages_workflows_controls_ActivityStat.BindWorkflowData(LoginUser)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="apps_xqp2_pages_workflows_controls_WorkflowBusinessStat" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#ExportExcel()" Kind="Method" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\controls" File="WorkflowBusinessStat.ascx.cs" Line="338">在方法 'apps_xqp2_pages_workflows_controls_WorkflowBusinessStat.ExportExcel()' 中，请在对 'grid' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#ExportExcelAll()" Kind="Method" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\controls" File="WorkflowBusinessStat.ascx.cs" Line="356">在方法 'apps_xqp2_pages_workflows_controls_WorkflowBusinessStat.ExportExcelAll()' 中，请在对 'grid' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#LoadWorkflowData(Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\controls" File="WorkflowBusinessStat.ascx.cs" Line="155">在方法 'apps_xqp2_pages_workflows_controls_WorkflowBusinessStat.LoadWorkflowData(LoginUser)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="apps_xqp2_pages_workflows_controls_WorkflowCommentStat" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#ExportExcel()" Kind="Method" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\controls" File="WorkflowCommentStat.ascx.cs" Line="200">在方法 'apps_xqp2_pages_workflows_controls_WorkflowCommentStat.ExportExcel()' 中，请在对 'grid' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#LoadWorkflowData(Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\controls" File="WorkflowCommentStat.ascx.cs" Line="107">在方法 'apps_xqp2_pages_workflows_controls_WorkflowCommentStat.LoadWorkflowData(LoginUser)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="apps_xqp2_pages_workflows_controls_WorkflowDetailStat" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#LoadWorkflowData(Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\controls" File="WorkflowDetailStat.ascx.cs" Line="106">在方法 'apps_xqp2_pages_workflows_controls_WorkflowDetailStat.LoadWorkflowData(LoginUser)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_2zbdxtin.dll">
+   <Modules>
+    <Module Name="app_web_2zbdxtin.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="xqp2_contrib_workflow_pages_WorkflowDeploy" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnItemUpload_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="不要多次释放对象" Category="Microsoft.Usage" CheckId="CA2202" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowDeploy.aspx.cs" Line="434">可以在方法 'xqp2_contrib_workflow_pages_WorkflowDeploy.btnItemUpload_Click(object, EventArgs)' 中多次释放对象 'file'。若要避免生成 System.ObjectDisposedException，不应对一个对象多次调用 Dispose。: Lines: 434</Issue>
+            </Message>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowDeploy.aspx.cs" Line="426">在方法 'xqp2_contrib_workflow_pages_WorkflowDeploy.btnItemUpload_Click(object, EventArgs)' 中，'file' 对象未按所有异常路径释放。请在对 'file' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#btnUpload_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="不要多次释放对象" Category="Microsoft.Usage" CheckId="CA2202" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowDeploy.aspx.cs" Line="135">可以在方法 'xqp2_contrib_workflow_pages_WorkflowDeploy.btnUpload_Click(object, EventArgs)' 中多次释放对象 'xmlReader'。若要避免生成 System.ObjectDisposedException，不应对一个对象多次调用 Dispose。: Lines: 135</Issue>
+            </Message>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowDeploy.aspx.cs" Line="124">在方法 'xqp2_contrib_workflow_pages_WorkflowDeploy.btnUpload_Click(object, EventArgs)' 中，请在对 'xmlReader' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#ExportFlow(System.Guid)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowDeploy.aspx.cs" Line="261">在方法 'xqp2_contrib_workflow_pages_WorkflowDeploy.ExportFlow(Guid)' 中，请在对 'writer' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#ExportItem(System.String)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="不要多次释放对象" Category="Microsoft.Usage" CheckId="CA2202" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowDeploy.aspx.cs" Line="300">可以在方法 'xqp2_contrib_workflow_pages_WorkflowDeploy.ExportItem(string)' 中多次释放对象 'file'。若要避免生成 System.ObjectDisposedException，不应对一个对象多次调用 Dispose。: Lines: 300</Issue>
+            </Message>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowDeploy.aspx.cs" Line="296">在方法 'xqp2_contrib_workflow_pages_WorkflowDeploy.ExportItem(string)' 中，'file' 对象未按所有异常路径释放。请在对 'file' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="xqp2_contrib_workflow_pages_WorkflowHistoryDeploy" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#ExportFlow(System.Guid)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowHistoryDeploy.aspx.cs" Line="174">在方法 'xqp2_contrib_workflow_pages_WorkflowHistoryDeploy.ExportFlow(Guid)' 中，请在对 'writer' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#ExportItem(System.String)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="不要多次释放对象" Category="Microsoft.Usage" CheckId="CA2202" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowHistoryDeploy.aspx.cs" Line="206">可以在方法 'xqp2_contrib_workflow_pages_WorkflowHistoryDeploy.ExportItem(string)' 中多次释放对象 'file'。若要避免生成 System.ObjectDisposedException，不应对一个对象多次调用 Dispose。: Lines: 206</Issue>
+            </Message>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows" File="WorkflowHistoryDeploy.aspx.cs" Line="202">在方法 'xqp2_contrib_workflow_pages_WorkflowHistoryDeploy.ExportItem(string)' 中，'file' 对象未按所有异常路径释放。请在对 'file' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_5naeoalh.dll">
+   <Modules>
+    <Module Name="app_web_5naeoalh.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_dynamicform_pages_config_UC_FormItemDataList" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\config\UC" File="FormItemDataList.aspx.cs" Line="84">在方法 'contrib_dynamicform_pages_config_UC_FormItemDataList.Page_Load(object, EventArgs)' 中，请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_dynamicform_pages_config_UC_FormItemIFrames" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\config\UC" File="FormItemIFrames.aspx.cs" Line="97">在方法 'contrib_dynamicform_pages_config_UC_FormItemIFrames.Page_Load(object, EventArgs)' 中，请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_dynamicform_pages_config_UC_FormItemLinkage" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\config\UC" File="FormItemLinkage.aspx.cs" Line="66">在方法 'contrib_dynamicform_pages_config_UC_FormItemLinkage.Page_Load(object, EventArgs)' 中，请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_dynamicform_pages_config_UC_FormItemsRules" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\config\UC" File="FormItemsRules.aspx.cs" Line="66">在方法 'contrib_dynamicform_pages_config_UC_FormItemsRules.Page_Load(object, EventArgs)' 中，请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_dynamicform_pages_config_UC_GetOuterData" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\config\UC" File="GetOuterData.aspx.cs" Line="59">在方法 'contrib_dynamicform_pages_config_UC_GetOuterData.Page_Load(object, EventArgs)' 中，请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_dynamicform_pages_config_UC_ValidateDataType" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\config\UC" File="ValidateDataType.aspx.cs" Line="66">在方法 'contrib_dynamicform_pages_config_UC_ValidateDataType.Page_Load(object, EventArgs)' 中，请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_a3wf2g1j.dll">
+   <Modules>
+    <Module Name="app_web_a3wf2g1j.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_mobile_pages_Process" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#RecursiveDepartmets(System.Data.DataView,System.String,System.Web.UI.WebControls.TreeNode)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\mobile\pages" File="Process.aspx.cs" Line="863">在方法 'contrib_mobile_pages_Process.RecursiveDepartmets(DataView, string, TreeNode)' 中，请在对 'data' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_mobile_pages_Search" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#LoadWorkflowData()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\mobile\pages" File="Search.aspx.cs" Line="143">在方法 'contrib_mobile_pages_Search.LoadWorkflowData()' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_mobile_pages_Start" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#RecursiveDepartmets(System.Data.DataView,System.String,System.Web.UI.WebControls.TreeNode)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\mobile\pages" File="Start.aspx.cs" Line="643">在方法 'contrib_mobile_pages_Start.RecursiveDepartmets(DataView, string, TreeNode)' 中，请在对 'data' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_mobile_pages_WorkflowView" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindFormItems(System.Guid,System.Guid,System.Guid,Botwave.Workflow.Domain.ActivityDefinition,Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="为格式化方法提高正确的参数" Category="Microsoft.Usage" CheckId="CA2241" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="MissingFormatItem" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\mobile\pages" File="WorkflowView.aspx.cs" Line="476">方法 'contrib_mobile_pages_WorkflowView.BindFormItems(Guid, Guid, Guid, ActivityDefinition, LoginUser)' 调用 'string.Format(string, params object[])' 并且不为参数 "9" 提供格式项。提供的格式字符串为:“"\r\n        &lt;script language=\"javascript\" type=\"text/javascript\"&gt;\r\n       ..."”</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_akati3qt.dll">
+   <Modules>
+    <Module Name="app_web_akati3qt.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="masters_NewPage" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#OnInit(System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\masters" File="NewPage.master.cs" Line="26">在方法 'masters_NewPage.OnInit(EventArgs)' 中，'child' 对象未按所有异常路径释放。请在对 'child' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_bsw0l2sw.dll">
+   <Modules>
+    <Module Name="app_web_bsw0l2sw.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_xqp2_pages_help_controls_helptree" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Recursive(System.Data.DataView,System.Int32,System.Web.UI.WebControls.TreeNodeCollection)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\help\controls" File="helptree.ascx.cs" Line="35">在方法 'apps_xqp2_pages_help_controls_helptree.Recursive(DataView, int, TreeNodeCollection)' 中，请在对 'data' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_dralp2j1.dll">
+   <Modules>
+    <Module Name="app_web_dralp2j1.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_workflow_interface_WorkflowView" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindFormItems(System.Guid,System.Guid,System.Guid,Botwave.Workflow.Domain.ActivityDefinition,Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="为格式化方法提高正确的参数" Category="Microsoft.Usage" CheckId="CA2241" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="MissingFormatItem" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\interface" File="WorkflowView.aspx.cs" Line="458">方法 'contrib_workflow_interface_WorkflowView.BindFormItems(Guid, Guid, Guid, ActivityDefinition, LoginUser)' 调用 'string.Format(string, params object[])' 并且不为参数 "9" 提供格式项。提供的格式字符串为:“"\r\n        &lt;script language=\"javascript\" type=\"text/javascript\"&gt;\r\n       ..."”</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_exla3qm5.dll">
+   <Modules>
+    <Module Name="app_web_exla3qm5.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_report_pages_bwtable" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindData(System.Int32)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="bwtable.aspx.cs" Line="164">在方法 'contrib_report_pages_bwtable.BindData(int)' 中，请在对 'new DataTable()' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#Export2Excel()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="bwtable.aspx.cs" Line="141">在方法 'contrib_report_pages_bwtable.Export2Excel()' 中，'dg' 对象未按所有异常路径释放。请在对 'dg' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_report_pages_ReportCreate3" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnAddItem_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate3.aspx.cs" Line="75">在方法 'contrib_report_pages_ReportCreate3.btnAddItem_Click(object, EventArgs)' 中，'dt' 对象未按所有异常路径释放。请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="ReportCreate" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#RestoreModifyState()" Kind="Method" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="67">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="71">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="77">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="83">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="89">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="95">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="101">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="107">在方法 'ReportCreate.RestoreModifyState()' 中，'newCell' 对象未按所有异常路径释放。请在对 'newCell' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\report\pages" File="ReportCreate.aspx.cs" Line="65">在方法 'ReportCreate.RestoreModifyState()' 中，请在对 'newRow' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_fp1orr1c.dll">
+   <Modules>
+    <Module Name="app_web_fp1orr1c.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_exceptionLogger_ErrorView" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnExport2File_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\msg\pages" File="ErrorView.aspx.cs" Line="84">在方法 'contrib_exceptionLogger_ErrorView.btnExport2File_Click(object, EventArgs)' 中，请在对 'dg' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_hwfbhrj0.dll">
+   <Modules>
+    <Module Name="app_web_hwfbhrj0.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_xqp2_pages_workflows_report_ReportTimeRataState" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnExport_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\report" File="ReportTimeRataState.aspx.cs" Line="189">在方法 'apps_xqp2_pages_workflows_report_ReportTimeRataState.btnExport_Click(object, EventArgs)' 中，请在对 'grid' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#LoadWorkflowData()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\report" File="ReportTimeRataState.aspx.cs" Line="61">在方法 'apps_xqp2_pages_workflows_report_ReportTimeRataState.LoadWorkflowData()' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_i2wnvamc.dll">
+   <Modules>
+    <Module Name="app_web_i2wnvamc.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_czmcc_pages_SQLAnalyzer" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#buttonExecute_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\czmcc\pages" File="SQLAnalyzer.aspx.cs" Line="47">在方法 'apps_czmcc_pages_SQLAnalyzer.buttonExecute_Click(object, EventArgs)' 中，请在对 'g' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\apps\czmcc\pages" File="SQLAnalyzer.aspx.cs" Line="42">在方法 'apps_czmcc_pages_SQLAnalyzer.buttonExecute_Click(object, EventArgs)' 中，请在对 'header' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_kffynjta.dll">
+   <Modules>
+    <Module Name="app_web_kffynjta.dll">
+     <Namespaces>
+      <Namespace Name="ASP">
+       <Types>
+        <Type Name="contrib_gmcclog_pages_default_aspx" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Export(System.Int32,System.Int32)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\gmcclog\pages" File="Default.aspx" Line="99">在方法 'contrib_gmcclog_pages_default_aspx.Export(int, int)' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_nd5jxpyl.dll">
+   <Modules>
+    <Module Name="app_web_nd5jxpyl.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_workflow_pages_DoneReviews" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindWorkflowsList(Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="DoneReviews.aspx.cs" Line="61">在方法 'contrib_workflow_pages_DoneReviews.BindWorkflowsList(LoginUser)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_DoneTaskByAppl" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnExport_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="DoneTaskByAppl.aspx.cs" Line="211">在方法 'contrib_workflow_pages_DoneTaskByAppl.btnExport_Click(object, EventArgs)' 中，请在对 'grid' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#btnExportAll_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="DoneTaskByAppl.aspx.cs" Line="244">在方法 'contrib_workflow_pages_DoneTaskByAppl.btnExportAll_Click(object, EventArgs)' 中，请在对 'grid' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#LoadWorkflowData()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="DoneTaskByAppl.aspx.cs" Line="67">在方法 'contrib_workflow_pages_DoneTaskByAppl.LoadWorkflowData()' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_Print" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindFormItems(System.Guid,System.Guid,System.Guid,Botwave.Workflow.Domain.ActivityDefinition,Botwave.Workflow.Domain.WorkflowInstance,Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="为格式化方法提高正确的参数" Category="Microsoft.Usage" CheckId="CA2241" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="MissingFormatItem" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="Print.aspx.cs" Line="197">方法 'contrib_workflow_pages_Print.BindFormItems(Guid, Guid, Guid, ActivityDefinition, WorkflowInstance, LoginUser)' 调用 'string.Format(string, params object[])' 并且不为参数 "9" 提供格式项。提供的格式字符串为:“"\r\n        &lt;script language=\"javascript\" type=\"text/javascript\"&gt;\r\n       ..."”</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#LoadDynamicForm(System.Guid,System.Guid,Botwave.Workflow.Domain.ActivityInstance,Botwave.Workflow.Domain.WorkflowInstance)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="Print.aspx.cs" Line="184">在方法 'contrib_workflow_pages_Print.LoadDynamicForm(Guid, Guid, ActivityInstance, WorkflowInstance)' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_WorkflowView" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindFormItems(System.Guid,System.Guid,System.Guid,Botwave.Workflow.Domain.ActivityDefinition,Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="为格式化方法提高正确的参数" Category="Microsoft.Usage" CheckId="CA2241" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="MissingFormatItem" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="WorkflowView.aspx.cs" Line="464">方法 'contrib_workflow_pages_WorkflowView.BindFormItems(Guid, Guid, Guid, ActivityDefinition, LoginUser)' 调用 'string.Format(string, params object[])' 并且不为参数 "9" 提供格式项。提供的格式字符串为:“"\r\n        &lt;script language=\"javascript\" type=\"text/javascript\"&gt;\r\n       ..."”</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_nhiz0vsy.dll">
+   <Modules>
+    <Module Name="app_web_nhiz0vsy.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="test_GratuityTest" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btn_Query1_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\test" File="GratuityTest.aspx.cs" Line="50">在方法 'test_GratuityTest.btn_Query1_Click(object, EventArgs)' 中，'view' 对象未按所有异常路径释放。请在对 'view' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\test" File="GratuityTest.aspx.cs" Line="44">在方法 'test_GratuityTest.btn_Query1_Click(object, EventArgs)' 中，请在对 'tg' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#btn_Query2_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\test" File="GratuityTest.aspx.cs" Line="69">在方法 'test_GratuityTest.btn_Query2_Click(object, EventArgs)' 中，'view' 对象未按所有异常路径释放。请在对 'view' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\test" File="GratuityTest.aspx.cs" Line="63">在方法 'test_GratuityTest.btn_Query2_Click(object, EventArgs)' 中，请在对 'tg' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#btnTest_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\test" File="GratuityTest.aspx.cs" Line="27">在方法 'test_GratuityTest.btnTest_Click(object, EventArgs)' 中，请在对 'tg' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="test_NVelocity" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#Evalte()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\test" File="NVelocity.aspx.cs" Line="36">在方法 'test_NVelocity.Evalte()' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="test_TestDesigner" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnDeploy_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\test" File="TestDesigner.aspx.cs" Line="24">在方法 'test_TestDesigner.btnDeploy_Click(object, EventArgs)' 中，请在对 'wds' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_o0xh5bm0.dll">
+   <Modules>
+    <Module Name="app_web_o0xh5bm0.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_dynamicform_pages_async_GetItemDefintionById" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#ItemToTable(Botwave.DynamicForm.Domain.FormItemDefinition)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="ExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\async" File="GetItemDefintionById.aspx.cs" Line="42">在方法 'contrib_dynamicform_pages_async_GetItemDefintionById.ItemToTable(FormItemDefinition)' 中，'dt' 对象未按所有异常路径释放。请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#Page_Load(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages\async" File="GetItemDefintionById.aspx.cs" Line="31">在方法 'contrib_dynamicform_pages_async_GetItemDefintionById.Page_Load(object, EventArgs)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_pejqny01.dll">
+   <Modules>
+    <Module Name="app_web_pejqny01.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_xqp2_pages_notices_controls_NoticeEditor" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#EntityDataBind" Kind="Event" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="DeclareEventHandlersCorrectly" Category="Microsoft.Design" CheckId="CA1009" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="Breaking">
+             <Issue Name="First" Certainty="95" Level="Error">将 'apps_xqp2_pages_notices_controls_NoticeEditor.EntityDataBindHandler' 的第一个参数声明为一个名为“sender”的对象。</Issue>
+             <Issue Name="Second" Certainty="95" Level="Error">将 'apps_xqp2_pages_notices_controls_NoticeEditor.EntityDataBindHandler' 的第二个参数声明为 EventArgs，或者声明为扩展 EventArgs 的类型的名为“e”的实例。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="apps_xqp2_pages_notices_controls_NoticeView" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#PreRenderNotice" Kind="Event" Static="False" Accessibility="Public" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="DeclareEventHandlersCorrectly" Category="Microsoft.Design" CheckId="CA1009" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="Breaking">
+             <Issue Name="First" Certainty="95" Level="Error">将 'apps_xqp2_pages_notices_controls_NoticeView.PreRenderNoticeHandler' 的第一个参数声明为一个名为“sender”的对象。</Issue>
+             <Issue Name="Second" Certainty="95" Level="Error">将 'apps_xqp2_pages_notices_controls_NoticeView.PreRenderNoticeHandler' 的第二个参数声明为 EventArgs，或者声明为扩展 EventArgs 的类型的名为“e”的实例。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_pll1enfe.dll">
+   <Modules>
+    <Module Name="app_web_pll1enfe.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_workflow_pages_AssignmentTask" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindWorkflows(Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="AssignmentTask.aspx.cs" Line="86">在方法 'contrib_workflow_pages_AssignmentTask.BindWorkflows(LoginUser)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_DoneTask" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindWorkflowsList(Botwave.Security.LoginUser)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="DoneTask.aspx.cs" Line="90">在方法 'contrib_workflow_pages_DoneTask.BindWorkflowsList(LoginUser)' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_MyTask" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#LoadWorkflowData()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="MyTask.aspx.cs" Line="59">在方法 'contrib_workflow_pages_MyTask.LoadWorkflowData()' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_Search" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#LoadWorkflowData()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="Search.aspx.cs" Line="179">在方法 'contrib_workflow_pages_Search.LoadWorkflowData()' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_SearchByOrg" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#LoadWorkflowData()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="SearchByOrg.aspx.cs" Line="200">在方法 'contrib_workflow_pages_SearchByOrg.LoadWorkflowData()' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_pages_WorkflowDeploy" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnUpload_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="不要多次释放对象" Category="Microsoft.Usage" CheckId="CA2202" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="WorkflowDeploy.aspx.cs" Line="95">可以在方法 'contrib_workflow_pages_WorkflowDeploy.btnUpload_Click(object, EventArgs)' 中多次释放对象 'xmlReader'。若要避免生成 System.ObjectDisposedException，不应对一个对象多次调用 Dispose。: Lines: 95</Issue>
+            </Message>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="WorkflowDeploy.aspx.cs" Line="84">在方法 'contrib_workflow_pages_WorkflowDeploy.btnUpload_Click(object, EventArgs)' 中，请在对 'xmlReader' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#ExportFlow(System.Guid)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\pages" File="WorkflowDeploy.aspx.cs" Line="198">在方法 'contrib_workflow_pages_WorkflowDeploy.ExportFlow(Guid)' 中，请在对 'writer' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_rcqr3xv3.dll">
+   <Modules>
+    <Module Name="app_web_rcqr3xv3.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_dynamicform_pages_ItemCreate" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnCreateTemplate_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="ItemCreate.aspx.cs" Line="198">在方法 'contrib_dynamicform_pages_ItemCreate.btnCreateTemplate_Click(object, EventArgs)' 中，请在对 'msw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="ItemCreate.aspx.cs" Line="193">在方法 'contrib_dynamicform_pages_ItemCreate.btnCreateTemplate_Click(object, EventArgs)' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#InitFormItems()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="ItemCreate.aspx.cs" Line="385">在方法 'contrib_dynamicform_pages_ItemCreate.InitFormItems()' 中，请在对 'msw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="ItemCreate.aspx.cs" Line="358">在方法 'contrib_dynamicform_pages_ItemCreate.InitFormItems()' 中，请在对 'mswDefinition' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="ItemCreate.aspx.cs" Line="381">在方法 'contrib_dynamicform_pages_ItemCreate.InitFormItems()' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="ItemCreate.aspx.cs" Line="356">在方法 'contrib_dynamicform_pages_ItemCreate.InitFormItems()' 中，请在对 'swDefinition' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_dynamicform_pages_Template" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnPreview_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="Template.aspx.cs" Line="92">在方法 'contrib_dynamicform_pages_Template.btnPreview_Click(object, EventArgs)' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_dynamicform_pages_WapTemplate" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnPreview_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\dynamicform\pages" File="WapTemplate.aspx.cs" Line="104">在方法 'contrib_dynamicform_pages_WapTemplate.btnPreview_Click(object, EventArgs)' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_s02tizf5.dll">
+   <Modules>
+    <Module Name="app_web_s02tizf5.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_xqp2_pages_workflows_config_ConfigMagage" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnSave_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="RethrowToPreserveStackDetails" Category="Microsoft.Usage" CheckId="CA2200" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="NonBreaking">
+             <Issue Certainty="95" Level="Error" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\config" File="ConfigMagage.aspx.cs" Line="118">'apps_xqp2_pages_workflows_config_ConfigMagage.btnSave_Click(object, EventArgs)' 再次引发捕获的异常并将其显式地指定为一个参数。请改用不带参数的“throw”以保留该异常最初引发时所在的堆栈位置。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_udcnmikr.dll">
+   <Modules>
+    <Module Name="app_web_udcnmikr.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="apps_xqp2_pages_workflows_config_ConfigReview" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnSave_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="RethrowToPreserveStackDetails" Category="Microsoft.Usage" CheckId="CA2200" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="NonBreaking">
+             <Issue Certainty="95" Level="Error" Path="d:\work\easyflow_cz\code\Web\apps\xqp2\pages\workflows\config" File="ConfigReview.aspx.cs" Line="408">'apps_xqp2_pages_workflows_config_ConfigReview.btnSave_Click(object, EventArgs)' 再次引发捕获的异常并将其显式地指定为一个参数。请改用不带参数的“throw”以保留该异常最初引发时所在的堆栈位置。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_wur4cyug.dll">
+   <Modules>
+    <Module Name="app_web_wur4cyug.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_workflow_controls_ReviewInputSelector" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#InsertReviews(System.Guid,System.String,System.Collections.Generic.IList`1&lt;System.String&gt;)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="RethrowToPreserveStackDetails" Category="Microsoft.Usage" CheckId="CA2200" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="NonBreaking">
+             <Issue Certainty="95" Level="Error" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\controls" File="ReviewInputSelector.ascx.cs" Line="159">'contrib_workflow_controls_ReviewInputSelector.InsertReviews(Guid, string, IList&lt;string&gt;)' 再次引发捕获的异常并将其显式地指定为一个参数。请改用不带参数的“throw”以保留该异常最初引发时所在的堆栈位置。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_workflow_controls_TodoList" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#BindWorkflowData()" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\controls" File="TodoList.ascx.cs" Line="123">在方法 'contrib_workflow_controls_TodoList.BindWorkflowData()' 中，请在对 'dt' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+          <Member Name="#btnExport_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\workflow\controls" File="TodoList.ascx.cs" Line="258">在方法 'contrib_workflow_controls_TodoList.btnExport_Click(object, EventArgs)' 中，请在对 'grid' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_xtktl1hb.dll">
+   <Modules>
+    <Module Name="app_web_xtktl1hb.dll">
+     <Namespaces>
+      <Namespace Name="">
+       <Types>
+        <Type Name="contrib_security_pages_PopupUserPicker" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#RecursiveDepartmets(System.Data.DataView,System.String,System.Web.UI.WebControls.TreeNode)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\security\pages" File="PopupUserPicker.aspx.cs" Line="108">在方法 'contrib_security_pages_PopupUserPicker.RecursiveDepartmets(DataView, string, TreeNode)' 中，请在对 'data' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+        <Type Name="contrib_security_pages_PopupUserPicker2" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#RecursiveDepartmets(System.Data.DataView,System.String,System.Web.UI.WebControls.TreeNode)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\security\pages" File="PopupUserPicker2.aspx.cs" Line="114">在方法 'contrib_security_pages_PopupUserPicker2.RecursiveDepartmets(DataView, string, TreeNode)' 中，请在对 'data' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+      <Namespace Name="ASP">
+       <Types>
+        <Type Name="contrib_security_pages_deptroles_aspx" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#RecursiveDepartmets(System.Data.DataView,System.String,System.Web.UI.WebControls.TreeNodeCollection)" Kind="Method" Static="False" Accessibility="Private" ExternallyVisible="False">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\security\pages" File="DeptRoles.aspx" Line="38">在方法 'contrib_security_pages_deptroles_aspx.RecursiveDepartmets(DataView, string, TreeNodeCollection)' 中，请在对 'data' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+  <Target Name="C:\Users\USER\AppData\Local\Temp\tmp758E.tmp.cadir\bin\App_Web_znhaeeug.dll">
+   <Modules>
+    <Module Name="app_web_znhaeeug.dll">
+     <Namespaces>
+      <Namespace Name="ASP">
+       <Types>
+        <Type Name="contrib_sqladmin_pages_query_aspx" Kind="Class" Accessibility="Public" ExternallyVisible="True">
+         <Members>
+          <Member Name="#btnExport_Click(System.Object,System.EventArgs)" Kind="Method" Static="False" Accessibility="Family" ExternallyVisible="True">
+           <Messages>
+            <Message TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000" Status="Active" Created="2015-10-22 03:14:10Z" FixCategory="DependsOnFix">
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\sqladmin\pages" File="Query.aspx" Line="104">在方法 'contrib_sqladmin_pages_query_aspx.btnExport_Click(object, EventArgs)' 中，请在对 'dg' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+             <Issue Name="NonExceptionEdge" Certainty="75" Level="Warning" Path="d:\work\easyflow_cz\code\Web\contrib\sqladmin\pages" File="Query.aspx" Line="102">在方法 'contrib_sqladmin_pages_query_aspx.btnExport_Click(object, EventArgs)' 中，请在对 'sw' 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Issue>
+            </Message>
+           </Messages>
+          </Member>
+         </Members>
+        </Type>
+       </Types>
+      </Namespace>
+     </Namespaces>
+    </Module>
+   </Modules>
+  </Target>
+ </Targets>
+ <Rules>
+  <Rule TypeName="DeclareEventHandlersCorrectly" Category="Microsoft.Design" CheckId="CA1009">
+   <Name>正确声明事件处理程序</Name>
+   <Description>按照约定，.NET 事件有两个参数，分别用于指定事件发送方和事件数据。事件处理程序签名应遵循以下形式: void MyEventHandler(object sender, EventArgs e)。“sender”参数的类型始终是 System.Object，即使该参数可能使用更具体的类型。“e”参数的类型始终是 System.EventArgs。不提供事件数据的事件应使用 System.EventHandler 委托类型。事件处理程序返回 void 以便将每个事件发送给多个目标方法。目标返回的任何值在第一次调用之后将会丢失。</Description>
+   <Resolution Name="First">将 {0} 的第一个参数声明为一个名为“sender”的对象。</Resolution>
+   <Resolution Name="Second">将 {0} 的第二个参数声明为 EventArgs，或者声明为扩展 EventArgs 的类型的名为“e”的实例。</Resolution>
+   <Owner />
+   <Url>http://msdn.microsoft.com/library/ms182133(VS.100).aspx</Url>
+   <Email>[none]</Email>
+   <MessageLevel Certainty="95">Error</MessageLevel>
+   <File Name="designrules.dll" Version="10.0.0.0" />
+  </Rule>
+  <Rule TypeName="RethrowToPreserveStackDetails" Category="Microsoft.Usage" CheckId="CA2200">
+   <Name>再次引发以保留堆栈详细信息</Name>
+   <Description>重复引发捕获的异常时，请使用 IL 再次引发指令保留原始堆栈详细信息。</Description>
+   <Resolution Name="Default">{0} 再次引发捕获的异常并将其显式地指定为一个参数。请改用不带参数的“throw”以保留该异常最初引发时所在的堆栈位置。</Resolution>
+   <Owner />
+   <Url>http://msdn.microsoft.com/library/ms182363(VS.100).aspx</Url>
+   <Email>[none]</Email>
+   <MessageLevel Certainty="95">Error</MessageLevel>
+   <File Name="usagerules.dll" Version="10.0.0.0" />
+  </Rule>
+  <Rule TypeName="不要多次释放对象" Category="Microsoft.Usage" CheckId="CA2202">
+   <Name>不要多次释放对象</Name>
+   <Description>可以多次调用正确实现的 Dispose 方法，而不会引发异常。但是，并不保证所有情况下都会如此。若要避免生成 System.ObjectDisposedException，您不应对一个对象多次调用 Dispose。</Description>
+   <Resolution Name="Default">可以在方法 {1} 中多次释放对象 {0}。若要避免生成 System.ObjectDisposedException，不应对一个对象多次调用 Dispose。: Lines: 206</Resolution>
+   <Owner>RuleOwner</Owner>
+   <Url>http://msdn.microsoft.com/library/ms182334(VS.100).aspx</Url>
+   <Email />
+   <MessageLevel Certainty="75">Warning</MessageLevel>
+   <File Name="dataflowrules.dll" Version="10.0.0.0" />
+  </Rule>
+  <Rule TypeName="丢失范围之前释放对象" Category="Microsoft.Reliability" CheckId="CA2000">
+   <Name>丢失范围之前释放对象</Name>
+   <Description>如果在对某个可释放对象的所有引用超出范围之前未显式释放该对象，则当垃圾回收器运行该对象的终结器时，会在某个不确定时间释放该对象。由于可能会发生阻止该对象的终结器运行的意外事件，因此应改为显式释放该对象。</Description>
+   <Resolution Name="ExceptionEdge">在方法 {0} 中，{1} 对象未按所有异常路径释放。请在对 {1} 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Resolution>
+   <Resolution Name="NonExceptionEdge">在方法 {0} 中，请在对 {1} 对象的所有引用超出范围之前，对该对象调用 System.IDisposable.Dispose。</Resolution>
+   <Owner>RuleOwner</Owner>
+   <Url>http://msdn.microsoft.com/library/ms182289(VS.100).aspx</Url>
+   <Email />
+   <MessageLevel Certainty="75">Warning</MessageLevel>
+   <File Name="dataflowrules.dll" Version="10.0.0.0" />
+  </Rule>
+  <Rule TypeName="为格式化方法提高正确的参数" Category="Microsoft.Usage" CheckId="CA2241">
+   <Name>为格式化方法提高正确的参数</Name>
+   <Description>为 String.Format 调用提供正确的参数数量。</Description>
+   <Resolution Name="MissingFormatItem">方法 {0} 调用 {1} 并且不为参数 {2} 提供格式项。提供的格式字符串为:“{3}”</Resolution>
+   <Owner>RuleOwner</Owner>
+   <Url>http://msdn.microsoft.com/library/ms182361(VS.100).aspx</Url>
+   <Email />
+   <MessageLevel Certainty="75">Warning</MessageLevel>
+   <File Name="dataflowrules.dll" Version="10.0.0.0" />
+  </Rule>
+ </Rules>
+ <Localized>
+  <String Key="Category">类别</String>
+  <String Key="Certainty">确定性</String>
+  <String Key="CollapseAll">全部折叠</String>
+  <String Key="CheckId">检查 ID</String>
+  <String Key="Error">错误</String>
+  <String Key="Errors">错误</String>
+  <String Key="ExpandAll">全部展开</String>
+  <String Key="Help">帮助</String>
+  <String Key="Line">行</String>
+  <String Key="Messages">消息</String>
+  <String Key="LocationNotStoredInPdb">[位置未存储在 Pdb 中]</String>
+  <String Key="Project">项目</String>
+  <String Key="Resolution">解析</String>
+  <String Key="Rule">规则</String>
+  <String Key="RuleFile">规则文件</String>
+  <String Key="RuleDescription">规则说明</String>
+  <String Key="Source">源</String>
+  <String Key="Status">状态</String>
+  <String Key="Target">目标</String>
+  <String Key="Warning">警告</String>
+  <String Key="Warnings">警告</String>
+  <String Key="ReportTitle">代码分析报告</String>
+ </Localized>
+</FxCopReport>

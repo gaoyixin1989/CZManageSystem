@@ -1,0 +1,156 @@
+﻿# 记录版本变更历史
+
+2009-04-24
+# 修改补充完善 web.sitemap 文件.(frank)
+
+2009-04-22
+# 修改 contrb/dynamicform/pages/Template.aspx.cs 文件参数错误引发的异常.(frank)
+# 修改或新增 WorkflowDesigner 目录下全部文件，目录：apps/xqp2/pages/workflows/designer/. (frank)
+# Botwave.XQP 中新增类：Botwave.XQP.Designer.WorkflowActivity,Botwave.XQP.Designer.WorkflowComponent, Botwave.XQP.Designer.WorkflowDesignerHandler, Botwave.XQP.Designer.WorkflowDesignerService. (frank)
+# Botwave.XQP 中新增 SqlMap 文件 WorkflowDesigner.config. (frank)
+# 在 Web 中路径为: apps/xqp2/res/maps/WorkflowDesigner.config. (frank)
+# 修改 contrib/workflow/web.config 配置节点 "botwave.workflowMap". (frank)
+# 修改 Botwave.XQP.Service.Support.AuthService 的实现方式. (frank)
+# 修改登录页面 contrib/security/pages/login.aspx、contrib/security/pages/loginIndex.aspx中的登陆图片路径. (frank)
+# 根目录下新增文本文件 ssoproxy.ashx，以及 HttpHandler 类：Botwave.XQP.Web.HttpHandler.GZMCCSSOProxyHandler.(frank)
+# 根目录修正 web.config 中的 "botwave\workflow" 节点.(frank)
+
+
+2009-04-20
+# 新增帮助小系统（表单设计，流程设计）  (elvis)
+# 新增流程模板上传功能（修改WorkflowAttachmentService，获取附件数据时，也把创建人、创建时间获取  (elvis)
+
+2009-04-13
+# 流程设计页面中用更多选项来隐藏平常少用的功能   (elvis)
+# 任务分派中删除下行与平转的默认控制类型   (elvis)
+
+2009-04-08
+
+# Botwave.XQP 中新增 Notice 功能，新增类与接口：Botwave.XQP.Domain.Notice、Botwave.XQP.Service.INoticeService、Botwave.XQP.Service.Support.NoticeService。(frank)
+# 新增 Notice 控件 apps/xqp2/pages/notices/controls/ 目录下 3 控件; 修改 apps/xqp2/pages/notices/ 目录下页面的控件引用路径.(frank)
+# 修改 apps/xqp2/web.config, apps/xqp2/objects.config 中相关 NoticeService 的 Spring 注入;(frank)
+# 删除对 Botwave.CMS 的引用，并删除 contrib/cms 目录. (frank)
+# 修改 apps/xqp2/pages/extension/head.aspx 页面 "系统公告" 与 "我的工单"的显示. (frank)
+# 修改注册页面(contrib/security/pages/register.aspx) 控件 ID.(frank)
+# 完善编辑用户页面 (contrib/security/pages/EditUser.aspx) Email 邮箱自动更新的 JS 代码. (frank)
+
+# contrib/security/ 改动记录：
+
+# 修改：contrib/security/web.config
+# 修改：contrib/security/res/maps/department.config
+# 新增：contrib/security/controls/authorizeHistory.ascx
+# 修改：contrib/security/pages/Authorize.aspx
+# 修改：contrib/security/pages/PopupUserPicker.aspx
+# 新增：contrib/security/pages/PopupUserPicker2.aspx
+# 修改：contrib/security/pages/EditUser.aspx
+# 修改：contrib/security/pages/Register.aspx
+# 修改：contrib/security/pages/TestPickUser.aspx
+
+# contrib/report/ 改动记录:
+# 删除：contrib/report/controls/ReportTemplateView.ascx
+# 删除：contrib/report/controls/ReportTable.ascx
+# 删除：contrib/report/controls/ReportDrawGrap.ascx
+# 修改：contrib/report/res/ReportConfig.xml
+# 修改：contrib/report/res/ReportDrawGrap.ashx
+# 修改：contrib/report/res/css/Report.css
+# 新增：contrib/report/res/js/reportConfig.js
+# 新增：contrib/report/res/js/reportCreate.js
+# 新增：contrib/report/res/js/reportCreateSet.js
+# 新增：contrib/report/controls/DrawGrap.ascx
+# 新增：contrib/report/controls/NavigationTools.ascx
+# 新增：contrib/report/controls/TableView.ascx
+# 新增：contrib/report/controls/TemplateConfig.ascx
+# 新增：contrib/report/controls/TemplateView.ascx
+# 修改：contrib/report/pages/DrawGrapConfig.aspx
+# 修改：contrib/report/pages/ReportConfig.aspx
+# 修改：contrib/report/pages/ReportList.aspx
+# 修改：contrib/report/pages/ReportCreate.aspx
+# 新增：contrib/report/pages/ReportCreate2.aspx
+# 新增：contrib/report/pages/ReportCreate3.aspx
+# 新增：contrib/report/pages/ReportView.aspx
+# 新增：contrib/report/pages/bwgrap.aspx
+# 新增：contrib/report/pages/bwprintpreview.aspx
+# 新增：contrib/report/pages/bwreport.aspx
+# 新增：contrib/report/pages/bwtable.aspx
+
+# 修改：apps/xqp2/pages/security/Authorize.aspx，与 contrib/pages/security/authorize.aspx 页面一致. (frank)
+
+# contrib/workflow/ 改动记录:
+# contrib/workflow/web.config
+# contrib/workflow/objects.config
+# contrib/workflow/res/maps/Assignment.config
+# contrib/workflow/res/maps/ActivitySet.config
+# contrib/workflow/res/maps/ActivityInstance.config
+# contrib/workflow/res/maps/WorkflowDefinition.config
+# contrib/workflow/res/maps/WorkflowSetting.config
+# contrib/workflow/res/maps/Workflow_Extension.config
+# contrib/workflow/controls/ActivitySelector.ascx
+# contrib/workflow/controls/Attachments.ascx 因签出, 暂忽略
+
+# contrib/workflow/pages/config/ConfigWorkflow.aspx
+# contrib/workflow/pages/ConfigWorkflow.aspx
+# contrib/workflow/pages/DoneTask.aspx
+# contrib/workflow/pages/Notify.aspx
+# contrib/workflow/pages/PopupForward.aspx
+# contrib/workflow/pages/Process.aspx
+# contrib/workflow/pages/Start.aspx
+# contrib/workflow/pages/WorkflowComment.aspx
+# contrib/workflow/pages/WorkflowView.aspx
+
+# App_Themes 主题
+# 修改：App_Themes/common/global.css
+# 修改：App_Themes/common/images/mask_loading.gif
+
+2009-04-07
+# App_Data/SQLScripts/2009-04-07 目录下新增数据库变动脚本文件.(frank)
+# 将 EasyIT 附件管理功能移植到 EasyFlow 命名空间 Botwave.XQP.FileMgr下；web.config 新增配置节点 botwave/fileManager；新增配置文件 fileManager.config。(frank)
+# 同步XQP2一些变动记录
+
+    # 添加子站点[流程主页]地址链接 (elvis)
+    # 为头文件Head.aspx中的"界面主题","委托授权","个人设置","帮助"添加访问限制.  (elvis)
+    # 修改FieldTaskAllocator，查询时加上with(nolock) (shaw)
+
+# 替换 contrib/report 目录下文件. 删除 contrib/report/controls/ReportTemplateView.ascx, ReportTable.ascx, ReportDrawGrap.ascx 用户控件文件. (frank)
+
+2009-03-16
+# 从 BIZSDK 升级， BIZSDK 版本标签：v2.2.8.090316.1703。
+
+
+2009-02-18
+# 修正 Botwave.XQP.Service.Plugins.HRNotifyHandler，110行 nextActors 为空引起的溢出错误.(frank)
+# 更新 apps/xqp2/pages/workflow/designer/workflowDesigner.swf 版本;(frank)
+
+2009-02-17
+# 修正错别字：workflow/pages/start.aspx, workflow/pages/process.aspx 页面"正在提交，请稍后"为"正在提交，请稍候"; (frank)
+# 初步添加 流程可视化设计功能，目录: apps/xqp2/pages/workflow/designer .(frank)
+
+2009-01-05
+# 完善优化，将已完成或取消的表单内容以 html 实际数据保存到 bwdf_FormInstances_Contents 表，方便查询.
+
+版本 3.2.6.090105
+# 版本详细名称：ef:3.2.6.090105 - xqp:3.1.6.090104 - sdk:2.2.6.090105
+
+2009-01-05
+# 修正委托授权用户的 ajax 下拉列表显示方式；
+
+# 修正委托授权的默认起始时间为当前时间；
+
+# 修正委托授权的任务记录显示的图标；
+
+# 修正工单处理的历史记录显示格式；
+
+版本 3.2.6.090104 (2009-01-05)
+
+版本 2.0
+	# BISDK : 2008-12-24 版本.
+	
+版本 1.0:
+  # BIZSDK: 2008-12-18 版本.
+  # Botwave.TimerService: 2008-12-19 版本.
+  # Botwave.XQP.TimerHost: 2008-12-19 版本.
+  # Botwave.XQP.AppInterfaces: 2008-12-19 版本.
+  # 同步更新 bizsdk 的登录页面用户名 Cookie 缓存功功能 2008-12-24.
+  # 同步更新 bizsdk, xqp2 的"取消操作"流程的当前步骤显示功能(2008-12-25). 
+  # Web Page:  contrib/workflow/pages/WorkflowView.aspx 
+  # SqlMap: Botwave.Workflow.IBatisNet : ActivityInstance.config
+  

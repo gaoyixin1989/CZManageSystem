@@ -1,0 +1,159 @@
+﻿@{
+    ViewBag.Title = "我的心声编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@{ var user = ViewBag.User as CZManageSystem.Data.Domain.SysManger.Users;}
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$timeout', function ($scope, BusinessService, $timeout) {
+
+            $scope.curObj = {
+                IsInfo: '是',
+                IsNiming: '是'
+            };
+
+            var id = '@ViewData["id"]';
+
+            $scope.curObj.CreateTime = '@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")';
+
+
+
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response.Items;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            BusinessService.getDictListByName('主题类型').success(function (response) {
+                $scope.dictCorpType = response.items;
+                $timeout(function () {
+                    if (!$scope.curObj.Themetype && !!response.defaultvalue) {
+                        $scope.curObj.Themetype = response.defaultvalue;
+                    }
+                }, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { loadComData1 = true; });
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'InnerVoices/GetDataByID_View/' + id
+                });
+            };
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+       
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 100%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+    }
+
+    .WF_Table tr th {
+        background: white;
+        padding: 7px;
+        font-weight: bold;
+        border: 1px solid #EAEAEA;
+        border-width: 0px 1px 1px 0px;
+        text-align: center;
+    }
+
+    .WF_Table tr td {
+        padding: 5px;
+        border: 1px solid #EAEAEA;
+        border-width: 0px 1px 1px 0px;
+        width: 35%;
+    }
+
+    .WF_Table tr th {
+        background: #F4F4F4;
+        width: 15%;
+    }
+</style>
+
+<!--心声申请-->
+<div xmlns:ng="http://angularjs.org" >
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table class="WF_Table">
+           
+            <tr ng-show="curObj.IsInfo=='是'">
+                <th>申请人：</th>
+                <td  ng-bind="curObj.Creator"></td>
+            
+                <th>所在部门：</th>
+                <td ng-bind="curObj.DeptName">
+                </td>
+            </tr>
+            <tr> 
+                <th ng-show="curObj.IsInfo=='是'">联系电话：</th>
+                <td  ng-bind="curObj.Phone" ng-show="curObj.IsInfo=='是'"></td>
+                <th>申请日期：</th>
+                <td ng-bind="curObj.CreateTime"></td>
+            </tr>
+            <tr>
+                <th>标题：</th>
+                <td   colspan="3" ng-bind="curObj.Applytitle" >
+                </td>
+            </tr>
+          
+            <tr>
+                <th>流程单号：</th>
+                <td ng-bind="curObj.Applysn"></td>
+                <th>主题类型：</th>
+                <td ng-bind="curObj.Themetype"></td>
+            </tr>
+            
+            
+            <tr>
+                
+                <th>个人信息是否公开：</th>
+                <td ng-bind="curObj.IsInfo"></td>
+                <th>基层心声是否公开：</th>
+                <td ng-bind="curObj.IsNiming">
+                </td>
+            </tr>
+            <tr>
+                <th rowspan="3">内容：</th>
+                <td rowspan="3" colspan="3" ng-bind="curObj.Remark">
+                </td>
+            </tr>
+           
+        </table>
+    </form>
+</div>
+<!--心声申请 end--->

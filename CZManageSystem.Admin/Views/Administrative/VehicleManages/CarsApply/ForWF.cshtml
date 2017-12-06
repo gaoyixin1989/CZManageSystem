@@ -1,0 +1,488 @@
+﻿
+@{
+    ViewBag.Title = "用车申请信息查看";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+        var type = '@ViewData["type"]';
+        var change = '@ViewData["change"]';
+        var step = '@ViewData["step"]';
+
+
+        //保存评价
+        function getSaveJudgeResult() {
+            var appElement = document.querySelector('[ng-controller=CreateController]');
+            var $scope = angular.element(appElement).scope();
+            var mm = false;
+            mm = $scope.saveAllotIntro();
+            return mm;
+        }
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$rootScope', '$filter', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $rootScope, $filter, $timeout, BusinessService, ngDialog) {
+            if (window.parent.activityName != 'undefined' && (window.parent.activityName == '车辆分配' || change == '车辆调度'))
+                document.getElementById('isHide').style.display = 'block';
+
+            if (type == 'show') {
+                document.getElementById('isBack').style.display = 'block';
+            }
+            $rootScope.rootCorpId = '';
+            $rootScope.rootCorpName = '';
+            $rootScope.rootCarIds = '';
+            $rootScope.rootCarInfos = '';
+            $scope.allot = { ApplyId: '', CarIds: '', AllotIntro: '', BalRemark: '' };
+            $scope.curObj = {};
+            $scope.EquipSelected = [];//选中设备情况
+
+
+
+
+
+            var id = '@ViewData["id"]';
+            if (id != null && id.toString().length > 0) {
+                box.load("load");
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response.Items;
+                    $rootScope.rootCorpId = response.Items.CorpId;
+                    //$scope.allot.ApplyId = response.Items.ApplyId;
+                    $scope.CorpList = response.CorpList;
+                    $scope.RoadList = response.RoadList;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("load");
+            }
+            //弹出层
+
+            $scope.allotDialog = function () {
+                $rootScope.rootCorpName = $scope.getCorpName($rootScope.rootCorpId.toString());
+                if ($scope.curObj.CarIds == null || $scope.curObj.CarIds == 'undefined')
+                    $rootScope.rootCarIds = '';
+                else
+                    $rootScope.rootCarIds = angular.copy($scope.curObj.CarIds);
+                ngDialog.open({
+                    title: '车辆分配',
+                    template: 'allotDialogId',// 'deptDialogId',//
+                    controller: 'DialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 700,
+                    height: 440,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        if ($rootScope.rootCarIds == '' || $rootScope.rootCarIds == $scope.curObj.CarIds)
+                            return;
+                        $scope.curObj.CarIds = $rootScope.rootCarIds;
+                        $scope.curObj.AllotIntro = $rootScope.rootCarInfos;
+                    }
+                });
+            };
+
+
+            $scope.getCorpName = function (id) {
+                var list = $filter('filter')($scope.CorpList, function (obj) {
+                    return id.split(",").indexOf(obj.DDValue) > -1;
+                });
+                if (typeof (list) != "undefined" && list.length > 0)
+                    return list[0].DDText;
+                return "";
+            }
+            $scope.isTrue = function (v) {
+                if (v == null || v == "" || typeof (v) == "undefined")
+                    return false;
+                return true;
+            }
+
+            //保存评价
+            $scope.saveAllotIntro = function () {
+                var isSuccess = false;
+                if ($scope.curObj.CarIds == null || $scope.curObj.CarIds == 'undefined' || $scope.curObj.CarIds.length < 1)
+                {
+                    box.alert("请分配车辆！", { icon: 'error' });
+                    return;
+                }
+                var postData =
+                { ApplyId: $scope.curObj.ApplyId, CarIds: $scope.curObj.CarIds, AllotIntro: $scope.curObj.AllotIntro, BalRemark: $scope.curObj.CarIds };
+                $.ajax({
+                    url: CurPath + 'CarsApply/saveAllotIntro',
+                    data: JSON.stringify(postData),
+                    type: 'POST',
+                    async: false,
+                    contentType: 'application/json;charset=utf-8',
+                    success: function (response) {
+                        if (response.IsSuccess) {
+                            isSuccess = true;
+                        }
+                        else {
+                            box.alert("保存车辆分配失败", { icon: 'error' });
+                        }
+                    },
+                    error: function () {
+                        box.alert("网络出错！", { icon: 'error' })
+                    }
+                });
+                return isSuccess;
+            };
+
+        }]);
+        app.controller('DialogController', ['$scope', '$rootScope', '$filter', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $rootScope, $filter, $timeout, BusinessService, ngDialog) {
+            var dataObj = {
+                corpId: $rootScope.rootCorpId,
+                corpName: $rootScope.rootCorpName
+            };
+            $scope.ListCars = [];
+            //$rootScope.rootCarIds = '';
+            $rootScope.rootCarInfos = '';
+            var count = 0;
+            BusinessService.getCarsInfo(dataObj).success(function (response) {
+                $scope.ListCars = response;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.allCheck = false;
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                $scope.allCheck = true;
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListCars, function (obj) {
+                        choseArr.push(obj);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                console.info(choseArr);
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                $scope.allCheck = true;
+                var isChecked = $event.target.checked;
+                console.info(z);
+
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListCars.length)
+                        angular.element("[ng-model='master']").prop("checked", true);
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        angular.element("[ng-model='master']").prop("checked", false);
+                    }
+                }
+                console.info(choseArr);
+            };
+            //$scope.isChcekAll = function () {
+            //  return  $rootScope.rootCarIds.split(',').length == $scope.ListCars.length;
+            //}
+            $scope.isChcek = function (c) {
+                if ($scope.allCheck)
+                    return;
+                var t = $rootScope.rootCarIds.indexOf(c.CarId) > -1;
+                console.info(choseArr);
+                if (t) {
+                    if (choseArr.indexOf(c) < 0)
+                        choseArr.push(c);
+                    if (choseArr.length == $scope.ListCars.length)
+                        angular.element("[ng-model='master']").prop("checked", true); //$scope.master = true;
+                }
+                return t;
+            }
+            $scope.getResult = function () {
+                var strResultCarIds = '';
+                var strResultCarInfos = '';
+                console.info(choseArr);
+                angular.forEach(choseArr, function (data, index) {
+                    if (typeof (data) != 'undefined' && data != null) {
+                        // s.CarId,
+                        if (index == 0)
+                            strResultCarIds += data.CarId;
+                        else
+                            strResultCarIds += "," + data.CarId;
+                        strResultCarInfos += "所属单位:" + data.corpName + "　车牌:" + data.LicensePlateNum + "　类型:" + data.CarType + "　吨位/人数:" + data.CarTonnage + "　品牌:" + data.CarBrand + "　型号:" + data.CarModel + "　司机:" + data.Name + "　手机:" + data.Mobile + "<br>";
+                    }
+                });
+                console.info(strResultCarIds);
+                $rootScope.rootCarIds = strResultCarIds;
+                $rootScope.rootCarInfos = strResultCarInfos;
+                $scope.closeThisDialog();
+            }
+
+            $scope.carsInfoDialog = function () {
+                var dialog = ngDialog.openConfirm({
+                    title: '车辆状态',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + CurPath + "CarInfo/CarStatus'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 760,
+                    height: 420,
+                    top: -60
+                });
+
+            };
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.getDataByID = function (id) {//获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarsApply/GetDataByID?id=' + id
+                });
+            };
+            serive.getCarsInfo = function (postData) {//获取车辆信息列表
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarsApply/GetCarsInfo',
+                    data: postData
+                });
+            };
+
+
+            return serive;
+        }]);
+
+    </script>
+    <style>
+        .ui-label label {
+            margin-right: 10px;
+            line-height: 30px;
+            float: left;
+        }
+
+        .showMulti {
+            /*background-color: #F9F9F9;*/
+        }
+
+        .WF_Table {
+            width: 100%;
+            border: 1px solid #EAEAEA;
+            border-width: 1px 0px 0px 1px;
+            border-collapse: collapse;
+        }
+
+            .WF_Table tr th {
+                background: white;
+                padding: 7px;
+                font-weight: bold;
+                border: 1px solid #EAEAEA;
+                border-width: 0px 1px 1px 0px;
+                text-align: center;
+            }
+
+            .WF_Table tr td {
+                padding: 5px;
+                border: 1px solid #EAEAEA;
+                border-width: 0px 1px 1px 0px;
+                width: 35%;
+            }
+
+            .WF_Table tr th {
+                background: #F4F4F4;
+                width: 15%;
+            }
+    </style>
+}
+<!--公告编辑--->
+
+<div id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" xmlns:ng="http://angularjs.org">
+    <div>
+        <form id="isHide" action="" style="display:none " method="post" name="judgeForm" novalidate>
+            <table id="ForJudge" class="WF_Table" cellpadding="0" cellspacing="0">
+                <tr><td style="color:red;" colspan="4">车辆分配</td></tr>
+                <tr>
+                    <th>车辆分配信息：</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea class="onfocus" style="height: 56px;width:80%" name="Remark" ng-model="curObj.AllotIntro" placeholder="请分配车辆！必填！">内容</textarea>
+
+                            <a ng-click="allotDialog()">分配</a>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="judgeForm.Driver.$invalid&&judgeForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="judgeForm.Driver.$error.required">请选择用车人</span>
+
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="the-text-area">
+                            <textarea class="onfocus" style="height: 56px;width:80%" name="Remark" ng-model="curObj.BalRemark">内容</textarea>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </form>
+        <table id="ForEdit" class="WF_Table" cellpadding="0" cellspacing="0">
+            <tr><td style="color:red;" colspan="4">申请信息如下</td></tr>
+            <tr>
+                <th>申请人：</th>
+                <td ng-bind="curObj.ApplyCant"></td>
+                <th>申请时间：</th>
+                <td ng-bind="curObj.CreateTime"></td>
+            </tr>
+            <tr>
+                <th>流程单号：</th>
+                <td ng-bind="curObj.ApplySn"></td>
+                <th>联系电话：</th>
+                <td ng-bind="curObj.Mobile"></td>
+            </tr>
+            <tr>
+                <th>所在部门：</th>
+                <td ng-bind="curObj.DeptName"></td>
+                <th>所属单位：</th>
+                <td ng-bind="getCorpName(curObj.CorpId.toString())"></td>
+            </tr>
+            <tr>
+                <th>主题名称：</th>
+                <td ng-bind="curObj.ApplyTitle" colspan="3"></td>
+            </tr>
+
+            <tr>
+                <th>吨位/人数：</th>
+                <td ng-bind="curObj.CarTonnage"></td>
+                <th>用车人：</th>
+                <td ng-bind="curObj.Driver"></td>
+            </tr>
+            <tr>
+                <th>开始时间：</th>
+                <td ng-bind="curObj.StartTime"></td>
+                <th>结束时间：</th>
+                <td ng-bind="curObj.EndTime"></td>
+            </tr>
+            <tr>
+                <th>总人数：</th>
+                <td ng-bind="curObj.PersonCount"></td>
+                <th>路途类别：</th>
+                <td ng-bind="curObj.Road"></td>
+            </tr>
+            <tr>
+                <th>车辆用途：</th>
+                <td ng-bind="curObj.UseType"></td>
+                <th>目的地1：</th>
+                <td ng-bind="curObj.Destination1"> </td>
+            </tr>
+
+            <tr>
+                <th>目的地2：</th>
+                <td ng-bind="curObj.Destination2"> </td>
+                <th>目的地3：</th>
+                <td ng-bind="curObj.Destination3"> </td>
+            </tr>
+            <tr>
+                <th>目的地4：</th>
+                <td ng-bind="curObj.Destination4"> </td>
+                <th>目的地5：</th>
+                <td ng-bind="curObj.Destination5"> </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td ng-bind="curObj.Remark" colspan="3"></td>
+            </tr>
+            <tr ng-show="isTrue(curObj.AllotIntro.toString())">
+                <th>车辆分配信息：</th>
+                <td ng-bind="curObj.AllotIntro" colspan="3"></td>
+            </tr>
+
+        </table>
+        <div id="isBack" style="text-align:center;display:none ">
+            <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+            @* <a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+        </div>
+    </div>
+    <script type="text/ng-template" id="allotDialogId">
+        <style>
+            .listSelect ul li {
+                line-height: 20px !important;
+                padding: 0 0 0 20px !important;
+                position: relative !important;
+            }
+        </style>
+        <div style="height:310px">
+            <div class="public-table-main">
+                <table cellpadding="0" cellspacing="0">
+                    @*所属单位:市公司本部　车牌:粤U3C139　类型:商务车　吨位/人数:7座　品牌:其它　型号:比亚迪M6　司机:林俊涛　手机:13502631215*@
+                    <tr>
+                        <th style="width:20px;"><input type="checkbox" ng-model="master" ng-checked="isChecked" ng-click="all($event)" /> </th>
+                        <th>所属单位</th>
+                        <th>车牌</th>
+                        <th>状态</th>
+                        <th>类型</th>
+                        <th>吨位/人数</th>
+                        <th>品牌</th>
+                        <th>型号</th>
+                        <th>司机</th>
+                        <th>手机</th>
+
+
+                    </tr>
+
+
+                    <tr ng-repeat="emp in ListCars">
+                        <td><input type="checkbox" id="{{emp.CarId}}" ng-model="x" ng-checked="{{isChcek(emp)}}" ng-click="chk($event,emp)" /></td>
+                        <td><a ng-bind="emp.corpName"> </a></td>
+                        <td ng-bind="emp.LicensePlateNum"></td>
+                        <td ng-bind="emp.Status"></td>
+                        <td ng-bind="emp.CarType"></td>
+                        <td ng-bind="emp.CarTonnage"></td>
+                        <td ng-bind="emp.CarBrand"></td>
+                        <td ng-bind="emp.CarModel"></td>
+                        <td ng-bind="emp.Name"></td>
+                        <td ng-bind="emp.Mobile">
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li><a ng-click="carsInfoDialog()" class="btn-add"><i></i>车辆状态</a></li>
+
+                </ul>
+
+            </div>
+            <tm-pagination conf="paginationConf"></tm-pagination>
+        </div>
+        <div style="text-align:center;">
+            <a ng-click="getResult()" class="cell-btn-blue" style="width:70px; margin-right:20px;">确定</a>
+            @* <a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+        </div>
+
+    </script>
+
+</div>
+<!--公告编辑 end--->

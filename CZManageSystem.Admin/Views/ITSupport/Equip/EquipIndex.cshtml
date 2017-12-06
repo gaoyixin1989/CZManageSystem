@@ -1,0 +1,244 @@
+﻿
+@{
+    ViewBag.Title = "设备信息管理";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'ngDialog']);
+        //控制器
+        app.controller('EquipController', ['$scope', 'BusinessService', 'ngDialog', function ($scope, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+                EquipClass:''
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                //var postData = {
+                //    pageIndex: $scope.paginationConf.currentPage,
+                //    pageSize: $scope.paginationConf.itemsPerPage,
+                //    queryBuilder: $scope.queryBuilder
+                //}
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.EquipEdit = function () {
+                if (choseArr[0] == "" || choseArr.length != 1) {//没有选择一个的时候提示
+                    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                    return;
+                };
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'Equip/EquipEdit?Id=' + choseArr[0];
+
+            }
+            $scope.addData = function () {
+                var url = CurPath + 'Equip/EquipEdit';
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+            };
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！")
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.message == "成功") {
+                                GetListData();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        });
+                    }
+                });
+            };
+            $scope.query = function () {
+                $scope.queryBuilder.EquipClass = $("[ng-model='queryBuilder.EquipClass']").val();
+                GetListData();
+            }
+            $scope.fileDialog = function () {
+                var _type = 'Equip'; //导入的类型
+                var data = "";
+                var dialog = ngDialog.openConfirm({
+                    title: '导入设备信息',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        GetListData();
+                    }
+                });
+
+            };
+            //------------------------
+               //导出功能
+            $scope.downloadFile = function () {
+                if ($scope.ListPageData.length == 0) {//没有选择一个的时候提示
+                    box.alert("没有可以导出的数据！！");
+                    return;
+                };
+                box.load("GetListData");
+                window.location.href = CurPath + 'Equip/Download?queryBuilder=' + JSON.stringify($scope.queryBuilder);
+                box.ready("GetListData");
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Equip/GetListData', postData);
+            };
+
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Equip/Delete',
+                    data: ids
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<div Id="ng-app" ng-app="ListPage" ng-controller="EquipController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    设备类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.EquipClass" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th style="white-space:nowrap">设备类型</th>
+                @*<th style="white-space:nowrap">操作</th>*@
+            </tr>
+            <tr ng-repeat="equip in ListPageData">
+                <td><input type="checkbox" Id="{{equip.Id}}" ng-model="x" ng-checked="x" ng-click="chk($event,equip.Id)" /></td>
+                <td ng-bind="equip.EquipClass"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="addData()"  class="btn-add"><i></i>添加</a></li>
+                <li><a ng-click="EquipEdit()" class="btn-edit"><i></i>编辑</a></li>
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                <li><a ng-click="fileDialog()" class="btn-import"><i></i>导入</a></li>
+                <li><a href="javascript:void(0);" ng-click="downloadFile()" class="btn-export"><i></i>导出</a></li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

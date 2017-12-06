@@ -1,0 +1,408 @@
+﻿@{
+    ViewBag.Title = "投票";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@*<link href="~/Content/css/vote/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="~/Content/css/vote/style.css" rel="stylesheet" media="screen">*@
+@section Css{
+    <style>
+        .public-form {
+            margin: 40px 0px;
+            padding: 15px;
+            width: auto;
+        }
+        /*在修改的表单项上才显示错误信息*/
+        textarea.ng-dirty.ng-invalid {
+            border: 1px solid red !important;
+        }
+        /*问题列表*/
+
+
+        .radio_out .radio_in {
+            display: inline-block;
+            width: 24%;
+            margin: 5px 0;
+            vertical-align: top;
+        }
+
+        .question-list2 ol li table tr td.radio_out {
+            width: 70%;
+            padding: 0;
+        }
+
+            .question-list2 ol li table tr td.radio_out .fll {
+                float: left;
+            }
+
+            .question-list2 ol li table tr td.radio_out .fll1 {
+                width: 88%;
+                margin-top: -2px;
+                margin-left: 2px;
+            }
+
+        .question-Title {
+            color: #666 !important;
+        }
+
+        .text-area {
+            height: auto !important;
+            line-height: 20px !important;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/json3.js"></script>
+
+    <script>
+        //保存
+        function getSaveResult() {
+            var appElement = document.querySelector('[ng-controller=VotingController]');
+            var $scope = angular.element(appElement).scope();
+            var mm = false;
+            mm = $scope.saveResult();
+            return mm;
+        }
+        var app = angular.module('Voting', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('VotingController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+            $scope.isVoting = false;
+            $scope.isView = false;
+            var iframeEF = $(window.parent.document).find("#IframeEF")[0];
+            if (iframeEF != null && iframeEF != 'undefined' && iframeEF.name == 'IframeEF') {
+                $('#save').remove();
+                $('#back').remove();
+                $scope.isVoting = true;
+            }
+
+            var ThemeID = null;
+            var VoteAnsers = [];
+            $scope.QuestionInfo = { QuestionID: "", QuestionTitle: "", QuestionType: "S", Creator: "", CreatorID: 0, AnswerNum: 0, MaxValue: 0, MinValue: 0, VoteAnsers: VoteAnsers };
+            $scope.Options = ["投票", "问卷调查", "简答题"];
+            var AnserInfoInfo = { AnserContent: "", AnserScore: 1, SortOrder: 0, MaxValue: 0, MinValue: 0 };
+            $scope.Questions = [];
+            $scope.BasicInfo = {
+                //MemberType:1为部门 2为用户 3角色
+                ApplyID: "", ApplyTitle: "", ApplySn: "", Creator: "", CreatorID: "", CreateTime: "",
+                MobilePhone: "", ThemeType: "", ThemeName: "", StartTime: "", EndTime: "", IsNiming: "", Remark: "", MemberName: "", MemberIDs: "", MemberType: 0, TempdeptID: "", DeptName: "", TempdeptName: "", TempuserID: "", TempuserName: "", IsProc: 0
+            };
+            $scope.SelectedAnser = { QuestionID: 0, AnserID: 0, OtherContent: "" };
+            $scope.memberType = "";
+            $scope.IsShow = true;
+            $scope.IsVoting = true;
+            //答题卡
+            $scope.answerSheet = [];
+            var answerSheetRemove = function (id) {
+                var idx = $scope.answerSheet.indexOf(id);
+                if (idx > -1)
+                    $scope.answerSheet.splice(idx, 1);
+            };
+            var answerSheetAdd = function (id) {
+                var idx = $scope.answerSheet.indexOf(id);
+                if (idx == -1)
+                    $scope.answerSheet.push(id);
+            };
+            ///多选
+            $scope.selected = [];
+            $scope.selectedTags = [];
+
+            ///单选
+            $scope.SelectionSingle = [];
+            $scope.SelectionSingleTags = [];
+            //简答
+            $scope.QuestionAnserTags = [];
+
+            var id = '@ViewData["id"]';
+            $scope.isView = '@ViewData["isView"]';
+            $scope.curObj = {};
+            if (id != null && id.toString().length > 0) {
+                box.load("loadding");
+                var postData = { id: id, isVoting: $scope.IsVoting, isView: $scope.isView };
+                //console.info(postData);
+                BusinessService.getDataByID(postData).success(function (response) {
+                    $scope.BasicInfo = response.BasicInfo;
+                    $scope.Questions = response.Questions;
+                    ThemeID = response.ThemeID;
+                    $scope.IsShow = response.IsShow;
+                    $scope.IsVoting = response.IsVoting;
+                    $scope.BasicInfo.Creator = "创建者 " + $scope.BasicInfo.Creator;
+                    $scope.BasicInfo.CreateTime = "创建时间：" + $filter('date')($scope.BasicInfo.CreateTime, 'yyyy-MM-dd');
+                    $scope.BasicInfo.StartTime = "开始时间：" + $filter('date')($scope.BasicInfo.StartTime, 'yyyy-MM-dd HH:mm');
+                    $scope.BasicInfo.EndTime = "截止时间：" + $filter('date')($scope.BasicInfo.EndTime, 'yyyy-MM-dd HH:mm');
+                    if (response.IsVoting && !$scope.isVoting && !$scope.isView) {
+                        box.alert('您已参与过！请勿重复！', { icon: 'success' });
+                    }
+                    box.ready("loadding");
+                    //console.info($scope.BasicInfo);
+                }).error(function (response) {
+                    box.ready("loadding");
+                    ////alert("错误！");
+                    //console.info(response);
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            $scope.getTitle = function (index, title) {
+
+                return index + ". " + title + " ";//$scope.Size * ($scope.PageNumber - 1) +
+            };
+            $scope.getTypeAndNum = function (type, num) {
+                var result = "(多选,不限选项)"
+                if (num > 0) {
+                    result = "(多选,最多可选" + num + "项)";
+                }
+                return result;
+            }
+
+
+            ///多选
+            var updateSelected = function (action, anserId, questionId, count) {
+                if (action == 'add' && $scope.selected.indexOf(anserId) == -1) {
+                    $scope.selected.push(anserId);
+                    $scope.selectedTags.push({ QuestionID: questionId, AnserID: anserId, OtherContent: "" });
+                    answerSheetAdd(questionId);
+                }
+                else if (action == 'remove' && $scope.selected.indexOf(anserId) != -1) {
+                    if (count - 1 == 0)
+                        answerSheetRemove(questionId);
+                    var idx = $scope.selected.indexOf(anserId);
+                    $scope.selected.splice(idx, 1);
+                    $scope.selectedTags.splice(idx, 1);
+                }
+            }
+
+            $scope.updateSelection = function ($event, anserId, questionId, num) {
+                var checkbox = $event.target;
+                //判断num是否为数字或为0。不是或为0就默认不限制
+                // if (checkbox.checked && num != "undefined" && num != "" && num > 0) {
+                var listResulst = $filter('filter')($scope.selectedTags, function (obj) {
+                    return questionId == obj.QuestionID;
+                });
+                if (checkbox.checked && num != "undefined" && num != "" && num > 0 && listResulst.length >= num) {
+                    angular.element("[id='" + anserId + "']").prop("checked", false);
+                    return;
+                }
+
+                //}
+                var action = (checkbox.checked ? 'add' : 'remove');
+                updateSelected(action, anserId, questionId, listResulst.length);
+            }
+
+
+
+            ///单选
+            $scope.updateSelectionSingle = function (questionId, anserId) {
+                var idx = $scope.SelectionSingle.indexOf(questionId);
+                if (idx > -1) {
+                    $scope.SelectionSingle.splice(idx, 1);
+                    $scope.SelectionSingleTags.splice(idx, 1);
+                }
+                answerSheetAdd(questionId);
+                $scope.SelectionSingle.push(questionId);
+                $scope.SelectionSingleTags.push({ QuestionID: questionId, AnserID: anserId, OtherContent: "" });
+            }
+            var getQuestionAnser = function () {
+                var ul = angular.element("#text-areaList");
+                var values = ul.find(".text-area");
+                $scope.QuestionAnserTags = [];
+                angular.forEach(values, function (data, index) {
+                    $scope.QuestionAnserTags.push({ QuestionID: data.id, AnserID: -1, OtherContent: data.value });
+                });
+            }
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {//
+                    getQuestionAnser();
+                    var allInt = $scope.answerSheet.length + $scope.QuestionAnserTags.length;
+                    if ($scope.Questions.length != allInt) {
+                        box.alert('请答完所有题目！', { icon: 'error' });
+                        return;
+                    }
+
+                    var postData = $scope.selectedTags.slice();
+                    //$scope.SelectionSingleTags  $scope.QuestionAnserTags  $scope.selectedTags
+                    Array.prototype.push.apply(postData, $scope.SelectionSingleTags);
+                    Array.prototype.push.apply(postData, $scope.QuestionAnserTags);
+                    var data = { list: postData, themeID: ThemeID };
+                    BusinessService.save(data).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("提交成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Vote/Index';// window.location.href = CurPath + 'Vote/Statistics/' + $scope.BasicInfo.ApplyID;
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                    box.alert('请答完所有题目！', { icon: 'error' });
+                }
+            };
+            $scope.saveResult = function () {
+                var isSuccess = false;
+                var isR = parent.checkReason();//获取父级的验证方法
+                if (!isR)//看页面的验证是否都通过了
+                    return;
+                var postData =
+                { id: id };
+                $.ajax({
+                    url: CurPath + 'Vote/PushVoteWork',
+                    data: JSON.stringify(postData),
+                    type: 'POST',
+                    async: false,
+                    contentType: 'application/json;charset=utf-8',
+                    success: function (response) {
+                        if (response.IsSuccess) {
+                            isSuccess = true;
+                        }
+                        else {
+                            box.alert("投票推送失败！", { icon: 'error' });
+                        }
+                    },
+                    error: function () {
+                        box.alert("网络出错！", { icon: 'error' })
+                    }
+                });
+                return isSuccess;
+            };
+
+
+          
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/SaveVoting',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/GetDataByID',
+                    data: postData
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+
+
+}
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="Voting" ng-controller="VotingController" name="editForm">
+
+
+        <div class="public-layer">
+            <div class="the-question">
+                <table ng-if="isVoting==false">
+                    <tr>
+                        <th colspan="4" ng-bind="BasicInfo.ApplyTitle"> </th>
+                    </tr>
+
+                    <tr>
+                        <td ng-bind="BasicInfo.Creator"> </td>
+                        <td ng-bind="BasicInfo.CreateTime"></td>
+                        <td ng-bind="BasicInfo.StartTime"></td>
+                        <td ng-bind="BasicInfo.EndTime"></td>
+
+                    </tr>
+                    @*<tr>
+                            <th colspan="4" ng-bind="BasicInfo.ThemeName"> </th>
+                        </tr>*@
+                </table>
+                <table ng-if="isVoting">
+                    <tr>
+                        <th colspan="3" ng-bind="BasicInfo.ApplyTitle"> </th>
+                    </tr>
+
+                    <tr>
+                        <td ng-bind="BasicInfo.CreateTime"></td>
+                        <td ng-bind="BasicInfo.StartTime"></td>
+                        <td ng-bind="BasicInfo.EndTime"></td>
+
+                    </tr>
+                </table>
+                <table ng-if="isVoting">
+                    <tr>
+                        <th style="width:2%!important">参与人：</th>
+                        <th ng-bind="BasicInfo.MemberName" style="color:#666;font-size:12px!important;padding: 10px 40px 10px 0!important;"> </th>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="question-list question-list2" id="text-areaList">
+                <ol>
+                    <li ng-repeat="item in Questions track by $index">
+                        <table ng-switch="item.QuestionType">
+                            <tr>
+                                <th colspan="4">
+
+                                    <span class="question-Title" data-ng-hide="" ng-bind="getTitle($index+1,item.QuestionTitle)"></span>
+                                    <span ng-switch-when="S">(单选)</span>
+                                    <span ng-switch-when="M" ng-bind="getTypeAndNum (item.QuestionType, item.AnswerNum)">(多选)</span>
+                                    <span ng-switch-when="Q">(简答)</span>
+
+                                </th>
+
+                            </tr>
+
+                            <tr>
+                                <td class="radio_out">
+
+                                    @*ng-switch-when="M"*@
+                                    <div class="radio_in" ng-repeat="anser in item.VoteAnsers">
+
+                                        <div class="fll">
+
+                                            <input type="radio" ng-if="item.QuestionType=='S'" name="{{anser.QuestionID}}" id="{{anser.AnserID}}" ng-click="updateSelectionSingle(anser.QuestionID,anser.AnserID)" />
+
+                                            <input type="checkbox" id="{{anser.AnserID}}" ng-if="item.QuestionType=='M'" ng-click="updateSelection($event,anser.AnserID,anser.QuestionID,item.AnswerNum)" />
+
+                                        </div>
+                                        <div class="fll fll1">
+                                            <span ng-bind="anser.AnserContent"></span>
+                                        </div>
+                                    </div>
+
+
+
+                                </td>
+                            </tr>
+                            <tr ng-switch-when="Q">
+                                <td rowspan="4" style="overflow-y:hidden">
+                                    <div class="question-required">
+                                        <textarea id="{{item.QuestionID}}" ng-model="jsk" required class="text-area"></textarea>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </table>
+                    </li>
+
+                </ol>
+                <div>
+                    <a ng-click="save()" id="save" ng-if="IsShow&&!IsVoting&&!isVoting" class="cell-btn-blue" style="width:70px; margin-right:20px;">提交问卷</a>
+                    <a href="JavaScript:history.back(-1)" id="back" class="cell-btn-orange" style="width:70px;">返回</a>
+                </div>
+            </div>
+
+        </div>
+
+
+
+
+    </form>
+</div>
+<!--公告编辑 end--->

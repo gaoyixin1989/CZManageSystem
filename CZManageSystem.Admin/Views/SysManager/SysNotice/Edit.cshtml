@@ -1,0 +1,202 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <link rel="stylesheet" href="~/Content/Javascript/kindeditor-4.1.7/themes/default/default.css" />
+    <script charset="utf-8" src="~/Content/Javascript/kindeditor-4.1.7/kindeditor-min.js"></script>
+    <script charset="utf-8" src="~/Content/Javascript/kindeditor-4.1.7/lang/zh_CN.js"></script>
+    <script charset="utf-8" src="~/Content/Javascript/kindeditor-4.1.7/Angular-kindeditor.js"></script>
+
+    <script>
+        var editor;
+        
+        KindEditor.ready(function (K) {
+            editor = K.create('textarea[name="Content"]', {
+                resizeType: 1,
+                allowPreviewEmoticons: false,
+                allowImageUpload: false,
+                items: [
+                    'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline',
+                    'removeformat', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+                    'insertunorderedlist', '|', 'emoticons', 'image', 'link']
+            });
+        });
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker','ngKeditor']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            //$scope.config = {
+            //    width: '100px',
+            //    resizeType: 1,
+            //    allowPreviewEmoticons: false,
+            //    allowImageUpload: false,
+            //    items: [
+            //        'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline',
+            //        'removeformat', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+            //        'insertunorderedlist', '|', 'emoticons', 'image', 'link']
+            //};
+            $scope.m = function (e) {
+                var ss = window.event || e;
+                if (ss.keyCode != 8 && (ss.keyCode < 48 || ss.keyCode > 57)) {
+                    ss.preventDefault();
+                }
+            }
+
+            var id = '@ViewData["id"]';
+            $scope.curObj = { EnableFlag: false };
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                    editor.html($scope.curObj.Content);
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.curObj.Content = editor.html();
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'SysNotice/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysNotice/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysNotice/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            @*<tr>
+                <th>当前状态：</th>
+                <td>
+                    {{(curObj.NoticeId!=null && curObj.NoticeId.toString().length>0)?"编辑":"新增"}}
+                </td>
+            </tr>*@
+            @*<tr>
+                    <th>id：</th>
+                    <td>{{curObj.NoticeId}}</td>
+                </tr>*@
+            <tr>
+                <th>公告标题：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="30" name="Title" ng-model="curObj.Title" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Title.$error.required">请输入公告标题</span>
+                                <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否启用：</th>
+                <td>
+                    <label><input type="radio" name="EnableFlag" ng-value='true' ng-model="curObj.EnableFlag" />是</label>
+                    <label style="margin-left:20px;"><input type="radio" name="EnableFlag" ng-value='false' ng-model="curObj.EnableFlag" />否</label>
+                </td>
+            </tr>
+            <tr>
+                <th>到期日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ValidTime" name="ValidTime" required date-Picker ng-model="curObj.ValidTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ValidTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入到期日期</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            @*<tr>
+                <th>序号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number ng-model="curObj.OrderNo" class="cell-input" />
+                    </div>
+                </td>
+            </tr>*@
+            <tr>
+                <th>公告内容：</th>
+                <td> @*keditor  data-config="config"*@
+                    <div class="the-text-area" >
+                        <textarea name="Content" ng-model="curObj.Content" style="height:180px;visibility:hidden;" ></textarea>
+                        <strong class="must-options">*</strong>
+                        @*<div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入公告内容</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>*@
+                    </div>
+                </td>
+            </tr>
+         
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysNotice/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

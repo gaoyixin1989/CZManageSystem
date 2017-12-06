@@ -1,0 +1,165 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+    ViewBag.Title = "菜单管理";
+}
+@section Css{
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/css/tree-control-attribute.css">
+    <link href="~/Content/css/treeGrid.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/Content/Javascript/angular/tree-grid-directive.js"></script>
+
+
+    <script>
+        var app = angular.module('TreeList', ['treeGrid']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('TreeController', ['$scope', 'SelectService', function ($scope, SelectService) {
+            $scope.tree_data = [];//菜单数据
+            $scope.my_tree = {};
+
+            box.load("GetListData");
+            SelectService.getmenue().success(function (response) {
+                box.ready("GetListData");
+                $scope.tree_data = response;
+                $scope.my_tree = response;
+            }).error(function () {
+                box.ready("GetListData");
+            });
+            $scope.getmenue = function () {
+                box.load("getmenue");
+                SelectService.getmenue().success(function (response) {
+                    box.ready("getmenue");
+                    $scope.tree_data = response;
+                    $scope.my_tree = response;
+                }).error(function () {
+                    box.ready("getmenue");
+                });
+            }
+
+            $scope.deleteData = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        SelectService.deleteData(id).success(function (response) {
+                            box.alert(response.message, { icon: 'success' }, function () {
+                                $scope.getmenue();
+                            });
+                        });
+                    }
+                });
+                
+
+            }
+            $scope.expanding_property = {
+                field: "MenuName",
+                displayName: "菜单名",
+                sortable: true,
+                filterable: true,
+                sortingType: "string"
+            };//设置菜单主键，也就是第一列
+            //设置其他列
+            $scope.col_defs = [
+            {
+                field: "PageUrl",//绑定字段名
+                displayName: "路径",
+                sortable: true,//是否能够排序
+                sortingType: "string"//根据什么来排序
+            },
+            {
+                field: "MenuType",
+                displayName: "类型",
+                sortable: true,
+                sortingType: "string",
+                filterable: false
+            },
+             {
+                 displayName: "是否启用",
+                 cellTemplate: "<span>{{row.branch.EnableFlag?'是':'否'}}</span>",
+                 sortable: true,
+                 sortingType: "string",
+                 filterable: false
+             },
+             {
+                 field: "OrderNo",
+                 displayName: "排序",
+                 sortable: true,
+                 sortingType: "string",
+                 filterable: false
+             },
+            {
+                filed: "MenuId",
+                displayName: "操作",
+                cellTemplate: "<div class='operation-btn'><a href='/SysMenu/Edit?id={{row.branch.MenuId}}' class='lia-1'>修改</a>&nbsp;<a href='javascript:void(0);' class='lia-1' ng-click='cellTemplateScope.click(this)'>删除</a></div>",
+                cellTemplateScope: {
+                    click: function (data) { // this works too: $scope.someMethod;
+                        //alert(data.row.branch.MenuId);
+                        $scope.deleteData(data.row.branch.MenuId);
+                    }
+                }
+            }
+            ];
+            $scope.my_tree_handler = function (branch) {
+            }
+
+        }]);
+        // 业务类
+        app.factory('SelectService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.getmenue = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysMenu/GETList'//
+                });
+            };
+            //删除
+            serive.deleteData = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysMenu/DeleteById/' + id
+                    //data: id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<div ng-app="TreeList" ng-controller="TreeController" >
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    菜单名：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input class="cell-input" style="width:120px;" type="text" data-ng-model="filterString" placeholder="菜单名" />
+                    </div>
+                </td>
+
+            </tr>
+        </table>
+
+    </div>
+    <div class="public-table-main">
+        <tree-grid tree-data="tree_data"
+                   tree-control="my_tree" col-defs="col_defs"
+                   expand-on="expanding_property"
+                   on-select="my_tree_handler(branch)"
+                   expand-level="10"
+                   icon-leaf="glyphicon glyphicon-globe"></tree-grid>
+
+    </div>
+    <div class="the-operation1" style="float:left">
+
+        <ul>
+            <li><a href="../SysMenu/Edit" class="btn-add"><i></i>添加</a></li>
+        </ul>
+
+    </div>
+</div>
+

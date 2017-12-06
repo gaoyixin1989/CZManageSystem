@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<siteMap xmlns="http://schemas.microsoft.com/AspNet/SiteMap-File-1.0">
+  <siteMapNode url="apps/xqp2/pages/extension/default.aspx" title="首页"  description="">
+    <siteMapNode url="main/content.aspx" title="工作台"  description="">
+        <siteMapNode url="contrib/theme/pages/default.aspx" title="界面主题"  description="" />
+        <siteMapNode url="contrib/cms/pages/create.aspx" title="内容发布"  description="" />
+      
+      <siteMapNode url="contrib/workflow/pages/default.aspx" title="待办事宜"  description="" />
+      <siteMapNode url="contrib/workflow/pages/doneTaskByAppl.aspx" title="已办事宜"  description="">
+        <siteMapNode url="contrib/workflow/pages/doneTask.aspx" title="已办任务"  description="" />
+        <siteMapNode url="contrib/workflow/pages/myTask.aspx" title="我的工单"  description="" />
+        <siteMapNode url="contrib/workflow/pages/assignmentTask.aspx" title="转交任务记录"  description="" />
+      </siteMapNode>
+      <siteMapNode url="contrib/workflow/pages/search.aspx" title="高级查询"  description="" />
+      <siteMapNode url="contrib/workflow/pages/draft.aspx" title="草稿箱"  description="" />
+      <siteMapNode url="contrib/workflow/pages/workflowDeploy.aspx" title="流程部署"  description="" />
+      <siteMapNode url="contrib/workflow/pages/workflowindex.aspx" title="流程详情" visible="false" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="contrib/workflow/pages/process.aspx" title="待办事宜" mappedUrl="~/contrib/workflow/pages/default.aspx" dynamicType="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="contrib/workflow/pages/workflowView.aspx" title="已办事宜" mappedUrl="~/contrib/workflow/pages/doneTask.aspx" dynamicType="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="contrib/workflow/pages/start.aspx" title="发起工单" visible="false" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="contrib/workflow/pages/config/configworkflow.aspx" title="流程设置" visible="false" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="contrib/workflow/pages/config/configactivity.aspx" title="流程活动设置" visible="false" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      
+      <siteMapNode url="contrib/dynamicform/pages/itemcreate.aspx" title="表单设计" visible="true" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+          
+      <siteMapNode url="contrib/msg/pages/error.aspx" title="错误提示"  description="" />
+      <siteMapNode url="contrib/msg/pages/errorView.aspx" title="错误查看"  description="" />
+      <siteMapNode url="contrib/msg/pages/success.aspx" title="成功处理提示"  description="" />  
+      
+      <siteMapNode url="contrib/security/pages/users.aspx" title="用户管理"  description="" />
+      <siteMapNode url="contrib/security/pages/roles.aspx" title="权限管理"  description="" />
+      <siteMapNode url="contrib/security/pages/resources.aspx" title="权限资源管理"  description="" />
+      <siteMapNode url="contrib/security/pages/authorize.aspx" title="委托授权"  description="" />
+      <siteMapNode url="contrib/security/pages/changepassword.aspx" title="修改密码"  description="" />
+      
+      <siteMapNode url="contrib/gmcclog/pages/default.aspx" title="系统日志"  description="" />      
+      <siteMapNode url="contrib/report/pages/reportList.aspx" title="报表统计"  description="" />
+      
+      <siteMapNode url="apps/xqp2/pages/notices/notices.aspx" title="系统公告"  description="" />
+      <siteMapNode url="apps/xqp2/pages/security/authorize.aspx" title="委托授权"  description="" />
+      <siteMapNode url="apps/xqp2/pages/app/list.aspx" title="应用系统接入"  description="" />
+      <siteMapNode url="apps/xqp2/pages/workflows/config/configUser.aspx" title="个人设置"  description="" />
+      <siteMapNode url="apps/xqp2/pages/workflows/config/workflowgroup.aspx" title="流程分组"  description="" />
+      <siteMapNode url="apps/xqp2/pages/workflows/workflowDeploy.aspx" title="流程设计"  description="" />
+      <siteMapNode url="apps/xqp2/pages/workflows/report/reportIndex.aspx" title="报表统计"  description="" />
+      <siteMapNode url="apps/xqp2/pages/workflows/workflowindex.aspx" title="流程详情" visible="false" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="apps/xqp2/pages/workflows/config/configWorkflow.aspx" title="流程设置" visible="true" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="apps/xqp2/pages/workflows/config/configactivity.aspx" title="流程设置" visible="false" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      <siteMapNode url="apps/xqp2/pages/workflows/designer/designer.aspx" title="流程可视化设计" visible="true" dynamic="Botwave.Workflow.Extension.Service.Support.DynamicSitePathHandler, Botwave.Workflow.Extension" />
+      
+    </siteMapNode>
+  </siteMapNode>
+</siteMap>

@@ -1,0 +1,469 @@
+﻿
+@{
+    ViewBag.Title = "OGSMInfoEdit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $timeout, BusinessService, ngDialog) {
+
+            var id = '@ViewData["id"]';
+
+
+            var getComData = false;
+            var getComData2 = false;
+            //获取户号作为下拉框字典
+            BusinessService.getUsrNbrAsDict().success(function (response) {
+                $scope.dictUSR_NBRs = response;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData = true; });
+
+            //获取户号作为下拉框字典
+            BusinessService.getBaseStationAsDict().success(function (response) {
+                $scope.dictBaseStations = response;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData2 = true; });
+
+            
+            var loadCurData = function () {
+                box.load("getDataByID");
+                $timeout(function () {
+                    if (getComData && getComData2) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            box.ready("getDataByID");
+                            $scope.curObj = response;
+                            $scope.curObj.USR_NBR = $scope.curObj.USR_NBR.toString();
+                            $scope.curObj.BaseStation = $scope.curObj.BaseStation.toString();
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+            if (id != null && id.toString().length > 0) {
+                loadCurData();
+                $('#PowerTypeCTL').css('display', 'block');
+                //BusinessService.getDataByID(id).success(function (response) {
+                //    $scope.curObj = response;
+                //    //alert($scope.curObj.id);
+                //}).error(function (response) {
+                //    box.alert("网络出错！", { icon: 'error' });
+                //});
+            } 
+
+            $scope.MoneyCacl = function () {                
+                var chg = Number($scope.curObj.MF) * (Number($scope.curObj.NowKwh) - Number($scope.curObj.PreKwh));
+                if (chg >= 0) {
+                    $scope.curObj.CHG = Math.round(chg * 100) / 100;
+                    var money = Number($scope.curObj.CHG) * Number($scope.curObj.Price) + Number($scope.curObj.Adjustment);
+                    $scope.curObj.Money = Math.round(money * 100) / 100;
+                }
+            };
+
+            $scope.ShowPowerType = function()
+            {
+                var tempusr_nbr = $scope.curObj;
+                BusinessService.getUsrNbrPowerType(tempusr_nbr).success(function (response) {
+                    $scope.curObj.PowerType = response.Message;
+                    //alert($scope.curObj.id);
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            };
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {                    
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'OGSM/OGSMInfoIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            //导入数据
+            $scope.filePrivateDialog = function () {
+                var _type = 'OGSMPInfo'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入数据',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        //BusinessService.getQuestionTemp().success(function (response) {
+                        //    $scope.Questions = response;
+                        //    console.info(response);
+                        //    console.info($scope.Questions);
+                        //    $scope.Total = Math.ceil($scope.Questions.length / $scope.Size);
+                        //    box.ready("loadding");
+                        //}).error(function (response) {
+                        //    box.ready("loadding");
+                        //    console.info(response);
+                        //    box.alert("网络出错！", { icon: 'error' });
+                        //});
+                    }
+                });
+
+            };
+            //导入数据
+            $scope.fileDialog = function () {
+                var _type = 'OGSMInfo'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入数据',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        //BusinessService.getQuestionTemp().success(function (response) {
+                        //    $scope.Questions = response;
+                        //    console.info(response);
+                        //    console.info($scope.Questions);
+                        //    $scope.Total = Math.ceil($scope.Questions.length / $scope.Size);
+                        //    box.ready("loadding");
+                        //}).error(function (response) {
+                        //    box.ready("loadding");
+                        //    console.info(response);
+                        //    box.alert("网络出错！", { icon: 'error' });
+                        //});
+                    }
+                });
+
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/OGSMInfoSave',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/GetOGSMInfoDataByID/' + id
+                });
+            };
+
+            serive.getUsrNbrPowerType = function (usr_nbr) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/getUsrNbrPowerType',
+                    data: usr_nbr
+                });
+            };
+            //获取服务信息作为字典
+            serive.getUsrNbrAsDict = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/getUsrNbrAsDict'
+                });
+            };
+
+            //获取服务信息作为字典
+            serive.getBaseStationAsDict = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/getBaseStationAsDict'
+                });
+            };
+
+
+
+            //servie.getUsrNbrPowerType = function (usr_nbr) {
+            //    return $http({
+            //        method: 'POST',
+            //        url: CurPath + 'OGSM/getUsrNbrPowerType/' + usr_nbr
+            //    });
+            //};
+            return serive;
+        }]);
+
+    </script>
+}
+<style>
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>            
+            <tr>
+                <th>户号：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="USR_NBR" required ng-model="curObj.USR_NBR" style="width:222px; margin-left:5px;" ng-change="ShowPowerType();">
+                                <option ng-repeat="x in dictUSR_NBRs" value="{{x.USR_NBR}}">{{x.USR_NBR}}${{x.BaseStation}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" style="color:red" ng-show="editForm.USR_NBR.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div ng-show="editForm.USR_NBR.$error.required"><i class="icon-error"></i>请输入户号。</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>                            
+                   </div>
+
+                </td>
+            </tr>            
+            <tr>
+                <th>所属基站/服务厅：</th>
+                <td>                       
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="BaseStation"  ng-model="curObj.BaseStation" style="width:222px; margin-left:5px;">
+                                <option ng-repeat="x in dictBaseStations" value="{{x.BaseStation}}">{{x.BaseStation}}</option>
+                            </select>
+                        </div>  
+                    </div>
+                </td>
+            </tr>   
+            
+            <tr @*id="PowerTypeCTL" style="display:none"*@>
+                <th>户号类型：</th>
+                <td>
+                    <input type="hidden" name="PowerType" ng-model="curObj.PowerType" />
+                    <label>&nbsp;&nbsp;{{curObj.PowerType}}</label>
+                    @*<div class="ui-input">
+                        <input type="hidden" name="PowerType" ng-model="curObj.PowerType" />
+                        <label>{{curObj.PowerType}}</label>
+                    </div>*@
+                </td>
+            </tr> 
+                
+            <tr>
+                <th>有功上期(Kwh)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="0" ng-model="curObj.PreKwh" class="cell-input" onblur="this.value=this.value.replace(/[^\d+.]/g,'')"  ng-blur="MoneyCacl();" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>有功本期(Kwh)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="0" name="NowKwh" ng-model="curObj.NowKwh" class="cell-input" onblur="this.value=this.value.replace(/[^\d+.]/g,'')" ng-blur="MoneyCacl();" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>倍率：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="0" name ="MF" ng-model="curObj.MF" class="cell-input" onblur="this.value=this.value.replace(/[^\d+.]/g,'')"  ng-blur="MoneyCacl();" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>计费电度(Kwh)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="0" name="CHG" ng-model="curObj.CHG" class="cell-input" onblur="this.value=this.value.replace(/[^\d+.]/g,'')" ng-blur="MoneyCacl();"/>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>电度电价(元/Kwh)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="0" name="Price" ng-model="curObj.Price" class="cell-input" onblur="this.value=this.value.replace(/[^\d+.]/g,'')" ng-blur="MoneyCacl();"/>
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>调整电费：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="0" name="Adjustment" ng-model="curObj.Adjustment" class="cell-input" onblur="this.value=this.value.replace(/[^\d+.]/g,'')" ng-blur="MoneyCacl();"/>
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>实收金额(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="0" name="Money" ng-model="curObj.Money" class="cell-input" onblur="this.value=this.value.replace(/[^\d+.]/g,'')" />
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>缴费月份：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PAY_MON" ng-model="curObj.PAY_MON" date-Picker datefmt="yyyyMM" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.PAY_MON.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.PAY_MON.$error.required"><i class="icon-error"></i>请输入缴费月份。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>    
+            <tr>
+                <th>是否更换新表：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="New_Meter" required ng-model="curObj.New_Meter" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="1">是</option>
+                                <option value="0">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.New_Meter.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.New_Meter.$valid">是否更换新表</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>换表时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="RTime" name="RTime" date-Picker ng-model="curObj.RTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <div ng-switch="curObj.New_Meter"><strong class="must-options" ng-switch-when="1">*</strong></div>
+                        
+                    </div>
+                </td>
+            </tr> 
+            <tr>
+                <th>收款人姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" name="Payee" ng-model="curObj.Payee" class="cell-input"/>
+                        <div ng-switch="curObj.PowerType"><strong class="must-options" ng-switch-when="私电">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>联系电话1：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" name="Mobile1" ng-model="curObj.Mobile1" class="cell-input"/>
+                        <div ng-switch="curObj.PowerType"><strong class="must-options" ng-switch-when="私电">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>联系电话2：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" name="Mobile2" ng-model="curObj.Mobile2" class="cell-input" />
+                        <div ng-switch="curObj.PowerType"><strong class="must-options" ng-switch-when="私电">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>银行账号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" id="BankAcount" name="BankAcount" ng-model="curObj.BankAcount" class="cell-input" onblur="this.value=this.value.replace(/[^\d]/g,'')"/>
+                        <div ng-switch="curObj.PowerType"><strong class="must-options" ng-switch-when="私电">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>开户行：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" id="Bank" name="Bank" ng-model="curObj.Bank" class="cell-input" />
+                        <div ng-switch="curObj.PowerType"><strong class="must-options" ng-switch-when="私电">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>详细地址：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" id="Address" name="Address" ng-model="curObj.Address" class="cell-input" />
+                        <div ng-switch="curObj.PowerType"><strong class="must-options" ng-switch-when="私电">*</strong></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>私电分缴月数：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" id="PSubPayMonth" name="PSubPayMonth" ng-model="curObj.PSubPayMonth" class="cell-input" onblur="this.value=this.value.replace(/[^\d]/g,'')" />
+                        <div ng-switch="curObj.PowerType"><strong class="must-options" ng-switch-when="私电">*</strong></div>
+                    </div>                    
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark"></textarea>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="filePrivateDialog()" class="cell-btn-blue" style="width:70px; margin-right:20px;">导入私电</a>
+                    <a ng-click="fileDialog()" class="cell-btn-blue" style="width:70px; margin-right:20px;">导入公电</a>
+                    <a href="../OGSM/OGSMInfoIndex" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+

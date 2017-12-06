@@ -1,0 +1,612 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{50D570F9-8ADF-4A47-8242-57E5F97F6621}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CZManageSystem.Service</RootNamespace>
+    <AssemblyName>CZManageSystem.Service</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Cells">
+      <HintPath>..\..\Lib\Aspose.Cells\5.3.1.0\Aspose.Cells.dll</HintPath>
+    </Reference>
+    <Reference Include="Autofac, Version=3.5.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Bson, Version=1.7.0.4714, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\Mongodb\MongoDB.Bson.dll</HintPath>
+    </Reference>
+    <Reference Include="MongoDB.Driver, Version=1.7.0.4714, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\Mongodb\MongoDB.Driver.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Administrative\BirthControl\BirthControlApplyService.cs" />
+    <Compile Include="Administrative\BirthControl\BirthControlChildrenInfoService.cs" />
+    <Compile Include="Administrative\BirthControl\BirthControlConfigService.cs" />
+    <Compile Include="Administrative\BirthControl\BirthControlInfoService.cs" />
+    <Compile Include="Administrative\BirthControl\BirthControlLogService.cs" />
+    <Compile Include="Administrative\BirthControl\BirthControlRosterService.cs" />
+    <Compile Include="Administrative\BirthControl\BirthControlStaticService.cs" />
+    <Compile Include="Administrative\BirthControl\IBirthControlApplyService.cs" />
+    <Compile Include="Administrative\BirthControl\IBirthControlChildrenInfoService.cs" />
+    <Compile Include="Administrative\BirthControl\IBirthControlConfigService.cs" />
+    <Compile Include="Administrative\BirthControl\IBirthControlInfoService.cs" />
+    <Compile Include="Administrative\BirthControl\IBirthControlLogService.cs" />
+    <Compile Include="Administrative\BirthControl\IBirthControlRosterService.cs" />
+    <Compile Include="Administrative\BirthControl\IBirthControlStaticService.cs" />
+    <Compile Include="Administrative\BirthControl\IVW_BirthcontrolRoster_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\IVW_Birthcontrol_Children_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\IVW_Birthcontrol_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\IVW_Birthcontrol_GE_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\IVW_Birthcontrol_SingleChildren_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\IVW_Birthcontrol_SpouseGE_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\IVW_Birthcontrol_Survey_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\VW_BirthcontrolRoster_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\VW_Birthcontrol_Children_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\VW_Birthcontrol_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\VW_Birthcontrol_GE_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\VW_Birthcontrol_SingleChildren_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\VW_Birthcontrol_SpouseGE_DataService.cs" />
+    <Compile Include="Administrative\BirthControl\VW_Birthcontrol_Survey_DataService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_BookOrderService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_CommandService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_CuisineService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_DinningRoomAdminService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_DinningRoomMealBookSettingsService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_DinningRoomMealTimeSettingsService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_DinningRoomService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_MealOrderService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_MealPlaceService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_MenuCuisineService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_MenuPackageCommandService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_MenuService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_PackageService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_UserAccountBalanceService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_UserAccountRechargeService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_UserBaseinfoService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMeal_UserDinningRoomService.cs" />
+    <Compile Include="Administrative\Dinning\IOrderMsg_LogService.cs" />
+    <Compile Include="Administrative\Dinning\Itbcz_OrderMeal_MealOrderService.cs" />
+    <Compile Include="Administrative\Dinning\IView_EXT_XF_AccountService.cs" />
+    <Compile Include="Administrative\Dinning\IView_XF_AmountLogService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_BookOrderService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_CommandService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_CuisineService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_DinningRoomAdminService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_DinningRoomMealBookSettingsService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_DinningRoomMealTimeSettingsService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_DinningRoomService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_MealOrderService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_MealPlaceService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_MenuCuisineService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_MenuPackageCommandService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_MenuService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_PackageService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_UserAccountBalanceService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_UserAccountRechargeService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_UserBaseinfoService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMeal_UserDinningRoomService.cs" />
+    <Compile Include="Administrative\Dinning\OrderMsg_LogService.cs" />
+    <Compile Include="Administrative\Dinning\tbcz_OrderMeal_MealOrderService.cs" />
+    <Compile Include="Administrative\Dinning\View_EXT_XF_AccountService.cs" />
+    <Compile Include="Administrative\Dinning\View_XF_AmountLogService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarStatusFeeService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarApplyFeeService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarApplyRentService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarFeeFixService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarFeeRentService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarFeeYearService.cs" />
+    <Compile Include="Administrative\VehicleManages\DriverFilesService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarApplyFeeService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarApplyRentService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarFeeFixService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarFeeRentService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarFeeYearService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarStatusService.cs" />
+    <Compile Include="Administrative\VehicleManages\IDriverFilesService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarApplyService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarInfoService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarApplyService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarInfoService.cs" />
+    <Compile Include="Administrative\VehicleManages\CarFeeChgService.cs" />
+    <Compile Include="Administrative\VehicleManages\ICarFeeChgService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestAgoEstimateApplyService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestAgoEstimateApplyDetailService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestAgoEstimateLogService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestContractService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestContractPayService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestCorrectApplyService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestMonthEstimateApplySubListService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestCorrectApplySubListService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestEstimateService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestMonthEstimateApplyService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestProjectService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestMaterialsyService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IV_InvestProjectYearTotalService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestTempEstimateService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestTransferPayService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestProjectYearTotalService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestAgoEstimateApplyService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestAgoEstimateApplyDetailService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestCorrectApplyService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestAgoEstimateLogService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestMonthEstimateApplySubListService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestCorrectApplySubListService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestEstimateService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestMaterialsService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestContractService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestContractPayService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestMonthEstimateApplyService.cs" />
+    <Compile Include="CollaborationCenter\Invest\V_InvestProjectYearTotalService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestProjectYearTotalService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestTempEstimateService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestTransferPayService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestProjectService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IInvestAgoEstimateService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IV_InvestProjectQueryService.cs" />
+    <Compile Include="CollaborationCenter\Invest\IV_InvestContractQueryService.cs" />
+    <Compile Include="CollaborationCenter\Invest\InvestAgoEstimateService.cs" />
+    <Compile Include="CollaborationCenter\Invest\V_InvestProjectQueryService.cs" />
+    <Compile Include="CollaborationCenter\Invest\V_InvestContractQueryService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_OrderBossDealService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_OrderReclaimService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_OrderSendCourseService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_OrderSendInfoService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_OrderVisitService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_AuthenticationService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_MarketService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_OrderStatusService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_BusinessService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_NumberService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_EndTypeService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_ProductService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_AreaService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_OrderApplyService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_SatService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_VisitService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_SetmealService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\IMarketOrder_ProjectService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_OrderReclaimService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_OrderBossDealService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_OrderSendCourseService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_OrderSendInfoService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_OrderVisitService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_AuthenticationService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_MarketService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_OrderStatusService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_BusinessService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_NumberService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_EndTypeService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_OrderApplyService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_ProductService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_AreaService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_SatService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_VisitService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_SetmealService.cs" />
+    <Compile Include="CollaborationCenter\MarketOrder\MarketOrder_ProjectService.cs" />
+    <Compile Include="CollaborationCenter\Payment\IPaymentCompanyHallService.cs" />
+    <Compile Include="CollaborationCenter\Payment\IPaymentHallService.cs" />
+    <Compile Include="CollaborationCenter\Payment\IPaymentCompanyService.cs" />
+    <Compile Include="CollaborationCenter\Payment\IPaymentPayerService.cs" />
+    <Compile Include="CollaborationCenter\Payment\IPaymentPayeeService.cs" />
+    <Compile Include="CollaborationCenter\Payment\PaymentCompanyService.cs" />
+    <Compile Include="CollaborationCenter\Payment\PaymentCompanyHallService.cs" />
+    <Compile Include="CollaborationCenter\Payment\PaymentHallService.cs" />
+    <Compile Include="CollaborationCenter\Payment\PaymentPayerService.cs" />
+    <Compile Include="CollaborationCenter\Payment\PaymentPayeeService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\IReturnsChannelService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\IReturnsRangeService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\IReturnsReasonService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\IReturnsTypeService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\ReturnsChannelService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\ReturnsRangeService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\ReturnsReasonService.cs" />
+    <Compile Include="CollaborationCenter\ReturnPremium\ReturnsTypeService.cs" />
+    <Compile Include="CollaborationCenter\SmsManager\IV_SendSmsCountService.cs" />
+    <Compile Include="CollaborationCenter\SmsManager\ISendSmsService.cs" />
+    <Compile Include="CollaborationCenter\SmsManager\V_SendSmsCountService.cs" />
+    <Compile Include="CollaborationCenter\SmsManager\SendSmsService.cs" />
+    <Compile Include="CommonFunction.cs" />
+    <Compile Include="Common\ChcekingIn.cs" />
+    <Compile Include="Composite\Admin_AttachmentService.cs" />
+    <Compile Include="Administrative\BoardroomApplyService.cs" />
+    <Compile Include="Composite\IVoteTrackingTodoService.cs" />
+    <Compile Include="Composite\IV_VoteDetailService.cs" />
+    <Compile Include="Composite\VoteTrackingTodoService.cs" />
+    <Compile Include="Composite\V_VoteDetailService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\HRAnnualleaveImportService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\HRAnnualLeaveService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\HRAnnualleaveStaticService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\HRVacationAnnualLeaveConfigService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\IHRAnnualleaveImportService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\IHRAnnualLeaveService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\IHRAnnualleaveStaticService.cs" />
+    <Compile Include="HumanResources\AnnualLeave\IHRVacationAnnualLeaveConfigService.cs" />
+    <Compile Include="HumanResources\Attendance\HRCheckAttendanceHistoryNo1Service.cs" />
+    <Compile Include="HumanResources\Attendance\FingerprintDataService.cs" />
+    <Compile Include="HumanResources\Attendance\HRRfsimService.cs" />
+    <Compile Include="HumanResources\Attendance\HRHolidayWorkService.cs" />
+    <Compile Include="HumanResources\Attendance\HRYKTDataService.cs" />
+    <Compile Include="HumanResources\Attendance\HRTBcardService.cs" />
+    <Compile Include="HumanResources\Attendance\HRCheckAttendanceService.cs" />
+    <Compile Include="HumanResources\Attendance\HRUnattendLinkService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRYKTDataService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRUnattendLinkService.cs" />
+    <Compile Include="HumanResources\Attendance\IFingerprintDataService.cs" />
+    <Compile Include="HumanResources\Attendance\V_HRHaveAHolidayListService.cs" />
+    <Compile Include="HumanResources\Attendance\IV_HRHaveAHolidayListService.cs" />
+    <Compile Include="HumanResources\Attendance\V_HROtherListService.cs" />
+    <Compile Include="HumanResources\Attendance\IV_HROtherListService.cs" />
+    <Compile Include="HumanResources\Attendance\V_HRHaveHolidaysByTurnsListService.cs" />
+    <Compile Include="HumanResources\Attendance\IV_HRHaveHolidaysByTurnsListService.cs" />
+    <Compile Include="HumanResources\Attendance\V_HRVavationListService.cs" />
+    <Compile Include="HumanResources\Attendance\IV_HRVavationListService.cs" />
+    <Compile Include="HumanResources\Attendance\V_HRAbnormalListService.cs" />
+    <Compile Include="HumanResources\Attendance\HRUnattendApplyService.cs" />
+    <Compile Include="HumanResources\Attendance\IV_HRAbnormalListService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRUnattendApplyService.cs" />
+    <Compile Include="HumanResources\Attendance\V_HRCheckAttendanceAbnormalService.cs" />
+    <Compile Include="HumanResources\Attendance\HRTimeConfigService.cs" />
+    <Compile Include="HumanResources\Attendance\HRHolidaysService.cs" />
+    <Compile Include="HumanResources\Attendance\IV_HRCheckAttendanceAbnormalService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRCheckAttendanceHistoryNo1Service.cs" />
+    <Compile Include="HumanResources\Attendance\IHRCheckAttendanceService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRTBcardService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRRfsimService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRHolidayWorkService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRTimeConfigService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRHolidaysService.cs" />
+    <Compile Include="HumanResources\Attendance\IHRAttendanceConfigService.cs" />
+    <Compile Include="HumanResources\Attendance\HRAttendanceConfigService.cs" />
+    <Compile Include="HumanResources\Employees\IPayService.cs" />
+    <Compile Include="HumanResources\Employees\PayService.cs" />
+    <Compile Include="HumanResources\Employees\PayVService.cs" />
+    <Compile Include="HumanResources\Employees\HRLzUserInfoService.cs" />
+    <Compile Include="HumanResources\Employees\GdPayService.cs" />
+    <Compile Include="HumanResources\Employees\GdPayIdService.cs" />
+    <Compile Include="HumanResources\Employees\IPayVService.cs" />
+    <Compile Include="HumanResources\Employees\IHRLzUserInfoService.cs" />
+    <Compile Include="HumanResources\Employees\IGdPayService.cs" />
+    <Compile Include="HumanResources\Employees\IGdPayIdService.cs" />
+    <Compile Include="HumanResources\Employees\IGdPayVService.cs" />
+    <Compile Include="HumanResources\Employees\IYearPayVService.cs" />
+    <Compile Include="HumanResources\Employees\IVWHRSumService.cs" />
+    <Compile Include="HumanResources\Employees\GdPayVService.cs" />
+    <Compile Include="HumanResources\Employees\YearPayVService.cs" />
+    <Compile Include="HumanResources\Employees\VWHRSumService.cs" />
+    <Compile Include="HumanResources\Integral\HRCintegralConfigService.cs" />
+    <Compile Include="HumanResources\Integral\HRIntegralService.cs" />
+    <Compile Include="HumanResources\Integral\HRIntegralStaticService.cs" />
+    <Compile Include="HumanResources\Integral\HRNeedIntegralService.cs" />
+    <Compile Include="HumanResources\Integral\HRRankConfigService.cs" />
+    <Compile Include="HumanResources\Integral\HRVacationCoursesService.cs" />
+    <Compile Include="HumanResources\Integral\HRVacationTeachingService.cs" />
+    <Compile Include="HumanResources\Integral\HRVCoursesImportService.cs" />
+    <Compile Include="HumanResources\Integral\IHRCintegralConfigService.cs" />
+    <Compile Include="HumanResources\Integral\IHRIntegralService.cs" />
+    <Compile Include="HumanResources\Integral\IHRIntegralStaticService.cs" />
+    <Compile Include="HumanResources\Integral\IHRNeedIntegralService.cs" />
+    <Compile Include="HumanResources\Integral\IHRRankConfigService.cs" />
+    <Compile Include="HumanResources\Integral\IHRVacationCoursesService.cs" />
+    <Compile Include="HumanResources\Integral\IHRVacationTeachingService.cs" />
+    <Compile Include="HumanResources\Integral\IHRVCoursesImportService.cs" />
+    <Compile Include="HumanResources\Integral\ITIntegralConfigService.cs" />
+    <Compile Include="HumanResources\Integral\TIntegralConfigService.cs" />
+    <Compile Include="HumanResources\Knowledge\ISysKnowledgeService.cs" />
+    <Compile Include="HumanResources\Knowledge\SysKnowledgeService.cs" />
+    <Compile Include="HumanResources\OverTime\IOverTimeApplyService.cs" />
+    <Compile Include="HumanResources\OverTime\IOverTimeStaticService.cs" />
+    <Compile Include="HumanResources\OverTime\OverTimeApplyService.cs" />
+    <Compile Include="HumanResources\OverTime\OverTimeStaticService.cs" />
+    <Compile Include="HumanResources\ShiftManages\IShiftLbuserService.cs" />
+    <Compile Include="HumanResources\ShiftManages\IShiftLunbanService.cs" />
+    <Compile Include="HumanResources\ShiftManages\IShiftRichService.cs" />
+    <Compile Include="HumanResources\ShiftManages\IShiftZhibanService.cs" />
+    <Compile Include="HumanResources\ShiftManages\ShiftLbuserService.cs" />
+    <Compile Include="HumanResources\ShiftManages\ShiftRichService.cs" />
+    <Compile Include="HumanResources\ShiftManages\ShiftZhibanService.cs" />
+    <Compile Include="HumanResources\ShiftManages\ShiftLunbanService.cs" />
+    <Compile Include="HumanResources\ShiftManages\ShiftBanciService.cs" />
+    <Compile Include="HumanResources\ShiftManages\IShiftBanciService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationCoursesService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationMeetingService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationAnnualLeaveService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationTeachingService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationOtherService.cs" />
+    <Compile Include="HumanResources\Vacation\HRReVacationApplyService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationApplyService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationCloseApplyService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationConfigService.cs" />
+    <Compile Include="HumanResources\Vacation\HRVacationHolidayService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRReVacationApplyService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationCoursesService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationOtherService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationAnnualLeaveService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationTeachingService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationCloseApplyService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationApplyService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationConfigService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationHolidayService.cs" />
+    <Compile Include="HumanResources\Vacation\IHRVacationMeetingService.cs" />
+    <Compile Include="ITSupport\CancellingDetailService.cs" />
+    <Compile Include="ITSupport\Consumable_MakeupDetailService.cs" />
+    <Compile Include="ITSupport\Consumable_MakeupService.cs" />
+    <Compile Include="ITSupport\Consumable_LevellingDetailService.cs" />
+    <Compile Include="ITSupport\Consumable_LevellingService.cs" />
+    <Compile Include="ITSupport\Consumable_CancellingService.cs" />
+    <Compile Include="ITSupport\Consumable_CancellingDetailService.cs" />
+    <Compile Include="ITSupport\Consumable_ConsumingDetailService.cs" />
+    <Compile Include="ITSupport\Consumable_ConsumingService.cs" />
+    <Compile Include="ITSupport\Consumable_InputListService.cs" />
+    <Compile Include="ITSupport\Consumable_InputDetailService.cs" />
+    <Compile Include="ITSupport\ConsumableService.cs" />
+    <Compile Include="ITSupport\Consumable_ScrapDetailService.cs" />
+    <Compile Include="ITSupport\Consumable_ScrapService.cs" />
+    <Compile Include="ITSupport\Consumable_SporadicDetailService.cs" />
+    <Compile Include="ITSupport\Consumable_SporadicService.cs" />
+    <Compile Include="ITSupport\ConsumingDetailService.cs" />
+    <Compile Include="ITSupport\EquipApplyService.cs" />
+    <Compile Include="ITSupport\EquipService.cs" />
+    <Compile Include="Composite\IAdmin_AttachmentService.cs" />
+    <Compile Include="ITSupport\IConsumable_MakeupDetailService.cs" />
+    <Compile Include="ITSupport\IConsumable_MakeupService.cs" />
+    <Compile Include="ITSupport\IConsumable_LevellingDetailService.cs" />
+    <Compile Include="ITSupport\IConsumable_LevellingService.cs" />
+    <Compile Include="ITSupport\IConsumable_CancellingService.cs" />
+    <Compile Include="ITSupport\IConsumable_CancellingDetailService.cs" />
+    <Compile Include="ITSupport\IConsumable_ConsumingDetailService.cs" />
+    <Compile Include="ITSupport\IConsumable_ConsumingService.cs" />
+    <Compile Include="ITSupport\IConsumable_InputListService.cs" />
+    <Compile Include="ITSupport\IConsumable_InputDetailService.cs" />
+    <Compile Include="ITSupport\IConsumableService.cs" />
+    <Compile Include="ITSupport\IConsumable_ScrapDetailService.cs" />
+    <Compile Include="ITSupport\IConsumable_ScrapService.cs" />
+    <Compile Include="ITSupport\IConsumable_SporadicDetailService.cs" />
+    <Compile Include="ITSupport\IConsumable_SporadicService.cs" />
+    <Compile Include="ITSupport\IEquipApplyService.cs" />
+    <Compile Include="ITSupport\IEquipService.cs" />
+    <Compile Include="Composite\INnerVoicesService.cs" />
+    <Compile Include="Composite\IOGSMElectricityService.cs" />
+    <Compile Include="Composite\IOGSMInfoService.cs" />
+    <Compile Include="Composite\IOGSMMonthService.cs" />
+    <Compile Include="Composite\IOGSMService.cs" />
+    <Compile Include="Composite\IOGSMStaticService.cs" />
+    <Compile Include="ITSupport\IProjService.cs" />
+    <Compile Include="ITSupport\IStockAssetService.cs" />
+    <Compile Include="ITSupport\IStockService.cs" />
+    <Compile Include="Composite\IVoteAnserService.cs" />
+    <Compile Include="Composite\IVoteAnserTempService.cs" />
+    <Compile Include="Composite\IVoteApplyService.cs" />
+    <Compile Include="Composite\IVoteAppQidService.cs" />
+    <Compile Include="Composite\IVoteJoinPersonService.cs" />
+    <Compile Include="Composite\IVoteQuestionService.cs" />
+    <Compile Include="Composite\IVoteQuestionTempService.cs" />
+    <Compile Include="Composite\IVoteRoleService.cs" />
+    <Compile Include="Composite\IVoteSelectedAnserService.cs" />
+    <Compile Include="Composite\IVoteThemeInfoService.cs" />
+    <Compile Include="Composite\IVoteTidQieService.cs" />
+    <Compile Include="Composite\IVw_cz_uum_LeadersService.cs" />
+    <Compile Include="Composite\NnerVoicesService.cs" />
+    <Compile Include="Composite\OGSMElectricityService.cs" />
+    <Compile Include="Composite\OGSMInfoService.cs" />
+    <Compile Include="Composite\OGSMMonthService.cs" />
+    <Compile Include="Composite\OGSMService.cs" />
+    <Compile Include="Composite\OGSMStaticService.cs" />
+    <Compile Include="ITSupport\LibraryStatisticsService.cs" />
+    <Compile Include="ITSupport\ProjService.cs" />
+    <Compile Include="ITSupport\ScrapDetailService.cs" />
+    <Compile Include="ITSupport\StockAssetService.cs" />
+    <Compile Include="ITSupport\StockService.cs" />
+    <Compile Include="Composite\VoteAnserTempService.cs" />
+    <Compile Include="Composite\VoteQuestionTempService.cs" />
+    <Compile Include="Composite\VoteTidQieService.cs" />
+    <Compile Include="Composite\VoteThemeInfoService.cs" />
+    <Compile Include="Composite\VoteSelectedAnserService.cs" />
+    <Compile Include="Composite\VoteRoleService.cs" />
+    <Compile Include="Composite\VoteQuestionService.cs" />
+    <Compile Include="Composite\VoteJoinPersonService.cs" />
+    <Compile Include="Composite\VoteAppQidService.cs" />
+    <Compile Include="Composite\VoteApplyService.cs" />
+    <Compile Include="Composite\VoteAnserService.cs" />
+    <Compile Include="Administrative\IBoardroomApplyService.cs" />
+    <Compile Include="Administrative\IBoardroomInfoService.cs" />
+    <Compile Include="Administrative\BoardroomInfoService.cs" />
+    <Compile Include="Composite\Vw_cz_uum_LeadersService.cs" />
+    <Compile Include="MarketPlan\IUcs_MarketPlan1Service.cs" />
+    <Compile Include="MarketPlan\IUcs_MarketPlan2_TmpService.cs" />
+    <Compile Include="MarketPlan\IUcs_MarketPlan3_TmpService.cs" />
+    <Compile Include="MarketPlan\IUcs_MarketPlan3Service.cs" />
+    <Compile Include="MarketPlan\IUcs_MarketPlanMonitorService.cs" />
+    <Compile Include="MarketPlan\IUcs_MarketPlanLogService.cs" />
+    <Compile Include="MarketPlan\Ucs_MarketPlan1Service.cs" />
+    <Compile Include="MarketPlan\Ucs_MarketPlan2_TmpService.cs" />
+    <Compile Include="MarketPlan\Ucs_MarketPlan3_TmpService.cs" />
+    <Compile Include="MarketPlan\Ucs_MarketPlan3Service.cs" />
+    <Compile Include="MarketPlan\Ucs_MarketPlanMonitorService.cs" />
+    <Compile Include="MarketPlan\Ucs_MarketPlanLogService.cs" />
+    <Compile Include="MarketPlan\Ucs_MarketPlan2Service.cs" />
+    <Compile Include="MarketPlan\IUcs_MarketPlan2Service.cs" />
+    <Compile Include="OperatingFloor\ComeBack\ComebackApplyService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\ComebackChildService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\ComebackDeptService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\ComebackSourceService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\ComebackTypeService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\IComebackApplyService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\IComebackChildService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\IComebackDeptService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\IComebackSourceService.cs" />
+    <Compile Include="OperatingFloor\ComeBack\IComebackTypeService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SysManger\IUserConfigService.cs" />
+    <Compile Include="SysManger\SysLogService.cs" />
+    <Compile Include="SysManger\UserConfigService.cs" />
+    <Compile Include="SysManger\VwCzRemindersDetailService.cs" />
+    <Compile Include="SysManger\CzRemindersService.cs" />
+    <Compile Include="SysManger\ICzRemindersService.cs" />
+    <Compile Include="SysManger\IVwCzRemindersDetailService.cs" />
+    <Compile Include="SysManger\IDataIdToIntService.cs" />
+    <Compile Include="SysManger\DataIdToIntService.cs" />
+    <Compile Include="SysManger\PendingDataService.cs" />
+    <Compile Include="SysManger\CzUumPostsService.cs" />
+    <Compile Include="SysManger\CzUumLeadersService.cs" />
+    <Compile Include="SysManger\IPendingDataService.cs" />
+    <Compile Include="SysManger\ICzUumLeadersService.cs" />
+    <Compile Include="SysManger\ICzUumPostsService.cs" />
+    <Compile Include="SysManger\Uum_OrganizationinfoService.cs" />
+    <Compile Include="SysManger\Uum_UserinfoService.cs" />
+    <Compile Include="SysManger\Uum_Organizationinfo_LogService.cs" />
+    <Compile Include="SysManger\Uum_Userinfo_LogService.cs" />
+    <Compile Include="SysManger\ActivitySetService.cs" />
+    <Compile Include="SysManger\IUum_OrganizationinfoService.cs" />
+    <Compile Include="SysManger\IUum_Organizationinfo_LogService.cs" />
+    <Compile Include="SysManger\IUum_UserinfoService.cs" />
+    <Compile Include="SysManger\IUum_Userinfo_LogService.cs" />
+    <Compile Include="SysManger\IActivitySetService.cs" />
+    <Compile Include="SysManger\Tracking_Activities_CompletedService.cs" />
+    <Compile Include="SysManger\ITracking_Activities_CompletedService.cs" />
+    <Compile Include="SysManger\IActivitiesService.cs" />
+    <Compile Include="ITSupport\ICancellingDetailService.cs" />
+    <Compile Include="ITSupport\IConsumingDetailService.cs" />
+    <Compile Include="ITSupport\ILibraryStatisticsService.cs" />
+    <Compile Include="SysManger\IScheduleService.cs" />
+    <Compile Include="ITSupport\IScrapDetailService.cs" />
+    <Compile Include="SysManger\ISysFavoriteLinkService.cs" />
+    <Compile Include="SysManger\ISysFavoriteService.cs" />
+    <Compile Include="SysManger\ITracking_WorkflowService.cs" />
+    <Compile Include="SysManger\IUsersGrounpService.cs" />
+    <Compile Include="SysManger\IUsersGrounp_MemberService.cs" />
+    <Compile Include="SysManger\ITracking_Todo_CompletedService.cs" />
+    <Compile Include="SysManger\ITracking_ToReview_DetailService.cs" />
+    <Compile Include="SysManger\ITracking_TodoService.cs" />
+    <Compile Include="SysManger\IWorkflowsService.cs" />
+    <Compile Include="SysManger\ScheduleService.cs" />
+    <Compile Include="SysManger\ActivitiesService.cs" />
+    <Compile Include="SysManger\SysFavoriteService.cs" />
+    <Compile Include="SysManger\SysFavoriteLinkService.cs" />
+    <Compile Include="SysManger\Tracking_WorkflowService.cs" />
+    <Compile Include="SysManger\UsersGrounp_MemberService.cs" />
+    <Compile Include="SysManger\UsersGrounpService.cs" />
+    <Compile Include="SysManger\Tracking_Todo_CompletedService.cs" />
+    <Compile Include="SysManger\WorkflowsService.cs" />
+    <Compile Include="SysManger\Tracking_ToReview_DetailService.cs" />
+    <Compile Include="SysManger\Tracking_TodoService.cs" />
+    <Compile Include="SysManger\Cziams_Departments_MappingsService.cs" />
+    <Compile Include="SysManger\DataDictionaryService.cs" />
+    <Compile Include="SysManger\ICziams_Departments_MappingsService.cs" />
+    <Compile Include="SysManger\IDataDictionaryService.cs" />
+    <Compile Include="SysManger\IOperateLogService.cs" />
+    <Compile Include="SysManger\IPendingJobService.cs" />
+    <Compile Include="SysManger\IPendingMsgService.cs" />
+    <Compile Include="SysManger\IResourcesService.cs" />
+    <Compile Include="SysManger\IRolesInResourcesService.cs" />
+    <Compile Include="SysManger\ISysDeptmentService.cs" />
+    <Compile Include="SysManger\ICziams_EmployeesService.cs" />
+    <Compile Include="SysManger\ICziams_DepartmentsService.cs" />
+    <Compile Include="SysManger\ICziams_RanksService.cs" />
+    <Compile Include="SysManger\ICziams_PostsService.cs" />
+    <Compile Include="SysManger\ICziams_LeadersService.cs" />
+    <Compile Include="SysManger\ISysLinkService.cs" />
+    <Compile Include="SysManger\ISysMenuService.cs" />
+    <Compile Include="SysManger\ISysServiceStrategyLogService.cs" />
+    <Compile Include="SysManger\ISysServiceStrategyService.cs" />
+    <Compile Include="SysManger\ISysServicesService.cs" />
+    <Compile Include="SysManger\ISysRoleService.cs" />
+    <Compile Include="SysManger\ISysNoticeService.cs" />
+    <Compile Include="SysManger\ISysUserService.cs" />
+    <Compile Include="SysManger\ISysUsersInRolesService.cs" />
+    <Compile Include="SysManger\ISysVersionService.cs" />
+    <Compile Include="SysManger\OperateLogService.cs" />
+    <Compile Include="SysManger\PendingJobService.cs" />
+    <Compile Include="SysManger\PendingMsgService.cs" />
+    <Compile Include="SysManger\ResourcesService.cs" />
+    <Compile Include="SysManger\RolesInResourcesService.cs" />
+    <Compile Include="SysManger\SysDeptmentService.cs" />
+    <Compile Include="SysManger\Cziams_EmployeesService.cs" />
+    <Compile Include="SysManger\Cziams_DepartmentsService.cs" />
+    <Compile Include="SysManger\Cziams_RanksService.cs" />
+    <Compile Include="SysManger\Cziams_PostsService.cs" />
+    <Compile Include="SysManger\Cziams_LeadersService.cs" />
+    <Compile Include="SysManger\SysLinkService.cs" />
+    <Compile Include="SysManger\SysMenuService.cs" />
+    <Compile Include="SysManger\SysServiceStrategyLogService.cs" />
+    <Compile Include="SysManger\SysServiceStrategyService.cs" />
+    <Compile Include="SysManger\SysServicesService.cs" />
+    <Compile Include="SysManger\SysRoleService.cs" />
+    <Compile Include="SysManger\SysNoticeService.cs" />
+    <Compile Include="SysManger\SysUserService.cs" />
+    <Compile Include="SysManger\SysUsersInRolesService.cs" />
+    <Compile Include="SysManger\SysVersionService.cs" />
+    <Compile Include="WelfareManage\IPersonalWelfareManageYearInfoService.cs" />
+    <Compile Include="WelfareManage\IPersonalWelfareManageMonthInfoService.cs" />
+    <Compile Include="WelfareManage\PersonalWelfareManageYearInfoService.cs" />
+    <Compile Include="WelfareManage\PersonalWelfareManageMonthInfoService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CZManageSystem.Core\CZManageSystem.Core.csproj">
+      <Project>{65dbfd20-d51f-474c-a6ab-b00dd451b922}</Project>
+      <Name>CZManageSystem.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CZManageSystem.Data\CZManageSystem.Data.csproj">
+      <Project>{139758a1-2efd-4150-a1f7-9503daed932c}</Project>
+      <Name>CZManageSystem.Data</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

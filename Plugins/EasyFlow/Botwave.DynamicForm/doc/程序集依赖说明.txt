@@ -1,0 +1,9 @@
+﻿1. Botwave.DynamicForm 这是流程核心引擎，依赖外部程序集：	(1)	Botwave.Core 这是项目公用程序集.		(2)	NVelocity.dll	
+2. Botwave.DynamicForm.IBatisNet 这是实现数据访问层的程序集.	(1)	Botwave.Core 这是项目公用程序集.			(2)	Botwave.Extension.IBatisNet 这是 IBatis.NET 数据操作公用程序集.		(3)	Botwave.DynamicForm 这是动态表单核心程序集.	
+
+	(4)	IBatisNet.Common.dll
+	(5)	IBatisNet.DataMapper.dll
+	(6)	log4net.dll
+	(7)	NVelocity.dll
+
+注：如果需要脱离以上依赖可以另外建立一个新程序集，将所关系的类迁移到新程序集中。

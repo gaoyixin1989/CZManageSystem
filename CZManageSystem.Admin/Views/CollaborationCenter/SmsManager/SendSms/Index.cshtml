@@ -1,0 +1,271 @@
+﻿
+@{
+    ViewBag.Title = "短信查询";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('NoticeController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            $scope.addData = function () {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'SendSms/SmsSend?type=edit';
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'SendSms/SmsSend?ID=' + obj.ID;
+                //if (obj.State == 0) {
+                //    src += '&type=edit';
+                //}
+                //else {
+                //    src += '&type=look';
+                //}
+                src += '&type=look';
+
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+
+
+                window.location.href = src;
+            }
+
+            //显示title
+            $scope.showTitle = function ($event, value) {
+                ele = $event.target;
+                if (!value) {
+                    value = ele.innerHTML;
+                }
+                if (ele.offsetWidth < ele.scrollWidth) {
+                    ele.title = ele.innerHTML;
+                }
+                else {
+                    ele.title = '';
+                }
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'SendSms/GetListData', postData);
+            };
+
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="NoticeController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    发送内容：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Context" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    发送人：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.UserName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    发送状况：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.Error">
+                                <option value="">全部</option>
+                                <option value="false">成功</option>
+                                <option value="true">失败</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    发送时间：
+                </td>
+                <td colspan="3">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="ui-input" style="margin-right:0px;">
+                                    <input type="text" id="Date_start" date-Picker ng-model="queryBuilder.Date_start" class="cell-input cell-input-data" readonly>
+                                    <i class="icon-data"></i>
+                                </div>
+                            </td>
+                            <td style="padding-left:5px;padding-right:5px;">至</td>
+                            <td>
+                                <div class="ui-input">
+                                    <input type="text" id="Date_end" date-Picker ng-model="queryBuilder.Date_end" class="cell-input cell-input-data" readonly>
+                                    <i class="icon-data"></i>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td colspan="2">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="ui-input">
+                                    <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="ui-input">
+                                    <a ng-click="addData()" class="cell-btn-blue" style="*margin-bottom:8px;">新短信</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>发送内容</th>
+                <th>发送时间</th>
+                <th>发送人</th>
+                <th>发送状况</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                @*<td><a ng-click="clickTitle(emp)">{{emp.Context}}</a></td>*@
+                <td>
+                    <a ng-click="clickTitle(emp)">
+                        <div class="divOverflow" ng-mouseenter="showTitle($event)" style="width:450px; color:blue;">
+                            {{emp.Context}}
+                        </div>
+                    </a>
+                </td>
+                <td ng-bind="emp.Time|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                <td>{{emp.SenderName}}</td>
+                <td>{{emp.Error==true?'失败':'成功'}}</td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+
+
+
+

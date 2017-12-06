@@ -1,0 +1,439 @@
+﻿
+@{
+    ViewBag.Title = "其他休假明细编辑";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+
+            //获取当前数据
+            var ID = '@ViewData["ID"]';
+            $scope.holiday = {};
+            $scope.meeting = {};
+            $scope.courses = {};
+            $scope.teaching = {};
+            $scope.other = {};
+            $scope.VacationTypeList = [];
+            $scope.VacationClassList = [];
+            $scope.CoursesTypeList = []; //课程类别
+            $scope.ProvinceCityList = []; //主办单位
+            $scope.TeacherTypeList = [];//讲师级别
+            BusinessService.GetVacationTypeList().success(function (response) {
+                $scope.VacationTypeList = response.VacationList;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            $scope.VacationChange = function () {
+                if ($scope.holiday.VacationType == "公假") {
+                    $('.forVacation').show();
+                    BusinessService.GetVacationClassList().success(function (response) {
+                        $scope.VacationClassList = response.VacationClassList;
+                    }).error(function (response) {
+                        box.alert("错误!!！", { icon: 'error' });
+                    });
+                } else {
+                    $('.forVacation').hide();
+                }
+               // 
+              
+            };
+            //-----------------------------
+            $scope.VacationClassChange = function () {
+                $scope.VacationClass();
+            };
+
+            
+            //------------------
+            $scope.VacationClass = function () {
+                if ($scope.holiday.VacationClass == "开会") {
+                    $('.formeeting').show();
+                    $('.forcourses').hide();
+                    $('.forteaching').hide();
+                    $('.forother').hide();
+                }
+                else if ($scope.holiday.VacationClass == "培训") {
+                    $('.forcourses').show();
+                    $('.formeeting').hide();
+                    $('.forteaching').hide();
+                    $('.forother').hide();
+                    BusinessService.GetCourseList().success(function (response) {
+                        $scope.CoursesTypeList = response.CoursesList;
+                        $scope.ProvinceCityList = response.ProvinceCityList;
+                    }).error(function (response) {
+                        box.alert("错误!!！", { icon: 'error' });
+                    });
+                }
+                else if ($scope.holiday.VacationClass == "内部讲师授课") {
+                    $('.forteaching').show();
+                    $('.formeeting').hide();
+                    $('.forcourses').hide();
+                    $('.forother').hide();
+                    BusinessService.GetTeacherList().success(function (response) {
+                        $scope.TeacherTypeList = response.TeacherTypeList;
+                    }).error(function (response) {
+                        box.alert("错误!!！", { icon: 'error' });
+                    });
+                }
+                else if ($scope.holiday.VacationClass == "其他") {
+                    $('.forother').show();
+                    $('.formeeting').hide();
+                    $('.forcourses').hide();
+                    $('.forteaching').hide();
+                }
+                else {
+                    $('.formeeting').hide();
+                    $('.forcourses').hide();
+                    $('.forteaching').hide();
+                    $('.forother').hide();
+                }
+                // 
+
+            };
+
+            if (ID != null && ID.toString().length > 0) {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.holiday = response.list;
+                    $scope.VacationClass();
+                    $scope.meeting = response.m;
+                    $scope.courses = response.c;
+                    $scope.teaching = response.t;
+                    $scope.other = response.o;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.holiday.ID = ID;
+                    var postData = { holiday: $scope.holiday, meeting: $scope.meeting, courses: $scope.courses, teaching: $scope.teaching, other: $scope.other }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'VacationHoliday/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //选择用户（管理人）
+            $scope.editUser = function (users) {
+                var iframeId = 'user_edit';
+                var iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + users;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: '选择用户',
+                        width: 760,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.holiday.UserId = getAttrByArr(result, 'id').join(",");
+                                    $scope.holiday.UserName = getAttrByArr(result, 'text').join(",");
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            //------------------------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (ID) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetByID?ID=' + ID
+
+                });
+            };
+            serive.GetVacationTypeList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetVacationTypeList'
+                });
+            };
+            serive.GetVacationClassList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetVacationClassList'
+                });
+            };
+            serive.GetCourseList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetCourseList'
+                });
+            };
+            serive.GetTeacherList = function () {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'VacationHoliday/GetTeacherList'
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>姓名：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input style="display:none;" type="text" name="UserId" ng-model="holiday.UserId" required class="cell-input" />
+                            <input type="text" ng-model="holiday.UserName" class="cell-input" readonly ng-click="editUser(holiday.UserId)" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.UserId.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.UserId.$error.required">请选择休假人</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>开始时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="StartTime" name="StartTime" required date-Picker dateFmt="yyyy-MM-dd HH:mm:ss " ng-model="holiday.StartTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入开始时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>结束时间：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="EndTime" name="EndTime" required date-Picker dateFmt="yyyy-MM-dd HH:mm:ss" ng-model="holiday.EndTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.EndTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输入结束时间</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>假期天数：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="PeriodTime" number ng-model="holiday.PeriodTime" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PeriodTime.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.PeriodTime.$error.required">请输入假期天数</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>休假类型：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="VacationType" required ng-model="holiday.VacationType" ng-change="VacationChange()" style="width:222px;">
+                                    <option ng-repeat="x in VacationTypeList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                                </select>
+
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.VacationType.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择休假类型</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr class="forVacation" style="display:none;"  >
+                    <th>公假类型：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="VacationClass" required ng-model="holiday.VacationClass" ng-change="VacationClassChange()" style="width:222px;">
+                                    <option ng-repeat="x in VacationClassList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr class="formeeting" style="display:none;">
+                    <th>会议名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="MeetingName" number ng-model="meeting.MeetingName" class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forcourses" style="display:none;">
+                    <th>课程名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CoursesName" number ng-model="courses.CoursesName"  class="cell-input" />
+                            </div>
+                    </td>
+                </tr>
+                <tr class="forcourses" style="display:none;">
+                    <th>课程类别：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="CoursesType"  ng-model="courses.CoursesType" style="width:222px;">
+                                    <option ng-repeat="x in CoursesTypeList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr class="forcourses" style="display:none;">
+                    <th>主办单位：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="ProvinceCity"  ng-model="courses.ProvinceCity" style="width:222px;">
+                                    <option ng-repeat="x in ProvinceCityList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr class="forteaching" style="display:none;">
+                    <th>授课名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="TeachingPlan" number ng-model="teaching.TeachingPlan"  class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forteaching" style="display:none;">
+                    <th>讲师级别：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="TeacherType" ng-model="teaching.TeacherType" style="width:222px;">
+                                    <option ng-repeat="x in TeacherTypeList" value="{{x.DDValue}}">{{x.DDText}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr class="forother">
+                    <th>事件名称：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="OtherName" number ng-model="other.OtherName"  class="cell-input" />
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

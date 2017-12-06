@@ -1,0 +1,136 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('BirthControlSingleChildrenController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                queryBuilder: $scope.queryBuilder
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                GetListData();
+            }
+            $scope.ShowDetail=function()
+            {
+                if ($("#StaticSM").css("display") == "none") {
+                    $("#StaticSM").show();
+                }
+                else {
+                    $("#StaticSM").hide();
+                }
+            }
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'BirthControlSingleChildren/GetListData', postData);
+            };
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+
+
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="BirthControlSingleChildrenController">
+    <!--content#0085d1--->   
+    <div id="StaticSM" class="search-mod" style="display:none">
+        <table>
+            <tr style="height:30px; color:lightcoral; line-height:20px">
+                <td>
+                    &nbsp;&nbsp; 统计方法：计划生育员工子女信息中是独生子女且子女年龄为14周岁下的数据。<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp;如果夫妻不同单位，以移动公司员工进行统计。<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp;如果夫妻双方均为移动员工，显示配偶名称。<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp;如果夫妻双方均为移动公司正式工，以女方进行统计。<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp;如果夫妻双方均为移动员工，一个正式，一份非正式员工，以正式员工进行统计。<br />
+                    &nbsp;&nbsp; &nbsp;&nbsp;如果两个人都是移动公司员工，但不是正式员工，不进行统计。<br />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>员工姓名</th>
+                <th>所属部门</th>
+                <th>子女姓名</th>
+                <th>子女出生日期</th>
+                <th>夫妻是否同单位</th>
+                <th>配偶姓名(夫妻同单位时)</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="emp.RealName"></td>
+                <td ng-bind="emp.DpName"></td>
+                <td ng-bind="emp.Name"></td>
+                <td ng-bind="emp.Birthday|date:'yyyy-MM-dd'"></td>
+                <td ng-bind="emp.sameworkplace"></td>
+                <td ng-bind="emp.SpouseName"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="ShowDetail()" class="btn-find"><i></i>查看统计方法</a></li> 
+                <li><a href="../BirthControlSingleChildren/Export" class="btn-export"><i></i>导出</a></li>   
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+

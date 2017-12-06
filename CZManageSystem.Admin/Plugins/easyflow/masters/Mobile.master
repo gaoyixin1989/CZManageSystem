@@ -1,0 +1,89 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="masters_Mobile" CodeBehind="Mobile.master.cs" %>
+
+<!DOCTYPE html>
+<html manifest="<%=AppPath %>res/mobilecache.mf">
+<head runat="server">
+    <title>流程易（EF）－中国移动广东公司潮州分公司</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <asp:ContentPlaceHolder ID="cphHead" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body role="document">
+    <div class="loading-backdrop fade in"></div>
+    <script type="text/javascript">
+        $(".loading-backdrop").show();
+        $(".loading-backdrop").showLoading();
+    </script>
+    <form id="form1" runat="server" enctype="multipart/form-data">
+
+        <div style="display: none;" id="navbar">
+            <bw:SiteMapPath ID="sitePath1" SkipLinkText="" Target="rightFrame" DisplaySize="5"
+                runat="server">
+            </bw:SiteMapPath>
+        </div>
+        <asp:ContentPlaceHolder ID="cphBody" runat="server">
+        </asp:ContentPlaceHolder>
+        <script language="javascript" type="text/javascript">
+            $(document).ready(function () {
+           <%-- //alert($.cookie("<%=Botwave.Security.LoginHelper.UserCookieKey %>"))--%>
+                try {
+               <%-- if ($.cookie("<%=Botwave.Security.LoginHelper.UserCookieKey %>") == "undefined"
+        || $.cookie("<%=Botwave.Security.LoginHelper.UserCookieKey %>") == null
+        || "<%=Botwave.Security.LoginHelper.UserName %>" == "anonymous")--%>
+                if (<%=!Botwave.Security.LoginHelper.IsLoginUser%> || "<%=Botwave.Security.LoginHelper.UserName %>"== "anonymous")
+                {//缓存页面的cookie操作
+                    window.location = "<%=AppPath %>apps/gmcc/pages/loginmobile.aspx";
+                }
+
+                $(".form_date").datetimepicker({
+                    format: 'yyyy-mm-dd',
+                    language: 'zh-CN',
+                    weekStart: 1,
+                    todayBtn: 1,
+                    autoclose: 1,
+                    todayHighlight: 1,
+                    startView: 2,
+                    minView: 2,
+                    forceParse: 0
+                });
+                $(".form_datetime").datetimepicker({
+                    format: 'yyyy-mm-dd hh:ii:ss',
+                    language: 'zh-CN',
+                    autoclose: true,
+                    todayBtn: true,
+                    minuteStep: 1,
+                    todayHighlight: 1,
+                    startView: 1,
+                    minView: 0,
+                    maxView: 1,
+                    forceParse: 0
+                });
+            }
+                catch (e) { }
+            });
+
+        $(".loading-backdrop").hideLoading();
+            // Check if a new cache is available on page load. 
+        if(!!window.addEventListener&&!!window.applicationCache){
+            window.addEventListener('load', function (e) {
+                window.applicationCache.addEventListener('updateready', function (e) {
+                    if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+                        // Browser downloaded a new app cache. 
+                        // Swap it in and reload the page to get the new hotness. 
+                        window.applicationCache.swapCache();
+                        window.applicationCache.update();
+                        if (confirm('网站有新版本. 是否更新?')) {
+                            window.location.reload();
+                        }
+                    } else {
+                        // Manifest didn't changed. Nothing new to server. 
+                    }
+                }, false);
+            }, false);
+        }
+        </script>
+    </form>
+</body>
+</html>

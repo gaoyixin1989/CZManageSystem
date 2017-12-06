@@ -1,0 +1,212 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $filter, $timeout, BusinessService, ngDialog) {
+            $scope.curObj = {
+            };
+            var choseArr = new Array();
+            var id = '@ViewData["Id"]';
+            var getComData = false;
+            var getComData2 = false;
+            //获取周期类型
+            BusinessService.getDinningRoomAsDict().success(function (response) {
+                $scope.dictDinningRoom = response;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData = true; });
+            //获取周期类型
+            BusinessService.getDictListByName('菜式类型').success(function (response) {
+                $scope.dictCuisineType = response.items;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData2 = true; });
+
+            var loadCurData = function () {
+                $timeout(function () {
+                    if (getComData && getComData2) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            $scope.curObj = response;
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+            if (id != "00000000-0000-0000-0000-000000000000") {
+                loadCurData();
+            }
+
+
+            $scope.save = function () {
+                var tempDatas = $filter('filter')($scope.ListPageData, function (obj) {
+                    return choseArr.indexOf(obj.Id) > -1;
+                });
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'OrderMealCuisine/Index?DinningRoomID=@ViewData["DinningRoomID"]';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OrderMealCuisine/GetPlaceListData', postData);
+            };
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OrderMealCuisine/Save',
+                    data: postData
+                });
+                //return $http.post(CurPath + 'OrderMealCuisine/Save', postData);
+            };
+            //获取服务信息作为字典
+            serive.getDinningRoomAsDict = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OrderMealDinningRoom/getDinningRoomAsDict'
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OrderMealCuisine/GetDataByID/' + id
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table id="ForEdit">
+            <tr>
+                <th>
+                    所属食堂：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="curObj.DinningRoomID" required name="DinningRoomID" ng-change="ChangeCommand(curObj.DinningRoomID,curObj.Id);" style="width:70px;" ng-options="x.DinningRoomID as x.DinningRoomName for x in dictDinningRoom">
+                                <option value="">全部</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.DinningRoomID.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.DinningRoomID.$valid">请选择所属食堂</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>            
+            <tr>
+                <th>
+                    菜式名称：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="curObj.CuisineName" name="CuisineName" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.CuisineName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-hide="editForm.CuisineName.$valid">请输入菜式名称</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    菜式类型：
+                </th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="curObj.CuisineType" required name="CuisineType" style="width:70px;" ng-options="x.text as x.text for x in dictCuisineType">
+                                <option value="">全部</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CuisineType.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.CuisineType.$valid">请选择菜式类型</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>          
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" id="ForEdit_saveOption" style="width:70px; margin-right:20px;">保存</a>
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!-- end--->
+
+

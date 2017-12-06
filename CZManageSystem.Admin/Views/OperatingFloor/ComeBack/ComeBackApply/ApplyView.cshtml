@@ -1,0 +1,186 @@
+﻿
+@{
+    ViewBag.Title = "ApplyView";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'look') {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            $scope.apply = {};
+            var ApplyId = '@ViewData["ApplyId"]';
+            $scope.apply = {};
+            if (ApplyId != null && ApplyId.toString().length > 0) {
+                BusinessService.getDataByID(ApplyId).success(function (response) {
+                    $scope.apply = response.items;
+                    //---------------------------
+
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+            //-------------------------------------
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.getDataByID = function (ApplyId) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'ComeBackApply/ComebackApplyGetByID?ApplyId=' + ApplyId
+
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    .ui-label label {
+        margin-right: 10px;
+        line-height: 30px;
+        float: left;
+    }
+
+    .showMulti {
+        /*background-color: #F9F9F9;*/
+    }
+
+    .WF_Table {
+        width: 100%;
+        border: 1px solid #EAEAEA;
+        border-width: 1px 0px 0px 1px;
+        border-collapse: collapse;
+    }
+
+        .WF_Table tr th {
+            background: white;
+            padding: 7px;
+            font-weight: bold;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            text-align: center;
+        }
+
+        .WF_Table tr td {
+            padding: 5px;
+            border: 1px solid #EAEAEA;
+            border-width: 0px 1px 1px 0px;
+            width: 35%;
+        }
+
+        .WF_Table tr th {
+            background: #F4F4F4;
+            width: 15%;
+        }
+</style>
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" ApplyId="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table class="WF_Table">
+            <tr>
+                <th>申请人：</th>
+                <td>{{apply.ApplyUser}}</td>
+                <th>所在部门：</th>
+                <td>{{apply.ApplyDept}} </td>
+            </tr>
+            <tr>
+                <th>联系电话：</th>
+                <td> {{apply.Mobile}}  </td>
+                <th>申请日期：</th>
+                <td>
+                    {{apply.ApplyTime}}
+                </td>
+            </tr>
+            <tr>
+                <th>标题：</th>
+                <td>
+                    {{apply.Title}}
+                </td>
+                <th>流程单号：</th>
+                <td>
+                    {{apply.Series}}
+                </td>
+            </tr>
+            <tr>
+                <th>预算需求部门：</th>
+                <td>{{apply.BudgetDept}}</td>
+                <th>申请资源类别：</th>
+                <td>{{apply.SourceType}} </td>
+            </tr>
+            <tr>
+                <th>项目开始时间：</th>
+                <td>{{apply.TimeStart}}</td>
+                <th>项目结束时间：</th>
+                <td>{{apply.TimeEnd}} </td>
+            </tr>
+            <tr>
+                <th>预算年度：</th>
+                <td>{{apply.Year}}</td>
+                <th>拟开展项目名称：</th>
+                <td>{{apply.ProjName}}</td>
+
+            </tr>
+            <tr>
+                <th>拟立或已立预算项目名称：</th>
+                <td>{{apply.PrevProjName}} </td>
+                <th>拟立或已立预算项目编号：</th>
+                <td>{{apply.PrevProjCode}}</td>
+            </tr>
+            <tr>
+                <th>不含税金额申请额度：</th>
+                <td>{{apply.AppAmount}}</td>
+                <th>含税金额申请额度：</th>
+                <td>{{apply.AppAmountHanshui}} </td>
+            </tr>
+            <tr>
+                <th>项目经办人：</th>
+                <td>{{apply.ProjManager}} </td>
+                <th>预算年度：</th>
+                <td>{{apply.Year}}</td>
+            </tr>
+            <tr>
+                <th>项目开展必要性及效益性分析：</th>
+                <td colspan="3">{{apply.AppAmountHanshui}} </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td colspan="3">
+                    {{apply.Remark}}
+                </td>
+            </tr>          
+        </table>
+        <table class="editWithout">
+            <tr>
+                <td colspan="4">
+                    <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+
+        </table>
+    </form>
+</div>
+

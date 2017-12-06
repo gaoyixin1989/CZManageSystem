@@ -1,0 +1,233 @@
+﻿
+@{
+    ViewBag.Title = "历史项目暂估流程监控";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('NoticeController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                Title: "",
+                State: 1
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+
+
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+
+
+                var src = CurPath + 'AgoEstimate/AgoEstimateApplyWfLook?ApplyID=' + obj.ID;
+                window.location.href = src;
+            }
+
+            $scope.getStateText = function (state) {
+                var result = '';
+                switch (state) {
+                    case 0: result = '未提交'; break;
+                    case 1: result = '已提交'; break;
+                    default: result = '未知状态'; break;
+                }
+                return result;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'AgoEstimate/GetListData_AgoEstimateApplyList', postData);
+            };
+
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="NoticeController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;标题：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Title" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    状态：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.WF_State">
+                                <option value="">全部</option>
+                                <option value="1">已提交</option>
+                                <option value="2">已完成</option>
+                                <option value="99">已取消</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <table>
+                        <tr>
+                            <td>
+                                申请时间：
+                            </td>
+                            <td>
+                                <div class="ui-input" style="margin-right:0px;">
+                                    <input type="text" id="AppTime_start" date-Picker ng-model="queryBuilder.ApplyTime_start" class="cell-input cell-input-data" readonly>
+                                    <i class="icon-data"></i>
+                                </div>
+                            </td>
+                            <td style="padding-left:5px;padding-right:5px;">至</td>
+                            <td>
+                                <div class="ui-input">
+                                    <input type="text" id="AppTime_end" date-Picker ng-model="queryBuilder.ApplyTime_end" class="cell-input cell-input-data" readonly>
+                                    <i class="icon-data"></i>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="display:none;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>单号</th>
+                <th>申请时间</th>
+                <th>标题</th>
+                <th>已处理环节</th>
+                <th>处理人</th>
+                <th>处理时间</th>
+                <th>操作</th>
+                <th>状态</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td style="display:none;"><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                <td>{{emp.State==0?'(提交时自动生成)':emp.Series}}</td>
+                <td ng-bind="emp.ApplyTime|date:'yyyy-MM-dd HH:mm'"></td>
+                <td><a class="titleCol" ng-click="clickTitle(emp)">{{emp.Title}}</a></td>
+                <td>{{emp.WF_LastActivityInfo.ActivityName}}</td>
+                <td>{{emp.WF_LastActivityInfo.ActorDescription}}</td>
+                <td ng-bind="emp.WF_LastActivityInfo.FinishedTime|date:'yyyy-MM-dd HH:mm'"></td>
+                <td>{{emp.WF_LastActivityInfo.CommandText}}</td>
+                <td>
+                    <div title="{{emp.WF_StateText=='已提交'?emp.WF_CurActivityName:''}}">{{emp.WF_StateText}}</div>
+                </td>
+            </tr>
+
+        </table>
+    </div>
+    <!--content--->
+</div>
+
+

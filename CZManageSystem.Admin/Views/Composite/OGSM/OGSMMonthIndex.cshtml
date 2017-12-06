@@ -1,0 +1,374 @@
+﻿
+@{
+    ViewBag.Title = "OGSMMonthIndex";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+     <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('OGSMMonthController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService,ngDialog) {
+            $scope.queryBuilder = {
+                USR_NBR: "",
+                IsPayment: "",
+                PaymentTime_Start: "",
+                PaymentTime_End: "",
+                AccountTime_Start: "",
+                AccountTime_End: "",
+                PAY_MON_Start: "",
+                PAY_MON_End:""
+            };
+            //获取列表
+            var GetListDataByCondition = function () {
+                box.load("GetListDataByCondition");
+                queryBuilder: $scope.queryBuilder
+                
+                //获取最近一次查询条件
+                if (parent.getPageParam != undefined)
+                    postData = parent.getPageParam('@Request.Path');//根据路径获取
+                if (postData == null) {
+                    postData = {
+                        pageIndex: $scope.paginationConf.currentPage,
+                        pageSize: $scope.paginationConf.itemsPerPage,
+                        queryBuilder: $scope.queryBuilder
+                    };
+                }
+                else {
+                    $scope.paginationConf.currentPage = postData.pageIndex;
+                    $scope.paginationConf.itemsPerPage = postData.pageSize;
+                    $scope.queryBuilder = postData.queryBuilder;
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListDataByCondition");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListDataByCondition");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListDataByCondition);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.AddData = function () {
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = CurPath + 'OGSM/OGSMMonthEdit';
+            }
+            $scope.OGSMMonthEdit = function (id) {
+                var url = "";
+                if (id == "" || id == undefined) { //判断是列表点击确发，还是编辑按钮确发
+                    if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                        box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                        return;
+                    };
+                    url = CurPath + 'OGSM/OGSMMonthEdit?id=' + choseArr[0];
+                }
+                else {
+                    url = CurPath + 'OGSM/OGSMMonthEdit?id=' + id;
+                }
+                //保存最近一次的查询条件
+                if (parent.pageParamList != undefined) {
+                    var pageParam = { pageUrl: '@Request.Path', postData: postData };
+                    parent.pageParamList.push(pageParam);
+                }
+                window.location.href = url;
+                //if (choseArr[0] == "" || choseArr.length != 1) {//没有选择一个的时候提示
+                //    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                //    return;
+                //};
+                //window.location.href = CurPath + 'OGSM/OGSMMonthEdit?Id=' + choseArr[0];
+
+            }
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据在操作！")
+                    return;
+                };
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        //alert(choseArr[0]);
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.message == "删除成功") {
+                                $scope.query();
+                                choseArr = new Array();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        });
+                    }
+                });
+            };
+            $scope.deleteOne = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData([id]).success(function (response) {
+                            if (response.message == "删除成功") {
+                                box.alert("删除成功", { icon: 'success' });
+                                $scope.query();
+                                choseArr = new Array();
+                            }
+                            else {
+                                box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                            }
+                        });
+                    }
+                });
+            };
+            $scope.query = function () {
+                GetListDataByCondition();
+            }
+            //导入数据
+            $scope.fileDialog = function () {
+                var _type = 'OGSMMonth'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入数据',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        box.load("loadding");
+                        //获取会议室资料信息
+                        $scope.query();
+                        box.ready("loadding");
+                    }
+                });
+
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OGSM/GetOGSMMonthListDataByCondition', postData);
+            };
+            serive.exportdata = function (postData) {
+                return $http.post(CurPath + 'OGSM/Download', postData);
+            };
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/OGSMMonthDelete',
+                    data: ids
+                });
+            };
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="OGSMMonthController">
+    <!--content--->
+    <div class="search-mod" style="height:60px;">
+        <table>
+            <tr>
+
+                <td>
+                    付款时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="PaymentTime_Start" style="width:60px;" date-Picker ng-model="queryBuilder.PaymentTime_Start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" id="PaymentTime_End" style="width:60px;" date-Picker ng-model="queryBuilder.PaymentTime_End" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;月份:
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.PAY_MON_Start" date-Picker datefmt="yyyyMM" class="cell-input cell-input-data" readonly style="width:60px;" /><i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" ng-model="queryBuilder.PAY_MON_End" date-Picker datefmt="yyyyMM" class="cell-input cell-input-data" readonly style="width:60px;" /><i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    是否已付款：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.IsPayment" style="width:70px;">
+                                <option value="">全部</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>                    
+            </tr>
+            <tr>                
+                <td>
+                    报账时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="AccountTime_Start" style="width:60px;" date-Picker ng-model="queryBuilder.AccountTime_Start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" id="AccountTime_End" style="width:60px;" date-Picker ng-model="queryBuilder.AccountTime_End" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;户号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.USR_NBR" class="cell-input" style="width:70px;" />
+                    </div>
+                </td> 
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>             
+            </tr>          
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>月份</th>
+                <th>户号</th>
+                <th>是否已付款</th>
+                <th>付款时间</th>
+                <th>报账时间</th>
+                <th>报账金额</th>
+                <th>报账单号</th>
+                <th>移动2G功率</th>
+                <th>移动3G功率</th>
+                <th>移动4G功率</th>
+                <th>联通2G功率</th>
+                <th>联通3G功率</th>
+                <th>联通4G功率</th>
+                <th>电信2G功率</th>
+                <th>电信3G功率</th>
+                <th>电信4G功率</th>
+                @*<th>操作</th>*@
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.Id}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.Id)" /></td>
+                <td ng-bind="emp.PAY_MON"></td>
+                <td><a ng-bind="emp.USR_NBR" ng-click="OGSMMonthEdit(emp.Id)"></a></td>
+                @*<td ng-bind="emp.USR_NBR"></td>*@
+                <td ng-bind="emp.IsPayment"></td>
+                <td ng-bind="emp.PaymentTime"></td>
+                <td ng-bind="emp.AccountTime"></td>
+                <td ng-bind="emp.AccountMoney"></td>
+                <td ng-bind="emp.AccountNo"></td>
+                <td ng-bind="emp.CMPower2G"></td>
+                <td ng-bind="emp.CMPower3G"></td>
+                <td ng-bind="emp.CMPower4G"></td>
+                <td ng-bind="emp.CUPower2G"></td>
+                <td ng-bind="emp.CUPower3G"></td>
+                <td ng-bind="emp.CUPower4G"></td>
+                <td ng-bind="emp.CTPower2G"></td>
+                <td ng-bind="emp.CTPower3G"></td>
+                <td ng-bind="emp.CTPower4G"></td>
+                @*<td>
+                    <div class="operation-btn">
+                        <a ng-href="/OGSM/OGSMMonthEdit?id={{emp.Id}}">修改</a>
+                        <a href="javascript:void(0);" ng-click="deleteOne(emp.Id)">删除</a>
+                    </div>
+                </td>*@
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a ng-click="AddData()" class="btn-add"><i></i>添加</a></li>
+                <li><a ng-click="OGSMMonthEdit('')" class="btn-edit"><i></i>编辑</a></li>    
+                <li><a href="javascript:void(0);" ng-click="deleteData()" class="btn-del"><i></i>删除</a></li>
+                <li><a ng-click="fileDialog()" class="btn-import"><i></i>导入</a></li>
+                <li><a href="../OGSM/OGSMMonthExport?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>  
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

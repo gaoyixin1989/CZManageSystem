@@ -1,0 +1,152 @@
+﻿
+@{
+    ViewBag.Title = "流程易日志";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('OperateLogController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.queryBuilder = {
+                Version: ""
+
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    portalID: $scope.queryBuilder.portalID,
+                    Createdtime_Start: $scope.queryBuilder.Createdtime_Start,
+                    Createdtime_End: $scope.queryBuilder.Createdtime_End
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.persons = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                GetListData();
+            }
+           
+          
+           
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OperateLog/GetListData', postData);
+            };
+
+          
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+    </script>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="OperateLogController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    操作人：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.portalID" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    起始时间：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="Createdtime_Start" date-Picker ng-model="queryBuilder.Createdtime_Start" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td style="padding-left:5px;padding-right:5px;">至</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="Createdtime_End" date-Picker ng-model="queryBuilder.Createdtime_End" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                @*<th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>*@
+                @*<th>序号</th>*@
+                @*<th>内容</th>*@
+                <th style="white-space:nowrap">操作时间</th>
+                <th style="white-space:nowrap">操作人portal账号</th>
+                <th style="white-space:nowrap">操作描述</th>
+                <th style="white-space:nowrap">操作类型</th>
+                <th style="white-space:nowrap">异常类型</th>
+            </tr>
+            <tr ng-repeat="emp in persons">
+                @*<td><input type="checkbox" id="{{emp.VerId}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.VerId)" /></td>*@
+                @*<td ng-bind="emp.uid"></td>*@
+                @*<td ng-bind="emp.Content"></td>*@
+                <td style="white-space:nowrap" ng-bind="emp.opStartTime"></td>
+                <td style="white-space:nowrap" ng-bind="emp.portalID"></td>
+                <td style="white-space:nowrap" ng-bind="emp.description"></td>
+                <td style="white-space:nowrap" ng-bind="emp.operationName"></td>
+                <td style="white-space:nowrap" ng-bind="emp.exceptionName"></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+

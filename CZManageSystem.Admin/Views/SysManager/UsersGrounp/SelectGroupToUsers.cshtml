@@ -1,0 +1,206 @@
+﻿
+@{
+    ViewBag.Title = "通过群组选择用户";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <link href="~/Content/css/Drop-Down.css" rel="stylesheet" />
+    <style>
+        body {
+            min-width: 530px;
+        }
+
+        .listSelect {
+            position: relative;
+            width: 220px;
+            height: 300px;
+            overflow: auto;
+            border: 1px solid #eaeaea;
+            background-color: #fff;
+            margin: 0px 10px 10px 0px;
+            float: left;
+            outline: none;
+        }
+
+        .btnDiv a {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+}
+@section Scripts{
+    <script>
+
+        var selectedId = '@ViewData["selectedId"]';
+        var selectedIds = [];
+        if (selectedId != null && selectedId != '') {
+            selectedIds = selectedId.split(',');
+        }
+
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=Controller]');
+            var $scope = angular.element(appElement).scope();
+            var result = [];
+            $.each($scope.selectedData, function (i, item) {
+                result.push({
+                    id: item.UserId,
+                    UserName: item.UserName,
+                    text: item.RealName,
+                    Mobile:item.Mobile
+                });
+            });
+            return result;
+        }
+
+        var app = angular.module('ListPage', ['tm.pagination']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.selectedData = [];//选中的数据
+            $scope.ListGroupData = [];//群组数据
+            $scope.GroupName = null;
+
+            //获取群组数据
+            var getGroupData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: 1,
+                    pageSize: 999999,
+                    GroupName: $scope.GroupName
+                }
+                BusinessService.GetGroupData(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.ListGroupData = response.items;
+                    $.each($scope.ListGroupData, function (i, item) {
+                        item.UserMembers = [];
+                        var arrUserIdtemp = getAttrByArr($filter('filter')(item.Members, { 'type': 'user' }), 'id');
+                        if (arrUserIdtemp.length > 0) {
+                            BusinessService.GetUsersByIds(arrUserIdtemp).success(function (response2) {
+                                item.UserMembers = response2;
+                            });
+                        }
+                    })
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            getGroupData();
+
+            if (selectedIds.length > 0) {//查询用户
+                BusinessService.GetUsersByIds(selectedIds).success(function (response) {
+                    $scope.selectedData = response;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            //选中群组
+            $scope.selectGroupData = function ($event) {
+                var selectedIndex = (!isNaN($event.target.index)) ? $event.target.index : $event.target.selectedIndex;
+                if (selectedIndex < 1) return;
+                var obj = $scope.ListGroupData[selectedIndex - 1];
+                for (var i = 0; i < obj.UserMembers.length; i++) {
+                    $.each(obj.UserMembers, function (j, item) {
+                        if ($filter('filter')($scope.selectedData, { 'UserId': item.UserId }).length <= 0) {
+                            $scope.selectedData.push(item);
+                        }
+                    });
+                }
+
+            }
+
+            //双击取消选择
+            $scope.cancelData = function ($event) {
+                var selectedIndex = (!isNaN($event.target.index)) ? $event.target.index : $event.target.selectedIndex;
+                if (selectedIndex < 1) return;
+                var obj = $scope.selectedData[selectedIndex - 1];
+                var i = $scope.selectedData.indexOf(obj);
+                if (i >= 0) {
+                    $scope.selectedData.splice(i, 1);
+                }
+            }
+
+            //删除选择
+            $scope.delData = function () {
+                var values = $('#selectedData').val();
+                $scope.selectedData = $filter('filter')($scope.selectedData, function (obj) {
+                    return values.indexOf(obj.UserId) < 0;
+                });
+            }
+            //清空选择
+            $scope.cleanData = function () {
+                $scope.selectedData = [];
+            }
+
+            $scope.query = function () {
+                getGroupData();
+            }
+
+        }]);
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.GetGroupData = function (postData) {//获取群组数据
+                return $http.post(CurPath + 'UsersGrounp/GetListData', postData);
+            };
+
+            serive.GetUsersByIds = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysUser/GetDataByIds',
+                    data: { ids: ids }
+                });
+            };
+
+
+            return serive;
+        }]);
+
+    </script>
+}
+
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="ListPage" ng-controller="Controller">
+
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    群组名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="GroupName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="public-table-main" style="position: relative; min-height:302px;">
+        <select class="listSelect" size="20" multiple ng-dblclick="selectGroupData($event)">
+            <option>--------------已选择--------------</option>
+            <option ng-repeat="x in ListGroupData" value="{{x.Id}}">{{x.GroupName}}</option>
+        </select>
+        <div style="float:left; height:300px;margin-right:10px;">
+            <div class="btnDiv">
+                <a ng-click="delData()">删除</a>
+                <a ng-click="cleanData()">清空</a>
+            </div>
+        </div>
+        <select id="selectedData" class="listSelect" size="20" multiple ng-dblclick="cancelData($event)">
+            <option>--------------已选择--------------</option>
+            <option ng-repeat="x in selectedData" value="{{x.UserId}}">{{x.UserName+'--'+x.RealName}}</option>
+        </select>
+    </div>
+</div>

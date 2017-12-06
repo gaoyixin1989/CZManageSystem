@@ -1,0 +1,682 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <link href="~/Content/Javascript/Uploadify/uploadify.css" rel="stylesheet" />
+    <script src="~/Content/Javascript/Uploadify/jquery.uploadify-3.1.min.js"></script>
+    <script src="~/Content/app/filesuploadify.js"></script>
+
+        <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script>
+        $(function () {
+            var type = '@ViewData["type"]';
+            switch (type) {
+                case 'LOOK':
+                    {
+                        $('#ForEdit_Option').remove();
+                        $('#ForEdit_saveOption').remove();
+                        $('#ForEdit_fileDialogOption').remove();
+                        $('#ForEdit input,#ForEdit select,#ForEdit textarea').attr('disabled', 'disabled');
+                        $('#ForEdit_Attachment').remove();
+                    } break;
+            }
+        });
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'filesuploadify', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', 'ngDialog', function ($scope, $timeout, BusinessService, ngDialog) {
+            $scope.curObj = {
+                AttachmentId: ""
+            };
+            var id = '@ViewData["id"]';
+            var getComData = true;
+
+            //获取周期类型
+            BusinessService.getDictListByName('物业属性').success(function (response) {
+                $scope.dictProperty = response.items;
+                //$timeout(function () {
+                //    if (!$scope.curObj.Property && !!response.defaultvalue) {
+                //        $scope.curObj.Property = response.defaultvalue;
+                //    }
+                //}, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData = true; });
+
+            var loadCurData = function () {
+                $timeout(function () {
+                    if (getComData) {
+                        //alert(id);
+                        BusinessService.getDataByID(id).success(function (response) {
+                            $scope.curObj = response.itemogsm;
+                            $scope.curObj.AttachmentId = $scope.curObj.AttachmentId.toString();
+                            $scope.GetAttachmentFileData(response.data);
+                        }).error(function (response) {
+                            //alert("HRE");
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+            //加载附件内容表
+            $scope.GetAttachmentFileData = function (item)
+            {
+                $scope.ListPageData = item;
+                var temphtml = "<tr><td width='350px'>附件名称</td><td width='50px'>操作</td></tr>";
+                for (var i = 0; i < item.length; i++) {
+                    temphtml += "<tr>"
+                             + "<td style='text-align:left;' width='350px'><a style='color: Blue;' href='" + item[i].Fileupload + "' title='点击下载'>" + item[i].FileName + "</a></td>"
+                             + "<td width='50px'><a href='javascript:void(0);' ng-click=\"deleteUpload('" + item[i].Id + "')\" style='width:70px;'>删除</a></td>"
+                             + "</tr>";
+                }
+            };
+            if (id != null && id.toString().length > 0) {
+                loadCurData();
+            }
+            else {
+                $scope.curObj.AttachmentId = '@ViewData["AthId"]';
+            }
+            $scope.deleteUpload = function (id) {
+                //调用删除服务
+                BusinessService.deleteUpload(id).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("删除成功", { icon: 'success' });
+                        $scope.GetAttachmentFileData(response.data);
+                    }
+                    else {
+                        box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                    }
+                });
+            };
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'OGSM/OGSMIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //导入题目
+            $scope.fileUploadDialog = function () {
+                var _AttachmentId = $scope.curObj.AttachmentId; //导入的类型
+                var _filepath = "OGSM";
+                var dialog = ngDialog.openConfirm({
+                    title: '上传附件',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Upload/Index?Upguid=" + _AttachmentId + "&FilePath=" + _filepath + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        BusinessService.getAttachmentDataByID(_AttachmentId).success(function (response) {
+                            $scope.GetAttachmentFileData(response.data);
+                            //box.ready("loadding");
+                        }).error(function (response) {
+                            //box.ready("loadding");
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                });
+
+            };
+            //导入数据
+            $scope.fileDialog = function () {
+                var _type = 'OGSMBase'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入数据',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        //BusinessService.getQuestionTemp().success(function (response) {
+                        //    $scope.Questions = response;
+                        //    console.info(response);
+                        //    console.info($scope.Questions);
+                        //    $scope.Total = Math.ceil($scope.Questions.length / $scope.Size);
+                        //    box.ready("loadding");
+                        //}).error(function (response) {
+                        //    box.ready("loadding");
+                        //    console.info(response);
+                        //    box.alert("网络出错！", { icon: 'error' });
+                        //});
+                    }
+                });
+
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.deleteUpload = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Upload/FileUploadDelete/' + id
+                });
+            };
+
+            serive.getAttachmentDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Upload/GetOGSMDataByID/' + id
+                });
+            };
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/OGSMSave',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'OGSM/GetOGSMDataByID/' + id
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+
+            return serive;
+        }]);
+
+
+        app.directive('importdata', function ($timeout) {
+            return {
+                restrict: 'A',//属性
+                link: function (scope, element, attr) {
+                    element.uploadify({
+                        'auto': false,
+                        'swf': '/Content/Javascript/Uploadify/uploadify.swf',
+                        'uploader': '/OGSM/OGSMImport',//图片上传方法  
+                        'buttonText': '上传文件',
+                        'width': 60,
+                        'height': 15,
+                        'cancelImg': '/Content/Javascript/Uploadify/uploadify-cancel.png',
+                        'method': 'post',
+                        'multi': false,
+                        'onSelect': function () {//当每个文件添加至队列后触发
+                        },
+                        'onUploadStart': function (file) {
+                        },
+                        'onUploadSuccess': function (file, d, response) {
+                            alert(d);
+                            var result = eval("[" + d + "]")[0];
+                            if (result.IsSuccess == true) {
+                            } else {
+                                box.alert("上传失败，请联系管理员！", { icon: 'error' });
+                            }
+                        }
+                    });
+                }
+            };
+        });
+    </script>
+}
+<style>
+    /*a{
+    width: 250px;
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+    position: relative;
+    cursor: pointer;
+    overflow:hidden;
+    display: inline-block;
+}*/
+/*.attachemnt-table{width:450px; background:#fff; border:1px solid #eaeaea; border-width:1px 1px 0px 1px; border-collapse:collapse;empty-cells:show;}
+.attachemnt-table table tr th{padding:7px; border:1px solid #eaeaea; border-width:0px 1px 1px 0px; text-align:center;white-space: nowrap; }
+.attachemnt-table table tr td{ padding:5px; border:1px solid #eaeaea; border-width:0px 1px 1px 0px; text-align:center;white-space: nowrap;}*/
+a input{
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+/*.ico_download { padding-left:12px; margin-right:3px; background:url(images/ico_download.gif) no-repeat left center; }*/
+</style>
+<!----->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate"  ng-controller="CreateController" name="editForm" novalidate>
+        <table id="ForEdit">
+            
+            <tr>
+                <th>归属分公司：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Group_Name" required ng-model="curObj.Group_Name" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="市区">市区</option>
+                                <option value="潮安">潮安</option>
+                                <option value="饶平">饶平</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Group_Name.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.Group_Name.$valid">请选择归属分公司</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>镇区：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Town" ng-model="curObj.Town" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.Town.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.Town.$error.required"><i class="icon-error"></i>请输入镇区。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>户号：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="USR_NBR" ng-model="curObj.USR_NBR" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.USR_NBR.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.USR_NBR.$error.required"><i class="icon-error"></i>请输入户号。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>供电所名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PowerStation" ng-model="curObj.PowerStation" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.PowerStation.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.PowerStation.$error.required"><i class="icon-error"></i>请输入供电所名称。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>所属基站/服务厅： </th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" value="" name="BaseStation" ng-model="curObj.BaseStation" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.BaseStation.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.BaseStation.$error.required"><i class="icon-error"></i>请输入所属基站/服务厅。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>公电/私电：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="PowerType" ng-model="curObj.PowerType" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="公电">公电</option>
+                                <option value="私电">私电</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PowerType.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.PowerType.$valid">请选择公电/私电</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>                        
+                </td>
+            </tr>
+            <tr>
+                <th>产权方：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="PropertyRight" required ng-model="curObj.PropertyRight" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="移动">移动</option>
+                                <option value="铁塔">铁塔</option>
+                                <option value="第三方">第三方</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PropertyRight.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.PropertyRight.$valid">请选择产权方</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否拆除：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="IsRemove" required ng-model="curObj.IsRemove" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.IsRemove.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.IsRemove.$valid">请选择是否拆除</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>                            
+                </td>
+            </tr>
+            <tr>
+                <th>拆除时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="RemoveTime" name="RemoveTime" date-Picker ng-model="curObj.RemoveTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                        <div ng-switch="curObj.IsRemove"><strong class="must-options" ng-switch-when="是">*</strong></div>
+                    </div>
+                </td>
+            </tr>  
+            <tr>
+                <th>是否分摊电费：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="IsShare" required ng-model="curObj.IsShare" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.IsShare.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.IsShare.$valid">请选择是否分摊电费</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>                    
+                </td>
+            </tr>
+            <tr>
+                <th>合同起始时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ContractStartTime" name="ContractStartTime" date-Picker ng-model="curObj.ContractStartTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>                       
+                    </div>
+                </td>
+            </tr>  
+            <tr>
+                <th>合同结束时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="ContractEndTime" name="ContractEndTime" date-Picker ng-model="curObj.ContractEndTime" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>  
+            <tr>
+                <th>详细地址：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Address" ng-model="curObj.Address" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.Address.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.Address.$error.required"><i class="icon-error"></i>请输入详细地址。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>用电单价：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Price" ng-model="curObj.Price" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.Price.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.Price.$error.required"><i class="icon-error"></i>请输入用电单价。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>缴费周期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PAY_CYC" ng-model="curObj.PAY_CYC" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.PAY_CYC.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.PAY_CYC.$error.required"><i class="icon-error"></i>请输入缴费周期。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>物业属性：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="Property" required ng-model="curObj.Property" style="width:100px; margin-left:5px;">                                
+                                <option ng-repeat="x in dictProperty" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Property.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.Property.$valid">请选择产权方</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>联系人：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="LinkMan" ng-model="curObj.LinkMan" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.LinkMan.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.LinkMan.$error.required"><i class="icon-error"></i>请输入联系人。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>联系人电话：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Mobile" ng-model="curObj.Mobile" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" style="color:red" ng-show="editForm.Mobile.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div ng-show="editForm.Mobile.$error.required"><i class="icon-error"></i>请输入联系人电话。</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th>允许缴费提醒：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="IsWarn" required ng-model="curObj.IsWarn" style="width:100px; margin-left:5px;">
+                                <option value="">请选择</option>
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.IsWarn.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.IsWarn.$valid">请选择是否允许缴费提醒</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>                           
+                </td>
+            </tr> 
+            <tr>
+                <th>缴费提醒次数：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="WarnCount" ng-model="curObj.WarnCount" class="cell-input" />
+                        <div ng-switch="curObj.IsWarn">
+                            <strong class="must-options" ng-switch-when="是">*</strong>
+                        </div> 
+                    </div>
+
+                </td>
+            </tr>        
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark"></textarea>                        
+                    </div>
+                </td>
+            </tr> 
+            @*<tr>
+                <th>附件：</th>
+                <td>
+                    <div class="the-text-area" id="ForEdit_Attachment">
+                        <input type="file" ng-model="curObj.AttachmentId" tempdata="{{curObj.AttachmentId}}"  tempfilepath="OGSM"  id="uploadfile" name="uploadfile"  filesuploadify/>
+                     </div>                    
+                </td>
+            </tr>*@ 
+            <tr>
+                <th>附件：</th>
+                <td>
+                    <div class="attachemnt-table">
+                        <table id="AttachmentTable" cellpadding="0" cellspacing="0">
+                            <tr>                                
+                                <td width="350px">附件名称</td>
+                                <td>附件大小</td>
+                                <td width="50px">操作</td>
+                            </tr>
+                            <tr ng-repeat="x in ListPageData">                                
+                                <td style="text-align:left;" width="350px">
+                                    <a class="ico_download"style="color: Blue;" ng-href="/Upload/FileDownload?id={{x.Id}}" title="点击下载">{{x.FileName}}</a>
+                                </td>
+                                <td>{{x.FileSize}}</td>
+                                <td width="50px">
+                                    <div>
+                                        <a href="javascript:void(0);" ng-click="deleteUpload(x.Id)" ng-show="@ViewData["type"]!=LOOK" style="width:70px;">删除</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>          
+            <tr>
+                <th>&nbsp;</th>
+                <td>                    
+                    <a ng-click="save()" class="cell-btn-blue"  id="ForEdit_saveOption" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="fileUploadDialog()" id="ForEdit_Option" class="cell-btn-blue" style="width:70px; margin-right:20px;">上传附件</a>
+                    <a onclick="window.history.go(-1);" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>                
+            @*<tr>
+                <td>
+                    <div>
+                        <input type="file" id="Importfile" name="Importfile" importdata />
+                        <a href="javascript:$('#Importfile').uploadify('upload','*')" style="width:60px; height:15px;">上传</a>
+                    </div>
+                </td>
+            </tr>*@            
+        </table>
+    </form>
+</div>
+<!-- end--->
+

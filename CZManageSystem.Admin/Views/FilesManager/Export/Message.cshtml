@@ -1,0 +1,37 @@
+﻿@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style> 
+    </style> 
+}
+@section Scripts{ 
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script> 
+        var filesApp = angular.module('Export', ['ngDialog']);
+        filesApp.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        filesApp.controller('FilesController', ['$scope', '$rootScope', '$compile', '$filter', 'ngDialog', function ($scope, $rootScope, $compile, $filter, ngDialog) { 
+            var dialog = ngDialog.open({
+                template: '<div  class="msg_icon blackbox_icon_error"><p>没有可以导出的数据！</p> </div>',
+                plain: true,
+                closeByDocument: true,
+                closeByEscape: true,
+                showClose: true,
+                title: '信息提示',
+                disableAnimation: true,
+                width: 400,
+                height: 140
+            });
+            dialog.closePromise.then(function (data) {
+                window.history.back(); 
+            }); 
+        }]);
+    </script>
+}
+
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="Export" ng-controller="FilesController" name="editForm" novalidate></form>
+</div>

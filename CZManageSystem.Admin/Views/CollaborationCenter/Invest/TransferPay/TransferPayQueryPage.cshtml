@@ -1,0 +1,191 @@
+﻿
+@{
+    ViewBag.Title = "投资项目列表";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'ngDialog', 'number']);
+        //控制器
+        app.controller('PageController', ['$scope', "$filter", 'ngDialog', 'BusinessService', function ($scope, $filter, ngDialog, BusinessService) {
+            $scope.queryBuilder = {
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                $scope.queryBuilder.pageIndex = $scope.paginationConf.currentPage;
+                $scope.queryBuilder.pageSize = $scope.paginationConf.itemsPerPage;
+                BusinessService.list($scope.queryBuilder).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    $scope.total = response.total;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            // href="../Project/ProjectInfoShow?ProjectID={{emp.ProjectID}}"
+            $scope.showData = function (type, value) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var strUrl = "";
+                var data = {};
+                var wWidth = 700;
+                var wHeight = 300;
+
+                switch (type) {
+                    case 'Project': {
+                        title = "项目内容";
+                        strUrl = '../Project/ProjectInfoShow';
+                        data = {
+                            ProjectID: value.ProjectID
+                        };
+                    } break;
+                    case 'Contract': {
+                        title = "合同内容";
+                        strUrl = '../InvestContract/ContractInfoShow';
+                        data = {
+                            ProjectID: value.ProjectID,
+                            ContractID: value.ContractID
+                        };
+                    } break;
+                    case 'ContractPay': {
+                        title = "已付款明细";
+                        strUrl = '../ContractPay/ContractPayListShow';
+                        data = {
+                            ProjectID: value.ProjectID,
+                            ContractID: value.ContractID
+                        };
+                    } break;
+                    default: {
+                        box.alert('没有对应的窗口类型！', { icon: 'error' });
+                    } break;
+                }
+
+                box.popup('',
+                                   {
+                                       url: strUrl,
+                                       iframeData: data,
+                                       iframeId: iframeId,
+                                       title: title,
+                                       width: wWidth,//窗口宽度，默认400
+                                       height: wHeight,//窗口高度，默认400
+                                       hasOk: true,
+                                   });
+
+
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'TransferPay/GetData_TransferPayQueryPage', postData);
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="PageController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    项目编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectID" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+                <td>
+                    项目名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectName" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>已转资总金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.TransferPayAll_start" required class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.TransferPayAll_end" required class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+                <td></td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;margin-right:10px;">查询</a>
+                        <a href="../TransferPay/Download_TransferPayQueryPage?queryBuilder={{queryBuilder}}" class="cell-btn-blue" style="*margin-bottom:8px;">导出</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>项目编号</th>
+                <th>项目名称</th>
+                <th>项目金额(元)</th>
+                <th>已转资总金额(元)</th>
+                <th>转资率(百分比)</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="emp.ProjectID"></td>
+                <td ng-bind="emp.ProjectName"></td>
+                <td ng-bind="emp.ProjectTotal"></td>
+                <td ng-bind="emp.TransferPay"></td>
+                <td ng-bind="emp.Percent"></td>
+            </tr>
+            <tr>
+                <th>合计：</th>
+                <td></td>
+                <td ng-bind="total.ProjectTotal"></td>
+                <td ng-bind="total.TransferPay"></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+

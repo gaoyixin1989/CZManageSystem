@@ -1,0 +1,156 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+
+@section Scripts{
+    <script type="text/javascript">
+        choseArr = new Array();
+        choseArr = [];
+        var app = angular.module('ListPage', ['tm.pagination']);
+        //控制器
+        app.controller('ProjController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+            var selectedId = '@ViewData["selectedId"]';
+            var DinningRoomId = '@ViewData["DinningRoomId"]';
+            var MealTimeType = '@ViewData["MealTimeType"]';
+            $scope.queryBuilder = {
+                MealTimeType: MealTimeType,
+                DinningRoomId: DinningRoomId
+            };
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            var str = "";
+            $scope.isCh = function (proj) {
+                if (selectedId.indexOf(proj.Id) >= 0) {
+                    if (str.indexOf(proj.Id) < 0) {
+                        choseArr.push(proj);
+                        str += proj.Id + ",";
+                    }
+                }
+                return selectedId.indexOf(proj.Id) >= 0;
+
+            }
+
+            /*实现全选，多选操作*/
+            // $scope.isCh = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                choseArr = [];
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj);//此处ID名称不同的页面名称不同，需要修改
+
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'OrderMealCommand/GetSelectListData', postData);
+            };
+            return serive;
+        }]);
+
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=ProjController]');
+            var $scope = angular.element(appElement).scope();
+            var ListPageData = $scope.ListPageData;
+            var result = [];
+            $.each(choseArr, function (i, item) {
+                result.push({
+                    id: item.Id,
+                    text: item.MealPlaceName+'-'+item.PackageName
+                });
+            });
+            return result;
+        }
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ProjController">
+    <!--content--->
+    <div class="search-mod">
+        
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>用餐地点</th>
+                <th>套餐名称</th>
+                <th>套餐价格(元)</th>
+                <th>套餐描述</th>
+                <th>订餐命令</th>
+            </tr>
+            <tr ng-repeat="proj in ListPageData">
+                <td><input type="checkbox" id="{{proj.Id}}" ng-model="x" ng-checked="isCh(proj)" ng-click="chk($event,proj)" /></td>
+                <td>{{proj.MealPlaceName}}</td>
+                <td>{{proj.PackageName}}</td>
+                <td>{{proj.PackagePrice}}</td>
+                <td>{{proj.Discription}}</td>
+                <td>{{proj.Command}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

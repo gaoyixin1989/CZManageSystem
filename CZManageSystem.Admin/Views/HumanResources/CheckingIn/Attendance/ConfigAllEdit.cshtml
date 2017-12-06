@@ -1,0 +1,240 @@
+﻿
+@{
+    ViewBag.Title = "设置时间";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+
+
+            $scope.Config = {
+                ID: '',
+                DeptIds: '',
+                AMOffDuty: '',
+                AMOnDuty: '',
+                //DeptName: '',
+                PMOffDuty: '',
+                PMOnDuty: '',
+                LeadTime: '',
+                LatestTime: '',
+                SpanTime: ''
+            };
+            $scope.isTrue = false;
+            //获取当前数据
+            if (true) {
+                box.load("loading");
+                $scope.isTrue = true;
+                BusinessService.getDataByID().success(function (response) {
+                    $scope.Config = response;
+                    //$scope.Config.Billcyc = $scope.Config.Billcyc.toString('HH:mm');
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.Config
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                // window.location.href = CurPath + 'Attendance/ConfigIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Attendance/SaveConfig',
+                    data: postData
+                });
+            };
+
+
+            serive.getDataByID = function () {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Attendance/GetConfig'
+                });
+            };
+
+            return serive;
+        }]);
+
+
+
+    </script>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+
+
+            <tr>
+                <th>上午上班时间：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="AMOnDuty" ng-model="Config.AMOnDuty" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" required placeholder="上午上班时间">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.AMOnDuty.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.AMOnDuty.$error.required">请选择上午上班时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>上午下班时间：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="AMOffDuty" ng-model="Config.AMOffDuty" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" required placeholder="上午下班时间">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.AMOffDuty.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.AMOffDuty.$error.required">请选择上午下班时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>下午上班时间：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="PMOnDuty" ng-model="Config.PMOnDuty" date-Picker dateFmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" required placeholder="下午上班时间">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.PMOnDuty.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.PMOnDuty.$error.required">请选择下午上班时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+
+                </td>
+            </tr>
+            <tr>
+                <th>下午下班时间：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="PMOffDuty" ng-model="Config.PMOffDuty" date-Picker datefmt='HH:mm' minDate='00:00:00' maxDate='24:00:00' class="cell-input cell-input-data" required placeholder="下午下班时间">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.PMOffDuty.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.PMOffDuty.$error.required">请选择下午下班时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>时间误差（分）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="SpanTime" ng-model="Config.SpanTime" required number precision="2" max="999" min="0" class="cell-input" style="width:130px;" placeholder="时间误差" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.SpanTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SpanTime.$error.required">请输入时间误差</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>上班可提前打卡时间（分）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="LeadTime" ng-model="Config.LeadTime" required number max="999" min="0" class="cell-input" style="width:130px;" placeholder="提前时间" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.LeadTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.LeadTime.$error.required">请输入上班可提前打卡时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>考勤下班可推迟时间（分）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="LatestTime" ng-model="Config.LatestTime" required number max="999" min="0" class="cell-input" style="width:130px;" placeholder="推迟时间" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.LatestTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.LatestTime.$error.required">请输入指纹考勤下班可推迟时间</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+             
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a> 
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

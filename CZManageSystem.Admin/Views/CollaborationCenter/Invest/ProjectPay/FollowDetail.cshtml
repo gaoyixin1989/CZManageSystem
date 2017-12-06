@@ -1,0 +1,157 @@
+﻿
+@{
+    ViewBag.Title = "FollowDetail";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('ProjectPayController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+
+            };
+            var ID = '@ViewData["ID"]';
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                if (ID != null && ID.toString().length > 0) {
+                    BusinessService.list(ID).success(function (response) {
+                        box.ready("GetListData");
+                        $scope.paginationConf.totalItems = response.items.length;
+                        $scope.ListPageData = response.items;
+                        $scope.total = response.Total;
+                    }).error(function (err) {
+                        box.ready("GetListData");
+                        box.alert("网络出错！", { icon: 'error' });
+                    });
+                }
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            //点击标题
+            $scope.clickTitle = function (obj) {
+                var src = CurPath + 'ProjectPay/EstimateDetail?ID=' + obj.ID;
+                src += '&type=look';
+                window.location.href = src;
+            }
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (ID) {
+                return $http.post(CurPath + 'ProjectPay/FollowDetailByApplyID/'+ ID );
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ProjectPayController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    序列号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Series" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+                <td>
+                    标题：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Title" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>年份</th>
+                <th>月份</th>
+                <th>项目编号</th>
+                <th>项目名称</th>
+                <th>合同编号</th>
+                <th>合同名称</th>
+                <th>合同金额(元)</th>
+                <th>实际合同金额(元)</th>
+                <th>合同税金(元)</th>
+                <th>形象进度(%)</th>
+                <th>已付款金额</th>
+                <th>暂估金额</th>
+            </tr>
+            <tr ng-repeat="temp in ListPageData" on-finish-render-filters>
+                <td ng-bind="temp.Year"></td>
+                <td ng-bind="temp.Month"></td>
+                <td style="color:blue;" ng-bind="temp.ProjectID" ng-click="clickTitle(temp)"></td>
+                <td ng-bind="temp.ProjectName"></td>
+                <td ng-bind="temp.ContractID"></td>
+                <td ng-bind="temp.ContractName"></td>
+                <td ng-bind="temp.SignTotal"></td>
+                <td ng-bind="temp.PayTotal"></td>
+                <td ng-bind="temp.Tax"></td>
+                <td ng-bind="temp.Rate"></td>
+                <td ng-bind="temp.Pay"></td>
+                <td ng-bind="temp.NotPay"></td>
+            </tr>
+            <tr>
+                <th colspan="6">合计：</th>
+                <td>{{total.SignTotalCount}}</td>
+                <td>{{total.PayTotalCount}}</td>
+                <td>{{total.TaxCount}}</td>
+                <td></td>
+                <td>{{total.PayCount}}</td>
+                <td>{{total.NotPayCount}}</td>
+            </tr>
+        </table>
+    </div>
+    <!--content--->
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+</div>
+

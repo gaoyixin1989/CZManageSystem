@@ -1,0 +1,237 @@
+﻿
+@{
+    ViewBag.Title = "ComebackReport";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('ListDataController', ['$scope', "$filter", 'BusinessService', 'ngDialog', function ($scope, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {};
+            @*var BudgetDept = '@ViewData["BudgetDept"]';
+            $scope.queryBuilder.BudgetDept = BudgetDept;*@
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            $scope.query = function () {
+                GetListData();
+            }
+            //---------------
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                switch (type) {
+                    case 'dept': {
+                        title = '部门';
+                        iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.queryBuilder.BudgetDpId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'dept': {
+                                            $scope.queryBuilder.BudgetDpId = getAttrByArr(result, 'id').join(',');
+                                            $scope.queryBuilder.BudgetDept = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+            //------------------------
+            $scope.getSourceRowspan = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'SourceYear': obj.SourceYear, 'SourceBudgetDept': obj.SourceBudgetDept });
+                return temp.length;
+
+            }
+            $scope.getSourceNameRowspan = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'TypePID': obj.TypePID });
+                return temp.length;
+
+            }
+            $scope.getTypeRowspan = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'ChildPID': obj.ChildPID });
+                return temp.length;
+
+            }
+            $scope.isShowSourceData = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'SourceYear': obj.SourceYear, 'SourceBudgetDept': obj.SourceBudgetDept });
+                if (temp.indexOf(obj) == 0)
+                    return true;
+                else
+                    return false;
+            }
+            $scope.isShowSourceNameData = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'TypePID': obj.TypePID });
+                if (temp.indexOf(obj) == 0)
+                    return true;
+                else
+                    return false;
+            }
+            $scope.isShowTypeData = function (obj) {
+                var temp = $filter('filter')($scope.ListPageData, { 'ChildPID': obj.ChildPID });
+                if (temp.indexOf(obj) == 0)
+                    return true;
+                else
+                    return false;
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'ComebackReport/GetReportListData', postData);
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="ListDataController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    年份：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="YearStart" name="YearStart" date-Picker dateFmt="yyyy" ng-model="queryBuilder.YearStart" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>到:</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" id="YearEnd" name="YearEnd" date-Picker dateFmt="yyyy" ng-model="queryBuilder.YearEnd" class="cell-input cell-input-data" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>部门:</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" style="display:none;" name="BudgetDpId" ng-model="queryBuilder.BudgetDpId" ng- class="cell-input" />
+                        <input type="text" style="width:150px;" name="ApplyDept" ng-model="queryBuilder.BudgetDept" class="cell-input" ng-click="editMember('dept')" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                @*<th><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>*@
+                <th style="display:none"></th>
+                <th>年份</th>
+                <th>归口部门</th>
+                <th>归口项目</th>
+                <th>预算额度</th>
+                <th>公司剩余额度</th>
+                <th style="display:none"></th>
+                <th>使用部门</th>
+                <th>分配额度</th>
+                <th>部门剩余额度</th>
+                <th>归口小项</th>
+                <th>已使用额度</th>
+            </tr>
+            <tr ng-repeat="temp in ListPageData">
+                @*<td><input type="checkbox" id="{{temp.SourceID}}" ng-model="x" ng-checked="x" ng-click="chk($event,temp)" /></td>*@
+                <td ng-bind="temp.TypePID" style="display:none" ></td> 
+                <td ng-bind="temp.SourceYear" rowspan="{{getSourceRowspan(temp)}}" ng-show="isShowSourceData(temp)"></td>
+                <td ng-bind="temp.SourceBudgetDept" rowspan="{{getSourceRowspan(temp)}}" ng-show="isShowSourceData(temp)" ></td>
+                <td ng-bind="temp.SourceName" rowspan="{{getSourceNameRowspan(temp)}}" ng-show="isShowSourceNameData(temp)"></td>
+                <td ng-bind="temp.SourceAmount" rowspan="{{getSourceNameRowspan(temp)}}" ng-show="isShowSourceNameData(temp)"></td>
+                <td ng-bind="temp.SourceRemainAmount" rowspan="{{getSourceNameRowspan(temp)}}" ng-show="isShowSourceNameData(temp)"></td>  
+                 <td ng-bind="temp.ChildPID" style="display:none"></td>     
+                <td ng-bind="temp.TypeBudgetDept" rowspan="{{getTypeRowspan(temp)}}" ng-show="isShowTypeData(temp)"></td>
+                <td ng-bind="temp.TypeAmount" rowspan="{{getTypeRowspan(temp)}}" ng-show="isShowTypeData(temp)"></td>
+                <td ng-bind="temp.TypeRemainAmount" rowspan="{{getTypeRowspan(temp)}}" ng-show="isShowTypeData(temp)"></td>
+                  <td ng-bind="temp.ChildAmount"></td>
+                <td ng-bind="temp.ChildRemainAmount"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                @*<li><a href="" class="btn-export"><i></i>导出</a></li>*@
+               
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

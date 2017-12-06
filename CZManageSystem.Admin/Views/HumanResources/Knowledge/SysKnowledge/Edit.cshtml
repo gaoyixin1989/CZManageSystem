@@ -1,0 +1,227 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <link rel="stylesheet" href="~/Content/Javascript/kindeditor-4.1.7/themes/default/default.css" />
+    <script charset="utf-8" src="~/Content/Javascript/kindeditor-4.1.7/kindeditor-min.js"></script>
+    <script charset="utf-8" src="~/Content/Javascript/kindeditor-4.1.7/lang/zh_CN.js"></script>
+    <script charset="utf-8" src="~/Content/Javascript/kindeditor-4.1.7/Angular-kindeditor.js"></script>
+    <link href="~/Content/Javascript/Uploadify/uploadify.css" rel="stylesheet" />
+    <script src="~/Content/Javascript/Uploadify/jquery.uploadify-3.1.min.js"></script>
+    <script src="~/Content/app/filesuploadify.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+
+    <script>
+        var editor;
+
+        KindEditor.ready(function (K) {
+            editor = K.create('textarea[name="Content"]', {
+                resizeType: 1,
+                allowPreviewEmoticons: false,
+                allowImageUpload: false,
+                items: [
+                    'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline',
+                    'removeformat', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+                    'insertunorderedlist', '|', 'emoticons', 'image', 'link']
+            });
+        });
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'ngKeditor', 'filesuploadify', 'ngDialog']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', 'ngDialog', function ($scope, BusinessService, ngDialog) {
+
+            var id = '@ViewData["id"]';
+            var newID = '@ViewData["newID"]';
+            $scope.curObj = { };
+            if (id != null && id.toString().length > 0) {
+
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.curObj = response;
+                    editor.html($scope.curObj.Content);
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            else {
+                $scope.curObj.ID = newID;
+            }
+
+            $scope.save = function () {
+                $scope.curObj.Content = editor.html();
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'SysKnowledge/Index?type=manager';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //上传附件
+            $scope.fileUploadDialog = function () {
+                var _AttachmentId = $scope.curObj.ID; //导入的类型
+                var _filepath = "Knowledge";
+                var dialog = ngDialog.openConfirm({
+                    title: '上传附件',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Upload/Index?Upguid=" + _AttachmentId + "&FilePath=" + _filepath + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        //box.load("loadding");
+                        BusinessService.getAttachmentDataByID(_AttachmentId).success(function (response) {
+                            //box.ready("loadding");
+                            $scope.curObj.Attachments = response.data;
+                        }).error(function (response) {
+                            //box.ready("loadding");
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                });
+
+            };
+
+            //删除附件
+            $scope.deleteUpload = function (id) {
+                //调用删除服务
+                BusinessService.deleteUpload(id).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert("删除成功", { icon: 'success' });
+                        $scope.curObj.Attachments = response.data;
+                    }
+                    else {
+                        box.alert(response.messsage.length > 0 ? response.messsage : "删除失败", { icon: 'error' });
+                    }
+                });
+            };
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysKnowledge/Save',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysKnowledge/GetDataByID/' + id
+                });
+            };
+            //查询附件信息
+            serive.getAttachmentDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Upload/GetOGSMDataByID/' + id
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>标题：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="50" name="Title" ng-model="curObj.Title" required class="cell-input" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Title.$error.required">请输入标题</span>
+                                <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>内容：</th>
+                <td>
+                    @*keditor  data-config="config"*@
+                    <div class="the-text-area">
+                        <textarea name="Content" ng-model="curObj.Content" style="height:180px;visibility:hidden;" required></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入公告内容</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th style="vertical-align:top;">附件:</th>
+                <td colspan="3">
+                    <div class="attachemnt-table">
+                        <table id="AttachmentTable" cellpadding="0" cellspacing="0">
+                            <tr class="forEdit">
+                                <td colspan="3">
+                                    <a ng-click="fileUploadDialog()" class="cell-btn-blue" style="width:70px; margin-right:20px;">上传附件</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="350px">附件名称</td>
+                                <td>附件大小</td>
+                                <td width="50px">操作</td>
+                            </tr>
+                            <tr ng-repeat="x in curObj.Attachments" on-finish-render-filters>
+                                <td style="text-align:left;" width="350px">
+                                    <a class="ico_download" style="color: Blue;" ng-href="/Upload/FileDownload?id={{x.Id}}" title="点击下载">{{x.FileName}}</a>
+                                </td>
+                                <td>{{x.FileSize}}</td>
+                                <td width="50px">
+                                    <div>
+                                        <a class="forEdit" href="javascript:void(0);" ng-click="deleteUpload(x.Id)" style="width:70px;">删除</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysKnowledge/Index?type=manager" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

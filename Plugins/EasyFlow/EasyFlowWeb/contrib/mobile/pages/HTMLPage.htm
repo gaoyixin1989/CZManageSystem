@@ -1,0 +1,39 @@
+﻿<table id="TB_FORM_DATA" class="tblGrayClass grayBackTable" style="word-break: break-all" cellspacing="1" cellpadding="4" border="0">
+    <tbody>
+        <tr>
+            <th style="width: 13%">信息类型:</th>
+            <td style="width: 20%"><input id="bwdf_rbl_F6_0" type="radio" name="bwdf_rbl_F6" value="短信" /><span>短信</span><input id="bwdf_rbl_F6_1" type="radio" name="bwdf_rbl_F6" value="彩信" /><span>彩信</span><input id="bwdf_rbl_F6_2" type="radio" msg="请选择信息类型！" require="true" validatetype="group" name="bwdf_rbl_F6" value="WAPPUSH" /><span>WAPPUSH</span><span class="require">*</span></td>
+            <th style="width: 13%">发送时间:</th>
+            <td style="width: 20%"><input id="bwdf_dat_F7" class="inputbox" style="width: 80px" msg="发送时间不能为空" require="true" validatetype="date" name="bwdf_dat_F7" value="$!tc.GetValue(&quot;F7&quot;)" type="text" /><span title="点击选择日期" class="ico_pickdate" onclick='return showCalendar(&quot;bwdf_dat_F7&quot;, &quot;%Y-%m-%d&quot;, &quot;24&quot;, true);'>&nbsp;</span><span class="require">*</span></td>
+            <th style="width: 13%">最大有效时间:</th>
+            <td style="width: 20%"><input id="bwdf_dat_F8" class="inputbox" style="width: 80px" require="true" validatetype="date" name="bwdf_dat_F8" value="$!tc.GetValue(&quot;F8&quot;)" type="text" /><span title="点击选择日期" class="ico_pickdate" onclick='return showCalendar(&quot;bwdf_dat_F8&quot;, &quot;%Y-%m-%d&quot;, &quot;24&quot;, true);'>&nbsp;</span><span class="require">*</span></td>
+        </tr>
+        <tr>
+            <th style="width: 13%">发送端口:</th>
+            <td style="width: 20%"><input id="bwdf_txt_F9" msg="发送端口不能为空！" require="true" validatetype="require" name="bwdf_txt_F9" value="$!tc.GetValue(&quot;F9&quot;)" type="text" /><span class="require">*</span></td>
+            <th style="width: 13%">&nbsp;发送数量:</th>
+            <td style="width: 20%"><input id="bwdf_txt_F11" msg="请确认发送数量！" require="true" validatetype="require" name="bwdf_txt_F11" value="$!tc.GetValue(&quot;F11&quot;)" type="text" /><span class="require">*</span></td>
+            <th style="width: 13%">&nbsp;发送对象:</th>
+            <td style="width: 20%"><input id="bwdf_cbl_F10_0" type="checkbox" name="bwdf_cbl_F10" value="神州行" /><span>神州行</span><input id="bwdf_cbl_F10_1" type="checkbox" name="bwdf_cbl_F10" value="动感地带" /><span>动感地带</span><input id="bwdf_cbl_F10_2" type="checkbox" require="false" name="bwdf_cbl_F10" value="全球通" /><span>全球通</span></td>
+        </tr>
+        <tr>
+            <th style="width: 13%">&nbsp;发送原因:</th>
+            <td style="width: 87%" colspan="5"><textarea id="bwdf_txa_F13" class="MultiLine" style="height: 90px" rows="3" cols="80" require="false" height="90" onkeyup="adjustTextArea(this)" name="bwdf_txa_F13">$!tc.GetValue(&quot;F13&quot;)</textarea></td>
+        </tr>
+        <tr>
+            <th style="width: 13%">&nbsp;发送内容:</th>
+            <td style="width: 87%" colspan="5"><textarea id="bwdf_txa_F14" class="MultiLine" style="height: 90px" rows="3" cols="80" require="false" height="90" onkeyup="adjustTextArea(this)" name="bwdf_txa_F14">$!tc.GetValue(&quot;F14&quot;)</textarea></td>
+        </tr>
+    </tbody>
+</table>
+<script language="javascript">
+    pushSelection('bwdf_cbl_F10', '$!tc.GetValue(&quot;F10&quot;)');
+    pushSelection('bwdf_rbl_F6', '$!tc.GetValue(&quot;F6&quot;)');
+    $(function () {
+        $("input[activity]").each(function () {
+            if ($(this).attr("activity") == '需求人请确认') {
+                checkLimit = 1;
+            }
+        });
+    })
+</script>

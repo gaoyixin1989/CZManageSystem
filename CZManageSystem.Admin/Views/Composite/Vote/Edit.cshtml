@@ -1,0 +1,1600 @@
+﻿@{
+    //ViewBag.Title = "发起投票";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Css{
+    <style>
+        .public-form {
+            margin: 40px 0px;
+            padding: 15px;
+            width: auto;
+        }
+        /*在修改的表单项上才显示错误信息*/
+        input.ng-dirty.ng-invalid {
+            border: 1px solid red;
+        }
+    </style>
+
+}
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/Javascript/comm.js"></script>
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+
+    <script type="text/javascript">
+        //控制器用到的参数 需要在当前页面接收
+        var id = '@ViewData["id"]';
+        var workflowName = '@ViewData["workflowName"]';
+
+        var allUsers = [];
+        var idList = [];
+        var list;
+        function myfunction() {
+            alert("功能模块正在开发中，敬请期待！");
+        }
+
+        var rawTreeData = list;
+        var myTreeData = [];// getTree(rawTreeData, 'DpId', 'ParentDpId');
+        //获取部门数据
+        function GetSelectDeptsData() {
+            box.load("loadding");
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10
+            };
+            $.ajax({
+                url: CurPath + '/SysDeptment/GetAllSysDeptment',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("loadding");
+                    list = data.items;
+                },
+                error: function () {
+                    box.ready("loadding");
+                }
+            });
+        }
+        function GetSelectRolesData() {
+            box.load("loadding");
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10
+            };
+            $.ajax({
+                url: CurPath + '/SysRole/GetAllRoleData',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("loadding");
+                    list = data.items;
+                },
+                error: function () {
+                    box.ready("loadding");
+                }
+            });
+        }
+        function GetSelectRolesData() {
+            box.load("loadding");
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10
+            };
+            $.ajax({
+                url: CurPath + '/SysRole/GetAllRoleData',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("loadding");
+                    list = data.items;
+                },
+                error: function () {
+                    box.ready("loadding");
+                }
+            });
+        }
+        //查询用户数据
+        function GetAllSysUser() {
+            box.load("loadding");
+            $.ajax({
+                url: CurPath + '/SysUser/GetAllUsers_shortData',
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("loadding");
+                    allUsers = data.items;
+                },
+                error: function () {
+                    box.ready("loadding");
+                    box.alert("网络出错！", { icon: 'error' });
+                }
+            });
+
+        }
+
+        var selectedIds = [];
+        function GetIdList(obj) {
+            idList.push(obj.DpId)
+            if (obj.children != undefined)
+                for (var i = 0; i < obj.children.length; i++) {
+                    this.GetIdList(obj.children[i]);
+                }
+        }
+
+        function getTree(data, primaryIdName, parentIdName) {
+            if (!data || data.length == 0 || !primaryIdName || !parentIdName)
+                return [];
+
+            var tree = [],
+                rootIds = [],
+                item = data[0],
+                primaryKey = item[primaryIdName],
+                treeObjs = {},
+                parentId,
+                parent,
+                len = data.length,
+                i = 0;
+
+            angular.forEach(data, function (curObj) {
+                treeObjs[curObj[primaryIdName]] = curObj;
+            });
+
+            while (i < len) {
+                item = data[i++];
+                primaryKey = item[primaryIdName];
+                //treeObjs[primaryKey] = item;
+                parentId = item[parentIdName];
+                parent = treeObjs[parentId];
+                if (!!parent) {
+                    if (parent.children) {
+                        if (parent.children.indexOf(item) < 0)
+                            parent.children.push(item);
+                    } else {
+                        parent.children = [item];
+                    }
+                } else {
+                    rootIds.push(primaryKey);
+                }
+            }
+
+            for (var i = 0; i < rootIds.length; i++) {
+                tree.push(treeObjs[rootIds[i]]);
+            };
+            return tree;
+        }
+
+
+
+
+    </script>
+
+    <script>
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'datePicker', 'treeControl', 'ngDialog', 'number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        // 例子,如何设置所有对话框的默认值
+        app.config(['ngDialogProvider', function (ngDialogProvider) {
+            ngDialogProvider.setDefaults({
+                className: 'ngdialog-theme-default',
+                plain: false,
+                showClose: true,
+                closeByDocument: true,
+                closeByEscape: true,
+                appendTo: false
+            });
+        }]);
+
+        app.controller('CreateController', ['$scope', '$rootScope', '$compile', 'BusinessService', '$filter', 'ngDialog', function ($scope, $rootScope, $compile, BusinessService, $filter, ngDialog) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            var VoteAnsers = [];
+            $scope.QuestionInfo = { QuestionID: "", QuestionTitle: "", QuestionType: "S", Creator: "", CreatorID: 0, AnswerNum: 0, MaxValue: 0, MinValue: 0, VoteAnsers: VoteAnsers };
+            $scope.Options = ["选举投票", "问卷调查", "满意度调查"];
+            var isEdits = -1;
+            var AnserInfoInfo = { AnserContent: "", AnserScore: 1, SortOrder: 0, MaxValue: 0, MinValue: 0 };
+            $scope.Questions = [];
+            $scope.BasicInfo = {
+                //MemberType:1为部门 2为用户 3角色
+                ApplyID: "", ApplyTitle: "", ApplySn: "", Creator: "", CreatorID: "", CreateTime: "",
+                MobilePhone: "", ThemeType: "", ThemeName: "", StartTime: "", EndTime: "", IsNiming: "", Remark: "", MemberName: "", MemberIDs: "", MemberType: 0, TempdeptID: "", DeptName: "", TempdeptName: "", TempuserID: "", TempuserName: "", IsProc: 0
+            };
+            $rootScope.memberType = "";
+            $scope.BasicInfo.ThemeType = "选举投票";
+            $scope.userForSelect = [];
+            $scope.Total = 1;
+            $scope.IsShow = false;
+            $scope.PageNumber = 1;
+            $scope.Size = 10;
+            $scope.AttachmentId = "";
+            $scope.QuestionList = function () {
+                return $scope.Questions.slice($scope.Size * ($scope.PageNumber - 1), $scope.Size * $scope.PageNumber); //从数组中返回选定的元素分页
+            };
+            $scope.openLayer = function () {
+
+                $scope.questionDialog();
+                isEdits = -1;
+                VoteAnsers = [];
+                $rootScope.rootQuestionInfo = { QuestionID: "", QuestionTitle: "", QuestionType: "S", Creator: "", CreatorID: 0, AnswerNum: 0, MaxValue: 0, MinValue: 0, VoteAnsers: VoteAnsers };
+
+            };
+            $scope.closeLayer = function () {
+                closeThisDialog(); //layer.close(layerIndex);
+            }
+            $scope.edit = function (item, indexNum) {
+                $rootScope.rootQuestionInfo = angular.copy(item);
+                $scope.questionDialog();
+                isEdits = $scope.Size * ($scope.PageNumber - 1) + indexNum
+            }
+            $scope.Paging = function (type) {
+                switch (type) {
+                    case "Up"://
+                        if ($scope.PageNumber > 1)
+                            $scope.PageNumber--;
+                        break;
+                    case "Next":
+                        if ($scope.PageNumber < $scope.Total)
+                            $scope.PageNumber++;
+                        break;
+                    case "First":
+                        $scope.PageNumber = 1;
+                        break;
+                    case "Last":
+                        $scope.PageNumber = $scope.Total;
+                        break;
+                    default:
+
+                }
+
+            }
+
+
+            if (id != null && id.toString().length > 0) {
+                box.load("loadding");
+                BusinessService.getDataByID(id).success(function (response) {
+                    $scope.BasicInfo = response.BasicInfo;
+                    $scope.Questions = response.Questions;
+                    $scope.IsAction = response.IsAction;
+                    $scope.Total = Math.ceil($scope.Questions.length / $scope.Size);
+                    $scope.BasicInfo.CreateTime = $filter('date')($scope.BasicInfo.CreateTime, 'yyyy-MM-dd');
+                    $scope.BasicInfo.StartTime = $filter('date')($scope.BasicInfo.StartTime, 'yyyy-MM-dd HH:mm');
+                    $scope.BasicInfo.EndTime = $filter('date')($scope.BasicInfo.EndTime, 'yyyy-MM-dd HH:mm');
+                    if ($scope.BasicInfo.MemberIDs != null && $scope.BasicInfo.MemberIDs != '') {
+                        selectedIds = $scope.BasicInfo.MemberIDs.split(',');
+                    }
+
+                }).error(function (response) {
+
+                    //alert("错误！");
+                    console.info(response);
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loadding");
+            }
+
+            $scope.getTypeAndNum = function (type, num) {
+                var result = "(多选,不限选项)"
+                if (num > 0) {
+                    result = "(多选,最多可选" + num + "项)";
+                }
+                return result;
+            }
+
+
+            $rootScope.saveQuestion = function () {
+                $rootScope.validQuestionFun();
+                if (!$rootScope.validQuestion)
+                    return;
+               
+                var ul = $(window.parent.document).find("#questionList");// angular.element("#questionList");
+                var values = ul.find(".ok");
+                var scores = ul.find(".score");
+                VoteAnsers = [];
+                var isReturn = false;
+                angular.forEach(values, function (data, index) {
+                    if (data.value == 'undefined' || data.value == '')
+                    {//手动触发选项空值提示
+                        data.value = '';
+                        isReturn = true;
+                    }
+                    VoteAnsers.push({ AnserContent: data.value, AnserScore: scores[index].value, SortOrder: index, MaxValue: 0, MinValue: 0 }); 
+                });
+                if (isReturn)
+                    return;
+                //开始保存
+                $scope.QuestionInfo = angular.copy($rootScope.rootQuestionInfo);
+                $scope.QuestionInfo.VoteAnsers = VoteAnsers;
+                var postData = $scope.QuestionInfo;
+                box.load("loadding");
+                BusinessService.saveQuestion(postData).success(function (response) {
+              
+                    if (response.IsSuccess) {
+
+                        $scope.QuestionInfo.QuestionID = response.data.QuestionID;
+                        $scope.QuestionInfo.Creator = response.data.Creator;
+                        $scope.QuestionInfo.CreatorID = response.data.CreatorID;
+                        if (isEdits == -1)//添加
+                            $scope.Questions.push({
+                                QuestionID: $scope.QuestionInfo.QuestionID,
+                                QuestionTitle: $scope.QuestionInfo.QuestionTitle,
+                                QuestionType: $scope.QuestionInfo.QuestionType,
+                                Creator: $scope.QuestionInfo.Creator,
+                                CreatorID: $scope.QuestionInfo.CreatorID,
+                                AnswerNum: $scope.QuestionInfo.AnswerNum,
+                                MaxValue: $scope.QuestionInfo.MaxValue,
+                                MinValue: $scope.QuestionInfo.MinValue,
+                                VoteAnsers: $scope.QuestionInfo.VoteAnsers
+                            });
+                        else//编辑
+                            $scope.Questions[isEdits] = {
+                                QuestionID: $scope.QuestionInfo.QuestionID,
+                                QuestionTitle: $scope.QuestionInfo.QuestionTitle,
+                                QuestionType: $scope.QuestionInfo.QuestionType,
+                                Creator: $scope.QuestionInfo.Creator,
+                                CreatorID: $scope.QuestionInfo.CreatorID,
+                                AnswerNum: $scope.QuestionInfo.AnswerNum,
+                                MaxValue: $scope.QuestionInfo.MaxValue,
+                                MinValue: $scope.QuestionInfo.MinValue,
+                                VoteAnsers: $scope.QuestionInfo.VoteAnsers
+                            };
+
+                        $scope.QuestionInfo = { QuestionID: "", QuestionTitle: "", QuestionType: "S", Creator: "", CreatorID: 0, AnswerNum: 0, MaxValue: 0, MinValue: 0, VoteAnsers: [] };
+                        $rootScope.rootQuestionInfo = $scope.QuestionInfo;
+                        $rootScope.closeQuestion();
+                        var dialog = ngDialog.open({
+                            template: '<div  class="msg_icon blackbox_icon_success"><p>保存成功！</p> </div>',
+                            plain: true,
+                            closeByDocument: false,
+                            closeByEscape: false,
+                            showClose: false,
+                            title: '信息提示',
+                            disableAnimation: true,
+                            width: 400,
+                            height: 140
+                        });
+                        setTimeout(function () {
+                            dialog.close();
+                        }, 2000);
+                        //box.alert("保存成功", { icon: 'success' }, function () {
+                        //    layer.close(layerIndex);
+                        //    //window.location.href = CurPath + 'Vote/IndexMy';
+                        //});
+                    }
+                    else {
+                        box.alert(response.Message, { icon: 'error' });
+                    }
+                }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                box.ready("loadding");
+            };
+            $scope.preview = function () {
+                if (id == '0')
+                    box.alert("保存后才能预览！", { icon: 'warning' });
+                window.location.href = CurPath + 'Vote/Voting?id=' + id;
+            }
+            $scope.save = function (isTrue) {
+
+                var nextInfo = $scope.aftersubmitConf.getValue();                
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {//
+                    if (isTrue == 1) {
+                        if (!nextInfo.isSuccess) {
+                            box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                            return;
+                        }
+                        if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                            box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                            return;
+                        }
+                    }
+
+                    var postData = isTrue == 1 ? {
+                        applyViewModel: $scope.BasicInfo, isAction: true,
+                        nextActivity: nextInfo.nextActivity,
+                        nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                        nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                    } : $scope.BasicInfo;
+
+                    box.load("loadding");
+                    BusinessService.save(postData).success(function (response) {
+                        box.ready("loadding");
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            var msg = isTrue == 1 ? "提交成功" : "保存成功";
+                            box.alert(msg, { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Vote/IndexMy';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            $scope.deleteQ = function (qid, index) {
+                box.load("loadding");
+                if (qid != null && qid.toString().length > 0)
+                    BusinessService.deleteQuestion(qid).success(function (response) {
+                        box.ready("loadding");
+                        if (response.IsSuccess) {
+                            //alert("保存成功");
+                            box.alert("删除成功", { icon: 'success' }, function () {
+                                $scope.Questions.splice(index, 1);
+                                $scope.$apply();
+                                //window.location.href = CurPath + 'Vote/IndexMy';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+
+            };
+            $scope.index = 0;
+            $scope.getTitle = function (index, title) {
+                $scope.index = index;
+                return $scope.Size * ($scope.PageNumber - 1) + index + ". " + title + " ";
+            };
+            $scope.themeType = function () {
+                $scope.BasicInfo.ApplyTitle=  $scope.BasicInfo.Creator+'的'+ $scope.BasicInfo.ThemeType+'申请('+$scope.BasicInfo.CreateTime+')';      
+                 
+
+            }; 
+            //弹出层
+
+            $scope.questionDialog = function () { 
+                ngDialog.open({
+                    title: '添加题目',
+                    template: 'questionDialogId',// 'deptDialogId',//
+                    controller: 'questionDialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 714,//693
+                    height: 440,
+                    top: -60
+                });
+            };
+
+            $scope.deptDialog = function () {
+                $rootScope.memberType = 'SelectDepts';
+                if ($scope.BasicInfo.MemberIDs != null && $scope.BasicInfo.MemberIDs != '') {
+                    selectedIds = $scope.BasicInfo.MemberIDs.split(',');
+                }
+                var dialog = ngDialog.open({
+                    title: '按部门',
+                    template: 'deptDialogId',
+                    controller: 'memberTypeDialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 543,
+                    height: 453,
+                    top: -60
+                });
+                dialog.closePromise.then(function (data) {
+                    if ($rootScope.MemberIDs != "") {
+                        $scope.BasicInfo.MemberName = $rootScope.MemberName;
+                        $scope.BasicInfo.MemberIDs = $rootScope.MemberIDs;
+                        $scope.BasicInfo.MemberType = 1;
+                    }
+                });
+            };
+            $scope.roleDialog = function () {
+                $rootScope.memberType = 'SelectRoles';
+                if ($scope.BasicInfo.MemberIDs != null && $scope.BasicInfo.MemberIDs != '') {
+                    selectedIds = $scope.BasicInfo.MemberIDs.split(',');
+                }
+                var dialog = ngDialog.open({
+                    title: '按角色',
+                    template: 'roleDialogId',
+                    controller: 'memberTypeDialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 543,
+                    height: 453,
+                    top: -60
+                });
+                dialog.closePromise.then(function (data) {
+                    if ($rootScope.MemberIDs != "") {
+                        $scope.BasicInfo.MemberName = $rootScope.MemberName;
+                        $scope.BasicInfo.MemberIDs = $rootScope.MemberIDs;
+                        $scope.BasicInfo.MemberType = 2;
+                    }
+                });
+            };
+            $scope.userDialog = function () {
+                $rootScope.memberType = 'SelectUsers';
+                if ($scope.BasicInfo.MemberIDs != null && $scope.BasicInfo.MemberIDs != '') {
+                    selectedIds = $scope.BasicInfo.MemberIDs.split(',');
+                }
+                var dialog = ngDialog.open({
+                    title: '按人员',
+                    template: 'userDialogId',
+                    controller: 'memberTypeDialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 773,
+                    height: 453,
+                    top: -60
+                });
+                dialog.closePromise.then(function (data) {
+
+                    if ($rootScope.MemberIDs != "") {
+                        $scope.BasicInfo.MemberName = $rootScope.MemberName;
+                        $scope.BasicInfo.MemberIDs = $rootScope.MemberIDs;
+                        $scope.BasicInfo.MemberType = 3;
+                    }
+                });
+            };
+            $scope.usersGroupDialog = function () {
+                $rootScope.memberType = 'UsersGroup';
+                if ($scope.BasicInfo.MemberIDs != null && $scope.BasicInfo.MemberIDs != '') {
+                    selectedIds = $scope.BasicInfo.MemberIDs.split(',');
+                }
+                var dialog = ngDialog.open({
+                    title: '按群组',
+                    template: 'usersGroupDialogId',
+                    controller: 'memberTypeDialogController',// 'CreateController',//
+                    className: 'ngdialog-theme-default', //'ngdialog-custom-width',//
+                    disableAnimation: true,
+                    width: 543,
+                    height: 453,
+                    top: -60
+                });
+                dialog.closePromise.then(function (data) {
+                    if ($rootScope.MemberIDs != "") {
+                        $scope.BasicInfo.MemberName = $rootScope.MemberName;
+                        $scope.BasicInfo.MemberIDs = $rootScope.MemberIDs;
+                        $scope.BasicInfo.MemberType = 2;
+                    }
+                });
+            };
+
+            $rootScope.QuestionsResult = [];
+            //导入题目
+            $scope.fileDialog = function () {
+                var _type = 'Question'; //导入的类型
+                var dialog = ngDialog.openConfirm({
+                    title: '导入题目',
+                    template: "<iframe ' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='../Import/Index?type=" + _type + "'></iframe>",
+                    disableAnimation: true,
+                    showClose: true,
+                    plain: true,
+                    width: 700,
+                    height: 400,
+                    top: -60,
+                    preCloseCallback: function () {
+                        //回调。窗口关闭后所做的事。。。。。
+                        box.load("loadding");
+                        BusinessService.getQuestionTemp().success(function (response) {
+                            $scope.Questions = response;
+                            $scope.Total = Math.ceil($scope.Questions.length / $scope.Size);
+                        }).error(function (response) {
+                            console.info(response);
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                        box.ready("loadding");
+                    }
+                });
+
+            };
+
+
+        }]);
+        app.controller('questionDialogController', ['$scope', '$rootScope', '$compile', 'BusinessService', '$filter', 'ngDialog', function ($scope, $rootScope, $compile, BusinessService, $filter, ngDialog) {
+            $rootScope.closeQuestion = function () {
+                $scope.closeThisDialog();
+            };
+            $rootScope.validQuestionFun = function () {
+                $scope.questionForm.failSubmited = false;
+                $rootScope.validQuestion = $scope.questionForm.$valid;
+            }
+            $scope.copyAnswer = function () {
+                
+                if ($rootScope.rootQuestionInfo.AnswerNum <= 0)
+                    return;
+                var ul = $(window.parent.document).find("#questionList"); 
+                var count = ul.children().length ;
+                var countA= $rootScope.rootQuestionInfo.AnswerNum - count ;//最大可选项和已有选项差
+                if (countA <= 0)//小于或等于就不做处理
+                    return;
+                for (var i = 0; i < countA; i++) {
+                    $scope.copy();
+                }
+            }
+            $scope.removeAnswer = function (id) { 
+                $("#remove" + id).remove(); //移除
+                //以下是重新生成选项的序号
+                var ul = $(window.parent.document).find("#questionList"); 
+                var values = ul.find(".numericalOrder"); 
+                angular.forEach(values, function (data, index) { 
+                    data.innerHTML = index + 1; 
+                });
+            }
+            //生成随机数、给选项的移除功能的id,
+            $scope.random = function () {
+                var number = Math.random() * Math.random();
+                return Math.ceil(number * 89999999999 + 10000000000); 
+            }
+            $scope.copy = function () {
+                var ul = $(window.parent.document).find("#questionList");// angular.element("#questionList");
+                var count = ul.children().length + 1;// contens.length;
+                var number = $scope.random() ;
+                //通过$compile动态编译html 
+                var html = "<li id=\"remove" + number + "\" class=\"remove\"><strong class=\"numericalOrder\">" + count + "</strong><div class=\"ui-input\"><span></span> <input type=\"text\" placeholder=\"请填写问题可选答案\" class=\"cell-input ok\" required  placeholder=\"请输入问题可选答案！必填！\"  /><span class=\"span-score\">分值</span><input type=\"text\"   ng-model=\"anser.AnserScore\"  class=\"cell-input-score score\" required  number precision=\"0\" max=\"999\" min=\"0\" placeholder=\"分\"  />  <a  href=\"javascript:void(0);\"ng-click=\"removeAnswer(" + number + ")\">移除</a></div></li>";
+                if (ul.length == 0) {
+                    var add = $(window.parent.document).find(".add-btn");
+                    var addHtml = '<ul id="questionList">' + html + '</ul>';
+                    var templateaddHtml = angular.element(addHtml);
+                    var addHtmlElement = $compile(templateaddHtml)($scope);
+                    add.before(addHtmlElement);
+                }
+                //var contents = ul.find(".ok");
+                var template = angular.element(html);
+                var mobileDialogElement = $compile(template)($scope);
+                ul.append(mobileDialogElement);
+                //$scope.$apply();//需要手动刷新
+
+            };
+        }]);
+        app.controller('memberTypeDialogController', ['$scope', '$rootScope', '$compile', 'BusinessService', '$filter', 'ngDialog', function ($scope, $rootScope, $compile, BusinessService, $filter, ngDialog) {
+            $scope.selectedData = [];
+            $rootScope.MemberName = "";
+            $rootScope.MemberIDs = "";
+
+            $scope.UsersGroup = [];
+            $scope.UsersGroups = [];
+            var groupList = [];
+            //参与人员设置
+            var tree;
+            $scope.getDeptsResult = function () {
+                var resultName = "";
+                var resultID = "";
+                $.each($scope.selectedData, function (i, item) {
+                    resultName += item.DpName + ",";
+                    resultID += item.DpId + ",";
+                });
+                $rootScope.MemberName = resultName;
+                $rootScope.MemberIDs = resultID;
+                $scope.closeThisDialog();
+            }
+            $scope.getUsersResult = function () {
+                var resultName = "";
+                var resultID = "";
+                $.each($scope.selectedData, function (i, item) {
+                    resultName += item.RealName + ",";
+                    resultID += item.UserId + ",";
+                });
+                $rootScope.MemberName = resultName;
+                $rootScope.MemberIDs = resultID;
+                $scope.closeThisDialog();
+            }
+            $scope.getRolesResult = function () {
+                var resultName = "";
+                var resultID = "";
+                $.each($scope.selectedData, function (i, item) {
+                    resultName += item.RoleName + ",";
+                    resultID += item.RoleId + ",";
+                });
+                $rootScope.MemberName = resultName;
+                $rootScope.MemberIDs = resultID;
+                $scope.closeThisDialog();
+            }
+
+            $scope.getMembersResult = function () {
+                var resultName = "";
+                var resultID = "";
+                $.each($scope.selectedData, function (i, item) {
+                    resultName += item.RealName + ",";
+                    resultID += item.UserId + ",";
+                });
+                $rootScope.MemberName = resultName;
+                $rootScope.MemberIDs = resultID;
+                $scope.closeThisDialog();
+            }
+            //获取用户群组
+            $scope.GetUsersGroup = function () {
+                box.load("loadding");
+                BusinessService.getUsersGroup().success(function (response) {
+                    $scope.UsersGroup = response;
+                    $scope.UsersGroups = response;
+                    angular.forEach($scope.UsersGroup, function (data, index, array) {
+                        var a = $filter('filter')(data.Members, function (obj) {
+                            return selectedIds.indexOf(obj.UserId) > -1;
+                        });
+                        $scope.selectedData.unshift.apply($scope.selectedData, a.slice(0));
+                    });
+
+                }).error(function (response) {
+                    //alert("错误！");
+                    console.info(response);
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loadding");
+            }
+            $scope.getMembers = function (item) {
+                angular.forEach(item, function (data, index, array) {
+                    if ($scope.selectedData.indexOf(data) < 0) {
+                        $scope.selectedData.push(data);
+                    }
+                });
+            }
+            var type = $rootScope.memberType;
+            //$scope.openMember = function (type) {
+            if (type != "") {
+                switch (type) {
+                    case 'SelectDepts':
+                        GetSelectDeptsData();
+                        rawTreeData = list;
+                        $scope.selectedData = $filter('filter')(list, function (obj) {
+                            return selectedIds.indexOf(obj.DpId) > -1;
+                        });
+                        myTreeData = getTree(rawTreeData, 'DpId', 'ParentDpId');
+                        //$rootScope.memberType = type;
+
+                        break;
+                    case 'SelectRoles':
+                        GetSelectRolesData();
+                        rawTreeData = list;
+                        $scope.selectedData = $filter('filter')(list, function (obj) {
+                            return selectedIds.indexOf(obj.RoleId) > -1;
+                        });
+                        myTreeData = getTree(rawTreeData, 'RoleId', 'ParentId');
+                        //$rootScope.memberType = type;
+
+                        break;
+                    case 'SelectUsers':
+                        GetSelectDeptsData();
+                        GetAllSysUser()
+                        rawTreeData = list;
+                        $scope.selectedData = $filter('filter')(allUsers, function (obj) {
+                            return selectedIds.indexOf(obj.UserId) > -1;
+                        });
+                        myTreeData = getTree(rawTreeData, 'DpId', 'ParentDpId');
+                        //$rootScope.memberType = type;
+
+                        break;
+                    case 'UsersGroup':
+                        $scope.GetUsersGroup();
+                        break;
+                    default:
+
+                }
+
+                $scope.dataForTheTree = myTreeData;
+
+            };
+
+
+
+            $scope.dataForTheTree = [];
+            //$scope.tree_data = myTreeData;
+            $scope.my_tree = tree = {};
+            $scope.dataForTheTree = myTreeData;
+
+            $scope.tree_data = function (sel, parent) {
+                $scope.selectedNode = sel;
+                if ($rootScope.memberType == 'SelectUsers') {
+                    idList = [];
+                    GetIdList(sel);
+                    $scope.userForSelect = $filter('filter')(allUsers, function (obj) {
+                        return idList.indexOf(obj.DpId) > -1;
+                    });
+                }
+                else {
+                    if ($scope.selectedData.indexOf(sel) < 0) {
+                        $scope.selectedData.push(sel);
+                    }
+                }
+
+            };
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#menuTree").toggle();
+            }
+            $scope.my_tree_handler = function (branch) {
+            }
+            //取消选择
+            $scope.cancelData = function (obj) {
+                var i = $scope.selectedData.indexOf(obj);
+                if (i >= 0) {
+                    $scope.selectedData.splice(i, 1);
+                }
+            }
+            //全选
+            $scope.selectUsersGroupAll = function () {
+                angular.forEach($scope.UsersGroup, function (data, index, array) {
+                    $(window.parent.document).find("#userForSelect option[value='" + data.Id + "']").attr("selected", "selected"); //根据值让option选中  .removeAttr("selected");根据值去除选中状态
+                });
+                $scope.addUsersGroupData();
+            }
+            $scope.selectUsersAll = function () {
+                angular.forEach($scope.userForSelect, function (data, index, array) {
+                    $(window.parent.document).find("#userForSelect option[value='" + data.UserId + "']").attr("selected", "selected"); //根据值让option选中  .removeAttr("selected");根据值去除选中状态
+                    if ($scope.selectedData.indexOf(data) < 0) {
+                        $scope.selectedData.push(data);
+                    }
+                });
+
+                //$.each($scope.userForSelect, function (i, item) {
+                //    if ($scope.selectedData.indexOf(item) < 0) {
+                //        $scope.selectedData.push(item);
+                //    }
+                //});
+
+
+            }
+
+            //清空选择
+            $scope.cleanData = function () {
+                $scope.selectedData = [];
+            }
+            //选择用户
+            $scope.selectUser = function (obj) {
+                if ($scope.selectedData.indexOf(obj) < 0) {
+                    $scope.selectedData.push(obj);
+                }
+            }
+
+            //添加选择
+            $scope.addData = function () {
+                var values = $(window.parent.document).find("#userForSelect").val(); // $('#userForSelect').val();
+                var datas = $filter('filter')($scope.userForSelect, function (obj) {
+                    return values.indexOf(obj.UserId) > -1;
+                });
+                $.each(datas, function (i, item) {
+                    if ($scope.selectedData.indexOf(item) < 0) {
+                        $scope.selectedData.push(item);
+                    }
+                });
+
+            }
+            $scope.addUsersGroupData = function () {
+                var values = $(window.parent.document).find("#userForSelect").val(); // $('#userForSelect').val();
+
+                var datas = $filter('filter')($scope.UsersGroup, function (obj) {
+                    return values.indexOf(obj.Id.toString()) > -1;
+                });
+                angular.forEach($scope.UsersGroup, function (data, index, array) {
+                    if (datas.indexOf(data) > -1) {
+                        angular.forEach(data.Members, function (dataM, indexM, arrayM) {
+                            if ($scope.selectedData.indexOf(dataM) < 0)
+                                $scope.selectedData.push(dataM);
+                        });
+                    }
+                });
+
+            }
+            //删除选择
+            $scope.delUsersData = function () {
+                var values = $(window.parent.document).find("#selectedData").val(); // $('#selectedData').val();
+                $scope.selectedData = $filter('filter')($scope.selectedData, function (obj) {
+                    return values.indexOf(obj.UserId) < 0;
+                });
+            }
+
+            $scope.delRolesData = function () {
+                var values = $(window.parent.document).find("#selectedData").val(); // $('#selectedData').val();
+                $scope.selectedData = $filter('filter')($scope.selectedData, function (obj) {
+                    return values.indexOf(obj.RoleId) < 0;
+                });
+            }
+            $scope.delUsersGroupData = function () {
+                var values = $(window.parent.document).find("#selectedData").val(); // $('#selectedData').val();
+                $scope.selectedData = $filter('filter')($scope.selectedData, function (obj) {
+                    return values.indexOf(obj.UserId) < 0;
+                });
+            }
+            $scope.delDeptsData = function () {
+                var values = $(window.parent.document).find("#selectedData").val(); //$('#selectedData').val();
+                $scope.selectedData = $filter('filter')($scope.selectedData, function (obj) {
+                    return values.indexOf(obj.DpId) < 0;
+                });
+            }
+
+            //查询
+            $scope.queryDpets = function () {
+                var temp = list;
+                if ($scope.DpName != null && $scope.DpName != '') {
+                    temp = $filter('filter')(list, function (obj) {
+                        return obj.DpName.indexOf($scope.DpName) > -1;//DpFullName
+                    });
+                }
+                $scope.dataForTheTree = getTree(temp, 'DpId', 'ParentDpId');
+                $scope.my_tree = tree = {};
+
+            }
+            $scope.queryUsers = function () {
+                $scope.userForSelect = allUsers;
+
+                var temp = list;
+                if ($scope.DpName != null && $scope.DpName != '') {
+                    temp = $filter('filter')(list, function (obj) {
+                        return obj.DpName.indexOf($scope.DpName) > -1;//DpFullName
+                    });
+
+                    var tempDeptIds = getAttrByArr(temp, 'DpId');
+                    $scope.userForSelect = $filter('filter')($scope.userForSelect, function (obj) {
+                        return tempDeptIds.indexOf(obj.DpId) > -1;
+                    });
+                }
+                $scope.dataForTheTree = getTree(temp, 'DpId', 'ParentDpId');
+                $scope.my_tree = tree = {};
+
+
+                if ($scope.UserName != null && $scope.UserName != '') {
+                    $scope.userForSelect = $filter('filter')($scope.userForSelect, function (obj) {
+                        return (obj.UserName.indexOf($scope.UserName) > -1) || (obj.RealName.indexOf($scope.UserName) > -1);
+                    });
+                }
+            }
+            $scope.queryRoles = function () {
+                var temp = list;
+                if ($scope.RoleName != null && $scope.RoleName != '') {
+                    temp = $filter('filter')(list, function (obj) {
+                        return obj.RoleName.indexOf($scope.RoleName) > -1;//DpFullName
+                    });
+                }
+                $scope.dataForTheTree = getTree(temp, 'RoleId', 'ParentId');
+                $scope.my_tree = tree = {};
+
+            }
+            $scope.queryUsersGroup = function () {
+                var temp = $scope.UsersGroup;
+                if ($scope.GroupName != null && $scope.GroupName != '') {
+                    temp = $filter('filter')($scope.UsersGroups, function (obj) {
+                        return obj.GroupName.indexOf($scope.GroupName) > -1;//DpFullName
+                    });
+                }
+                else
+                    temp = $scope.UsersGroups;
+                $scope.UsersGroup = temp;
+            }
+
+        }]);
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/Save',
+                    data: postData
+                });
+            };
+            serive.saveQuestion = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/SaveQuestion',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/GetDataByID/' + id
+                });
+            };
+            serive.deleteQuestion = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/DeleteQuestion/' + id
+                });
+            };
+            serive.getQuestionTemp = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Vote/GetQuestionTemp'
+                });
+            };
+
+            serive.getUsersGroup = function () {//获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'UsersGrounp/GetUsersGroup'
+                });
+            };
+            return serive;
+        }]);
+
+
+
+    </script>
+}
+
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController">
+
+    <div class="public-form">
+        <form name="editForm">
+            <div class="public-layer">
+                <div class="basic-set">
+                    <span class="p-title">投票基本设置 </span>
+                    <div class="p-table">
+                        <table>
+                            <tr>
+                                <td width="12%"><span>申请人： </span></td>
+                                <td width="20%">
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="text" name="Creator" role="{{editForm.Creator.$valid}}" ng-model="BasicInfo.Creator" class="cell-input ui-tips" readonly required placeholder="请输入申请人！必填！" />
+                                    </div>
+                                </td>
+                                <td width="14%"><span>申请日期：</span></td>
+                                <td width="20%">
+                                    <div class="ui-input">
+                                        <input type="text" ng-model="BasicInfo.CreateTime" date-Picker datefmt="yyyy-MM-dd" mindate="%y-%M-%d {%H-00}:%m:%s" class="cell-input cell-input-data" required placeholder="请选择申请日期！必填！">
+                                        <i class="icon-data"></i>
+                                    </div>
+                                </td>
+                                <td width="14%"><span>所在部门：</span></td>
+                                <td width="20%">
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="text" ng-model="BasicInfo.DeptName" ng-readonly class="cell-input" required readonly />
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><span>联系电话：</span></td>
+                                <td>
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="text" ng-model="BasicInfo.MobilePhone" class="cell-input" required placeholder="请输入联系电话！必填！" />
+                                    </div>
+                                </td>
+                                <td><span>流程单号：</span></td>
+                                <td>
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="text" ng-model="BasicInfo.ApplySn" class="cell-input" readonly required />
+                                    </div>
+                                </td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subject-management">
+                    <span class="p-title">主题管理</span>
+                    <div class="p-table">
+                        <table>
+                            <tr>
+                                <td width="12%"><span>主题名称：</span></td>
+                                <td width="38%">
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="text" ng-model="BasicInfo.ApplyTitle" class="cell-input" required placeholder="请输入主题名称！必填！" />
+                                    </div>
+                                </td>
+
+                                <td width="12%"><span>主题类型：</span></td>
+                                <td width="38%">
+                                    <div class="">
+                                        <div class="selectdrapdown">
+                                            <select ng-model="BasicInfo.ThemeType" class="cell-input" ng-options="act for act in Options" ng-change="themeType()" required placeholder="请选择主题类型！必填！"> 请选择 </select>
+
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><span>开始时间：</span></td>
+                                <td>
+                                    <div class="ui-input">
+                                        <input type="text" ng-model="BasicInfo.StartTime" date-Picker datefmt="yyyy-MM-dd HH:mm" mindate="%y-%M-%d {%H-00}:%m:%s" class="cell-input cell-input-data date-input" required placeholder="请选择开始时间！必填！">
+                                        <i class="icon-data"></i>
+                                    </div>
+                                </td>
+                                <td><span>结束时间：</span></td>@*, minDate: '%y-%M-%d {%H-20}:%m:%s', maxDate: '%y-%M-%d {%H+30}:%m:%s'*@
+                                <td>
+                                    <div class="ui-input">
+                                        <input type="text" value="" ng-model="BasicInfo.EndTime" date-Picker datefmt="yyyy-MM-dd HH:mm" mindate="%y-%M-%d {%H-00}:%m:%s" class="cell-input cell-input-data date-input" required placeholder="请选择结束时间！必填！">
+                                        <i class="icon-data"></i>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </div>
+
+                <div class="subject-management">
+                    <span class="p-title">题目管理</span>
+                    @*<div class="p-table">
+                            <table>
+                                <tr>
+                                    <td width="12%"><span>题目名称：</span></td>
+                                    <td width="38%">
+                                        <div class="ui-input">
+                                            <span></span>
+                                            <input type="text" ng-model="BasicInfo.ThemeName" class="cell-input" required placeholder="请输入题目名称！必填！" />
+                                        </div>
+                                    </td>
+                                    <td width="12%"> </td>
+                                    <td width="38%"></td>
+                                </tr>
+
+
+                            </table>
+
+                        </div>*@
+
+                    <div class="s-layer">
+                        <strong>已有题目列表</strong>
+                        <span>
+
+                            <a ng-click="openLayer()" class="s-btn layerQuestion">添加题目</a>
+                            <a ng-click="fileDialog()" class="s-btn layerQuestion">导入</a>
+                            @*<a  class="s-btn"  id="uploadfile"   ng-model="image" snail-uploadify="{auto:false,buttonText:'导入'}">qwqeqwrrw</a>*@
+
+
+                        </span>
+                    </div>
+                </div>
+
+                <div class="question-list question-list2">
+                    <ol>
+
+                        <li ng-repeat="item in QuestionList() track by $index">
+                            <table ng-switch="item.QuestionType">
+                                <tr>
+                                    <th colspan="4">
+                                        <span class="question-Title" ng-bind="getTitle($index+1,item.QuestionTitle)"></span>
+                                        <span ng-switch-when="S">(单选)</span>
+                                        <span ng-switch-when="M" ng-bind="getTypeAndNum (item.QuestionType, item.AnswerNum)">(多选)</span>
+                                        <span ng-switch-when="Q">(简答)</span>
+
+                                    </th>
+
+
+                                    <td rowspan="2">
+                                        <a class="s-btn layer01" ng-click="deleteQ(item.QuestionID,$index)"><i class="i-1"></i>删除</a>
+                                        <a class="s-btn layerQuestion" ng-click="edit(item,$index)"><i class="i-2"></i>编辑</a>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="radio_out">
+
+
+                                        <div class="radio_in" ng-repeat="anser in item.VoteAnsers">
+                                            <div class="fll">
+                                                <input ng-switch-when="S" type="radio" name="group{{index}}" />
+                                                <input ng-switch-when="M" type="checkbox" />
+                                            </div>
+                                            <div class="fll fll1">
+                                                <span ng-bind="anser.AnserContent"></span>
+                                                @*（<span ng-bind="anser.AnserScore"></span>）*@
+                                            </div>
+                                        </div>
+
+
+
+                                    </td>
+                                </tr>
+                                <tr ng-switch-when="Q">
+                                    <td rowspan="4">
+                                        <textarea></textarea>
+                                    </td>
+                                </tr>
+
+
+
+
+                            </table>
+                        </li>
+
+
+                        <div class="paging">
+                            <span>
+                                共 <b ng-bind="PageNumber"></b> <b>/</b> <b ng-bind="Total"></b> 页
+                                @*第<input type="text" />页*@
+                            </span>
+                            @*<a href="" class="a-1"></a>*@
+                            <a ng-click="Paging('First')" class="a-2"></a>
+                            <a ng-click="Paging('Up')" class="a-3"></a>
+                            <a ng-click="Paging('Next')" class="a-4"></a>
+                            <a ng-click="Paging('Last')" class="a-5"></a>
+                        </div>
+                        <div style="clear:both;"></div>
+                    </ol>
+                </div>
+
+                <div class="s-set">
+                    <span class="p-title">参与人员设置</span>
+                    <div class="s-layer">
+                        <strong>参与人员</strong>
+                        <span>
+                            <a class="s-btn open-Dp" ng-click="deptDialog()">按部门</a>@*openMember('SelectDepts')*@
+                            <a class="s-btn open-User" ng-click="userDialog()">按人员</a>@*openMember('SelectUsers')*@
+                            @*<a class="s-btn open-Role" ng-click="roleDialog()">按角色</a>*@@*openMember('SelectRoles')*@
+                            <a class="s-btn open-Role" ng-click="usersGroupDialog()">按群组</a>
+
+                        </span>
+                    </div>
+                    <div class="t-area">
+                        <textarea ng-model="BasicInfo.MemberName" required placeholder="请选择参与人员！必填！"></textarea>
+                    </div>
+                </div>
+
+                <div class="s-set">
+                    <span class="p-title">其他说明</span>
+                    <div class="s-layer">
+                        <strong>备注</strong>
+                    </div>
+                    <div class="t-area">
+                        <textarea ng-model="BasicInfo.Remark"></textarea>
+                    </div>
+                </div>
+                <div class="s-set">
+                    <span class="p-title">步骤执行人</span>
+                    <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                </div>
+                <div class="p-20">
+                    @*<a onclick="preview()" class="cell-btn-blue" style="width:70px; margin-right:20px;">预览</a>*@
+                    <a ng-click="save(0)" ng-hide="IsAction" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a ng-click="save(1)" ng-hide="IsAction" class="cell-btn-blue" style="width:70px; margin-right:20px;">提交</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </div>
+
+
+
+
+
+
+
+            </div>
+
+        </form>
+    </div>
+
+
+    <script type="text/ng-template" id="questionDialogId">
+        <form name="questionForm" class="addAnser">
+            <div class="layerQuestion-show layer">
+                <div class="add-question"  >
+                    <div class="p-table2">
+                        <table>
+                            <tr>
+                                <th>题目：</th>
+                                <td>
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="text" ng-model="rootQuestionInfo.QuestionTitle" class="cell-input" style="width:560px; margin-left:5px;" required placeholder="请输入题目名称！必填！" />
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="p-table2">
+                        <table>
+                            <tr>
+                                <th>问题类型：</th>
+                                <td>
+                                    <input type="radio" name="person-action" value="S" ng-model="rootQuestionInfo.QuestionType" checked /> <span class="span-1">单选</span>
+                                <td>
+                                    <input type="radio" name="person-action" value="M" ng-model="rootQuestionInfo.QuestionType" /> <span class="span-1">多选</span>
+
+                                </td>
+                                <td>
+                                    <input type="radio" name="person-action" value="Q" ng-model="rootQuestionInfo.QuestionType" /> <span class="span-1">问答</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+
+                    <div class="p-table2" ng-if="rootQuestionInfo.QuestionType=='M'">
+                        <table>
+                            <tr>
+                                <th>最多选择几项 :</th>
+                                <td>
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="number" ng-model="rootQuestionInfo.AnswerNum" ng-change="copyAnswer()" class="cell-input" style="width:80px; margin:0px 10px;" required number precision="0" max="999" min="0" placeholder="请输入数字！必填！" />
+                                    </div>
+                                </td>
+                                <td>设置最多选择几项，0为不限制</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="fill-in" ng-if="rootQuestionInfo.QuestionType=='M'||rootQuestionInfo.QuestionType=='S'">
+                        <span class="span-1">问题可选答案</span>
+                        <div class="fill-in-infor">
+
+                            <ul id="questionList">
+                                <li id="remove{{anser.AnserID}}" class="remove" ng-repeat="anser in rootQuestionInfo.VoteAnsers  track by $index">
+                                    <strong ng-bind="$index+1" class="numericalOrder"></strong>
+                                    <div class="ui-input">
+                                        <span></span>
+                                        <input type="text" ng-model="anser.AnserContent" class="cell-input ok" required placeholder="请输入问题可选答案！必填！" />
+                                        <span class="span-score">分值</span><input type="text" ng-model="anser.AnserScore" class="cell-input-score score" required number precision="0" max="999" min="0"  placeholder="分" />
+                                    <a  href="javascript:void(0);"ng-click="removeAnswer(anser.AnserID)">移除</a>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <a ng-click="copy()" class="add-btn">增加选项</a>
+
+
+                        </div>
+                    </div>
+                   
+                    <div class="fill-in">
+                        <div class="qr">
+                            <a ng-click="saveQuestion()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存问题</a>
+                            @*<a ng-click="closeLayer()" class="cell-btn-orange" style="width:70px;">取消</a>*@
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </script>
+
+    <script type="text/ng-template" id="deptDialogId">
+        <div class="layerDp-show layer">
+
+
+            <div class="search-mod">
+                <table>
+                    <tr>
+                        <td>
+                            部门名称：
+                        </td>
+
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" ng-model="DpName" class="cell-input" style="width:120px;" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ui-input">
+                                <a ng-click="queryDpets()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="public-table-main" style="position: relative; min-height:302px;">
+                <div class="listSelect">
+                    <treecontrol id="menuTree" class="tree-light" style="position:relative;"
+                                 tree-model="dataForTheTree"
+                                 options="treeOptions"
+                                 on-selection="tree_data(node,$parentNode)">
+                        {{node.DpName}}
+                    </treecontrol>
+                </div>
+                <div style="float:left; height:300px;margin-right:10px;">
+                    <div class="btnDiv">
+                        <a ng-click="delDeptsData()">删除</a>
+                        <a ng-click="cleanData()">清空</a>
+                    </div>
+                </div>
+                <select id="selectedData" class="listSelect" size="20" multiple>
+                    <option>--------------已选择--------------</option>
+                    <option ng-repeat="x in selectedData" ng-dblclick="cancelData(x)" value="{{x.DpId}}">{{x.DpFullName}}</option>
+                </select>
+            </div>
+
+            <div style="text-align:center;">
+                <a ng-click="getDeptsResult()" class="cell-btn-blue" style="width:70px; margin-right:20px;">确定</a>
+                @*<a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+            </div>
+
+
+        </div>
+
+    </script>
+    <script type="text/ng-template" id="roleDialogId">
+        <div class="layerRole-show layer">
+
+            <div class="search-mod">
+                <table>
+                    <tr>
+                        <td>
+                            角色名称：
+                        </td>
+
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" ng-model="RoleName" class="cell-input" style="width:120px;" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ui-input">
+                                <a ng-click="queryRoles()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="public-table-main" style="position: relative; min-height:302px;">
+                <div class="listSelect">
+                    <treecontrol id="menuTree" class="tree-light" style="position:relative;"
+                                 tree-model="dataForTheTree"
+                                 options="treeOptions"
+                                 on-selection="tree_data(node,$parentNode)">
+                        {{node.RoleName}}
+                    </treecontrol>
+                </div>
+                <div style="float:left; height:300px;margin-right:10px;">
+                    <div class="btnDiv">
+                        <a ng-click="delRolesData()">删除</a>
+                        <a ng-click="cleanData()">清空</a>
+                    </div>
+                </div>
+                <select id="selectedData" class="listSelect" size="20" multiple>
+                    <option>--------------已选择--------------</option>
+                    <option ng-repeat="x in selectedData" ng-dblclick="cancelData(x)" value="{{x.RoleId}}">{{x.RoleName}}</option>
+                </select>
+            </div>
+            <div style="text-align:center;">
+                <a ng-click="getRolesResult()" class="cell-btn-blue" style="width:70px; margin-right:20px;">确定</a>
+                @* <a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="userDialogId">
+        <div class="layerUser-show layer">
+
+            <div class="search-mod">
+                <table>
+                    <tr>
+                        <td>
+                            部门名称：
+                        </td>
+
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" ng-model="DpName" class="cell-input" style="width:120px;" />
+                            </div>
+                        </td>
+                        <td>
+                            用户：
+                        </td>
+
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" ng-model="UserName" class="cell-input" style="width:120px;" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ui-input">
+                                <a ng-click="queryUsers()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="public-table-main" style="position: relative; min-height:302px;">
+                <div class="listSelect">
+                    <treecontrol id="menuTree" class="tree-light" style="position:relative;"
+                                 tree-model="dataForTheTree"
+                                 options="treeOptions"
+                                 on-selection="tree_data(node,$parentNode)">
+                        {{node.DpName}}
+                    </treecontrol>
+                </div>
+                <select id="userForSelect" class="listSelect" size="20" multiple>
+                    <option>--------------请选择--------------</option>
+                    <option ng-repeat="x in userForSelect" ng-dblclick="selectUser(x)" value="{{x.UserId}}">{{x.UserName+'--'+x.RealName}}</option>
+                </select>
+                <div style="float:left; height:300px;margin-right:10px;">
+                    <div class="btnDiv">
+                        <a ng-click="selectUsersAll()">全选</a>
+                        <a ng-click="addData()">添加</a>
+                        <a ng-click="delUsersData()">删除</a>
+                        <a ng-click="cleanData()">清空</a>
+                    </div>
+                </div>
+                <select id="selectedData" class="listSelect" size="20" multiple>
+                    <option>--------------已选择--------------</option>
+                    <option ng-repeat="x in selectedData" ng-dblclick="cancelData(x)" value="{{x.UserId}}">{{x.UserName+'--'+x.RealName}}</option>
+                </select>
+            </div>
+
+            <div style="text-align:center;">
+                <a ng-click="getUsersResult()" class="cell-btn-blue" style="width:70px; margin-right:20px;">确定</a>
+                @*<a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="usersGroupDialogId">
+        <style>
+            .listSelect ul li {
+                line-height: 20px !important;
+                padding: 0 0 0 20px !important;
+                position: relative !important;
+            }
+        </style>
+        <div class="layerRole-show layer">
+
+            <div class="search-mod">
+                <table>
+                    <tr>
+                        <td>
+                            群组名称：
+                        </td>
+
+                        <td>
+                            <div class="ui-input">
+                                <input type="text" ng-model="GroupName" class="cell-input" style="width:120px;" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ui-input">
+                                <a ng-click="queryUsersGroup()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="public-table-main" style="position: relative; min-height:302px;">
+                <div class="listSelect">
+                    @*<treecontrol id="menuTree" class="tree-light" style="position:relative;"
+                                     tree-model="dataForTheTree"
+                                     options="treeOptions"
+                                     on-selection="tree_data(node,$parentNode)">
+                            {{node.RoleName}}
+                        </treecontrol>*@
+
+                    <select id="userForSelect" class="listSelect" size="20" multiple>
+                        <option>--------------请选择--------------</option>
+                        <option ng-repeat="item in UsersGroup" ng-dblclick="getMembers(item.Members)" value="{{item.Id}}">{{item.GroupName}}</option>
+                    </select>
+                    @*<ul  >
+                            <li   ng-repeat="item in UsersGroup track by $index">
+                                <a ng-dblclick="getMembers(item.Members)">{{item.GroupName}}</a>
+                            </li>
+
+                        </ul>*@
+                </div>
+                <div style="float:left; height:300px;margin-right:10px;">
+                    <div class="btnDiv">
+                        <a ng-click="selectUsersGroupAll()">全选</a>
+                        <a ng-click="addUsersGroupData()">添加</a>
+                        <a ng-click="delUsersGroupData()">删除</a>
+                        <a ng-click="cleanData()">清空</a>
+                    </div>
+                </div>
+                <select id="selectedData" class="listSelect" size="20" multiple>
+                    <option>--------------已选择--------------</option>
+                    <option ng-repeat="x in selectedData" ng-dblclick="cancelData(x)" value="{{x.UserId}}">{{x.RealName}}</option>
+                </select>
+            </div>
+            <div style="text-align:center;">
+                <a ng-click="getMembersResult()" class="cell-btn-blue" style="width:70px; margin-right:20px;">确定</a>
+                @* <a href="javascript:void(0);" class="cell-btn-orange" style="width:70px;">取消</a>*@
+            </div>
+        </div>
+    </script>
+
+</div>

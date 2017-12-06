@@ -1,0 +1,587 @@
+﻿
+@{
+    ViewBag.Title = "月固定收入资料管理 ";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <style>
+        /*在修改的表单项上才显示错误信息*/
+        input.ng-dirty.ng-invalid {
+            border: 1px solid red;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+            var keys = '@ViewData["keys"]';
+            $scope.User = { UserName: '', DeptName: '' };
+            $scope.Pay = {
+                EmployerId: '',
+                Billcyc: '',
+                UpdateTime: '',
+                FixedIncome: '',
+                SeniorityPay: '',
+                ReviewMonthlyAward: '',
+                PhoneSubsidies: '',
+                TravelAllowance: '',
+                NightShiftAllowance: '',
+                HolidayOvertimePay: '',
+                Other: '',
+                MotorCombinedPrize: '',
+                TotalIncome: '',
+                SocialSecurityDeductions: '',
+                MedicalInsuranceDeductions: '',
+                HousingFundDeductions: '',
+                DormitoryUtilitiesRent: '',
+                OtherDeductions: '',
+                SocialSecurityEnterprise: '',
+                MedicalInsuranceEnterprise: '',
+                HousingFundEnterprise: '',
+                TaxableIncome: '',
+                IncomeTax: '',
+                SalaryPaid: '',
+                Remark: ''
+            };
+            $scope.isTrue = false;
+
+            //获取当前数据
+            if (keys != null && keys.toString().length > 0 && keys != "undefined") {
+                $scope.isTrue = true;
+                box.load("loading");
+                BusinessService.getDataByID(keys).success(function (response) {
+                    $scope.Pay = response.Model;
+                    $scope.User = response.User;
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+
+            $scope.getUserInfo = function (v) {
+                if (v.length != 10)
+                    return;
+                box.load("loading");
+                BusinessService.getUserInfo(v).success(function (response) {
+                    if (!response.IsSuccess) {
+                        box.alert(response.Message, { icon: 'error' });
+                        return;
+                    }
+                    $scope.User = response.data;
+
+                }).error(function (err) {
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var payViewModel = $scope.Pay
+                    BusinessService.save(payViewModel).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'FixedIncomeHistory/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'FixedIncomeHistory/Save',
+                    data: postData
+                });
+            };
+            serive.getUserInfo = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'FixedIncomeHistory/GetUserInfo?employerid=' + id
+                });
+            };
+
+            serive.getDataByID = function (keys) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'FixedIncomeHistory/GetDataByID?keys=' + keys
+                });
+            };
+
+            return serive;
+        }]);
+
+
+
+    </script>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>员工姓名：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="UserName" ng-model="User.UserName" readonly class="cell-input" style="border :0;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>所属部门：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DeptName" ng-model="User.DeptName" readonly class="cell-input" style="border :0;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>员工编号：</th>
+                <td>
+                    <div class="ui-input" ng-if="isTrue==true">
+                        <input type="text" name="EmployerId" ng-model="Pay.EmployerId" readonly class="cell-input" style="border :0;" />
+                    </div>
+                    <div class="ui-input" ng-if="isTrue==false">
+                        <input type="text" name="EmployerId" ng-model="Pay.EmployerId" ng-change="getUserInfo(Pay.EmployerId)"required placeholder="请输入员工编号"    class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.EmployerId.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.EmployerId.$error.required">请输入员工编号</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>账务周期：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="Billcyc" ng-model="Pay.Billcyc" date-Picker datefmt="yyyy年M月" maxdate="%y-%M" class="cell-input cell-input-data"required   placeholder="请选择账务周期">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.Billcyc.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Billcyc.$error.required">请选择账务周期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <th>固定收入：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="FixedIncome" ng-model="Pay.FixedIncome"required placeholder="请输入数额" number precision="2" max="9999999" min="0" class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        
+                        <div class="ui-tips" ng-show="editForm.FixedIncome.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.FixedIncome.$error.required">请输入固定收入</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>工龄工资：</th>
+                <td> 
+                    <div class="ui-input">
+                        <input type="text" name="SeniorityPay" ng-model="Pay.SeniorityPay"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.SeniorityPay.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SeniorityPay.$error.required">请输入工龄工资</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>月度考核奖：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ReviewMonthlyAward" ng-model="Pay.ReviewMonthlyAward"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.ReviewMonthlyAward.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.ReviewMonthlyAward.$error.required">请输入月度考核奖</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>话费补助：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="PhoneSubsidies" ng-model="Pay.PhoneSubsidies"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.PhoneSubsidies.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.PhoneSubsidies.$error.required">请输入话费补助</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>交通补贴：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="TravelAllowance" ng-model="Pay.TravelAllowance"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.TravelAllowance.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.TravelAllowance.$error.required">请输入交通补贴</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>值夜夜班津贴：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="NightShiftAllowance" ng-model="Pay.NightShiftAllowance"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.NightShiftAllowance.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.NightShiftAllowance.$error.required">请输入值夜夜班津贴</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>节假日加班工资：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="HolidayOvertimePay" ng-model="Pay.HolidayOvertimePay"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.HolidayOvertimePay.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.HolidayOvertimePay.$error.required">请输入节假日加班工资</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>其它：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Other" ng-model="Pay.Other"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.Other.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Other.$error.required">请输入其它</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>其他奖金合计：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="MotorCombinedPrize" ng-model="Pay.MotorCombinedPrize" required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.MotorCombinedPrize.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.MotorCombinedPrize.$error.required">请输入其他奖金合计</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>总收入：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="TotalIncome" ng-model="Pay.TotalIncome"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.TotalIncome.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.TotalIncome.$error.required">请输入总收入</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>社保扣款（个人）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="SocialSecurityDeductions" ng-model="Pay.SocialSecurityDeductions"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.SocialSecurityDeductions.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SocialSecurityDeductions.$error.required">请输入社保扣款（个人）</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>医保扣款（个人）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="MedicalInsuranceDeductions" ng-model="Pay.MedicalInsuranceDeductions"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.MedicalInsuranceDeductions.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.MedicalInsuranceDeductions.$error.required">请输入医保扣款（个人）</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>住房公积金（个人）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="HousingFundDeductions" ng-model="Pay.HousingFundDeductions"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.HousingFundDeductions.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.HousingFundDeductions.$error.required">请输入住房公积金（个人）</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>宿舍房租及水电费：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="DormitoryUtilitiesRent" ng-model="Pay.DormitoryUtilitiesRent"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.DormitoryUtilitiesRent.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.DormitoryUtilitiesRent.$error.required">请输入宿舍房租及水电费</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>其它扣款：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="OtherDeductions" ng-model="Pay.OtherDeductions"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.OtherDeductions.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.OtherDeductions.$error.required">请输入其它扣款</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>社保（企）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="SocialSecurityEnterprise" ng-model="Pay.SocialSecurityEnterprise"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.SocialSecurityEnterprise.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SocialSecurityEnterprise.$error.required">请输入社保（企）</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>医保（企）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="MedicalInsuranceEnterprise" ng-model="Pay.MedicalInsuranceEnterprise"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.MedicalInsuranceEnterprise.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.MedicalInsuranceEnterprise.$error.required">请输入医保（企）</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>住房公积金（企）：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="HousingFundEnterprise" ng-model="Pay.HousingFundEnterprise"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.HousingFundEnterprise.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.HousingFundEnterprise.$error.required">请输入住房公积金（企）</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>应纳税所得额：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="TaxableIncome" ng-model="Pay.TaxableIncome"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.TaxableIncome.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.TaxableIncome.$error.required">请输入应纳税所得额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>个人所得税：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="IncomeTax" ng-model="Pay.IncomeTax"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong> 
+                        <div class="ui-tips" ng-show="editForm.IncomeTax.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.IncomeTax.$error.required">请输入个人所得税</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>实发：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="SalaryPaid" ng-model="Pay.SalaryPaid"required placeholder="请输入数额" number precision="2" max="9999999" min="0"  class="cell-input" />
+                        <strong class="must-options">*</strong>  
+                        <div class="ui-tips" ng-show="editForm.SalaryPaid.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.SalaryPaid.$error.required">请输入实发</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="Remark" ng-model="Pay.Remark" class="cell-input" />
+
+                    </div>
+                </td>
+            </tr>
+
+
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

@@ -1,0 +1,265 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <!--[弹出层]-->
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <!--[弹出层end]-->
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker', 'ngDialog']);
+        //控制器
+        app.controller('UserBalanceController', ['$scope', '$timeout', "$filter", 'BusinessService', 'ngDialog', function ($scope,$timeout, $filter, BusinessService, ngDialog) {
+            $scope.queryBuilder = {
+                Name: '@ViewData["Name"]',
+                TypeContent: "",
+                CreateTime_Start: "",
+                CreateTime_End: ""
+            };
+            //获取周期类型
+            BusinessService.getTypeContentAsDict().success(function (response) {
+                $scope.dictTypeContent = response;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { });
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                queryBuilder: $scope.queryBuilder
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    $scope.total = response.total;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.Id);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.deleteData = function () {//
+                if (choseArr[0] == "" || choseArr.length == 0) {//没有选择一个的时候提示
+                    box.alert("请至少选中一条数据再操作！");
+                    return;
+                };
+
+                box.confirm("确定要删除选中的" + choseArr.length + "条数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        BusinessService.deleteData(choseArr).success(function (response) {
+                            if (response.IsSuccess) {
+                                box.alert("成功删除" + response.SuccessCount + "条数据", { icon: 'success' });
+                                GetListData();
+                                choseArr = [];
+                            }
+                            else {
+                                box.alert(response.Message, { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+
+            $scope.Edit = function () {
+                if (choseArr[0] == "" || choseArr.length != 1) {//没有选择一个的时候提示
+                    box.alert("请选中一条您要修改的数据再操作（请不要多选）！");
+                    return;
+                };
+                window.location.href = CurPath + 'UserBalance/Edit?id=' + choseArr[0];
+
+            }
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'UserBalance/GetDetailListData', postData);
+            };
+
+            //获取服务信息作为字典
+            serive.getTypeContentAsDict = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'UserBalance/getTypeContentAsDict'
+                });
+            };
+
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {//获取字典
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            
+            return serive;
+        }]);
+        app.filter("jsonDate", function ($filter) {
+            return function (input, format) {
+                //从字符串 /Date(1448864369815)/ 得到时间戳 1448864369815
+                var timestamp = Number(input.replace(/\/Date\((\d+)\)\//, "$1"));
+                //转成指定格式
+                return $filter("date")(timestamp, format);
+            };
+        });
+
+
+    </script>
+    <style>
+        .cell-input {
+            width: 80px;
+        }
+    </style>
+}
+
+
+<div id="ng-app" ng-app="ListPage" ng-controller="UserBalanceController">
+    <!--content--->
+    <div class="search-mod" style="height:30px;">
+        <table>
+            <tr>
+                <td>
+                    用户名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Name" class="cell-input" style="width:70px;" />
+                    </div>
+                </td>
+                <td>
+                    操作类型：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.TypeContent" style="width:70px;" ng-options="x.TypeContent as x.TypeContent for x in dictTypeContent">
+                                <option value="">全部</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    日期：
+                </td>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" id="CreateTime_Start" date-Picker ng-model="queryBuilder.CreateTime_Start" class="cell-input cell-input-data" style="width:80px;" readonly>
+                        <i class="icon-data"></i>
+                        <span style="float:left;margin:0px 5px;">至</span>
+                        <input type="text" id="CreateTime_End" date-Picker ng-model="queryBuilder.CreateTime_End" class="cell-input cell-input-data" style="width:80px;" readonly>
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+            <tr></tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>用户姓名</th>
+                <th>操作类型</th>
+                <th>操作金额</th>
+                <th>操作后帐户金额</th>
+                <th>操作时间</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td ng-bind="emp.Name"></td>
+                <td ng-bind="emp.TypeContent"></td>
+                <td ng-bind="emp.AddAmount.toFixed(2)"></td>
+                <td ng-bind="emp.BelAmount.toFixed(2)"></td>
+                <td ng-bind="emp.CreateTime"></td>
+            </tr>
+            <tr>
+                <th>合计</th>
+                <th>入账总金额：</th>
+                <td>{{ total.InTotal.toFixed(2)}}</td>
+                <th>出账总金额：</th>
+                <td>{{total.OutTotal.toFixed(2)}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+
+        <div class="the-operation1" style="float:left">
+            <ul>
+                <li><a href="../UserBalance/Export?queryBuilder={{queryBuilder}}" class="btn-export"><i></i>导出</a></li>
+                <li>
+                    <a onclick="window.history.go(-1);" class="btn-back" style="width:30px;">返回</a>
+                </li>
+            </ul>
+
+        </div>
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+
+

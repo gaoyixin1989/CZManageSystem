@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" type="text/css" href="~/Content/css/public.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/font/iconfont.css" />
+   
+    @RenderSection("Css", required: false)
+
+    <script type="text/javascript" src="~/Content/Javascript/jquery-1.8.3.min.js"></script>
+    <!--[if lte IE 8]>
+        <script src="/Content/Javascript/ieBetter.js"></script>
+        <script>
+          document.createElement('ng-include');
+          document.createElement('ng-pluralize');
+          document.createElement('ng-view');
+
+          // Optionally these for CSS
+          document.createElement('ng:include');
+          document.createElement('ng:pluralize');
+          document.createElement('ng:view');
+        </script>
+    <![endif]-->
+    <script src="~/Content/Javascript/angular/angular1.2.28.js"></script>
+
+
+    @RenderSection("Scripts", required: false)
+</head>
+
+<body>
+    <!--header-->
+    <div class="header">
+        <div class="header-top">
+            <a href="javascript:void(0);" class="header-top-left"><img src="~/Content/images/title_bg.png" alt="" /></a>
+            <div class="header-top-right">
+                <a href="~/Home/Index" class="a-2"></a>
+                <a href="javascript:void(0);" class="a-1"></a>
+                <span>@ViewBag.UserName，您好！</span>
+            </div>
+        </div>
+
+        <div class="header-bottom">
+            <a href="javascript:void(0);" class="logo"><img src="~/Content/images/logo.png" alt="" /></a>
+            <div class="main-nav">
+                <ul>
+                    <li class="current"><a href="~/Home/Index"><b class="b-1"></b>首页</a></li>
+                    <li><a href="javascript:void(0);"><b class="b-2"></b>工作台</a></li>
+                    <li><a href="javascript:void(0);"><b class="b-3"></b>综合线条管理</a></li>
+                    <li><a href="javascript:void(0);"><b class="b-4"></b>人力资源管理</a></li>
+                    <li><a href="javascript:void(0);"><b class="b-5"></b>行政服务管理</a></li>
+                    <li><a href="SysDeptment/Index"><b class="b-6"></b>订餐管理</a></li>
+                    <li><a href="SysRole/Index"><b class="b-7"></b>数据字典</a></li> 
+                    <li><a href="SysUser/Index"><b class="b-8"></b>系统管理</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--header end-->
+    <section>
+        @RenderBody()
+    </section>
+    <!--footer end--->
+    <div class="footer">
+        <p><span>中国移动通信集团广东有限公司潮州分公司</span><span>版权所有</span> <span></span><span>广东网金控股有限公司</span>技术支持</p>
+    </div>
+    <!--footer end--->
+</body>
+</html>

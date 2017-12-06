@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="gb2312"?>
+<!--
+# 流程名称与所有人是必填的，以名称作为标识，如果存在流程名称重复，则新增一个版本并作为当前版本;
+# remark：表示流程的备注内容，并且只能有一个 remark 节点;
+# 所有流程都必须有且只有一个开始步骤(start-activity)与结束步骤(end-activity)，需要有一个以上(包含一个)的中间步骤(activity);
+# 开始步骤(start-activity)的名称(name)可以为空(此时默认为初始化)，结束步骤(end-activity)的名称也可以为空(此时默认为完成);
+# prevActivity:表示上一步骤；nextActivity：表示下一步骤。两个属性的值是相应的步骤名称(多个名称之间以','或者'，'隔开);
+# 中间步骤(activity)必须有名称(Name)，以及上一步骤(prevActivity)和下一步骤(nextActivity);
+# 开始步骤(start-activity)的下一步骤(nextActivity)不能为空，结束步骤(end-activity)的上一步骤(prevActivity)不能为空;
+# 在一个流程之中的活动名称必须唯一;
+-->
+<workflow name="测试流程" owner="admin">
+    <remark>
+        <![CDATA[
+        程备注内容.
+	      ]]>
+    </remark>
+    <start-activity name="提单" nextActivity="步骤名称1" />
+    <activity name="步骤名称1" prevActivity="提单" nextActivity="步骤名称2" />
+    <activity name="步骤名称2" prevActivity="步骤名称1" nextActivity="用户验收" />
+    <activity name="用户验收" prevActivity="步骤名称2" nextActivity="完成" />
+    <end-activity name="完成" prevActivity="用户验收" />
+</workflow>

@@ -1,0 +1,81 @@
+﻿
+@{
+    ViewBag.Title = "版本更新信息";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script type="text/javascript">
+        var app = angular.module('ListPage', []);
+        app.controller('SysVersionController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            //获取列表
+            var GetListData = function () {
+                //box.load("GetListData");
+                var postData = {
+                    pageIndex: 0,
+                    pageSize: 50
+                }
+                BusinessService.list(postData).success(function (response) {
+                    //box.ready("GetListData");
+                    $scope.ListData = response.items;
+                }).error(function (err) {
+                    //box.ready("GetListData");
+                    //box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            GetListData();
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'SysVersion/GetListData', postData);
+            };
+            return serive;
+        }]);
+    </script>
+}
+@section Css{
+    <style>
+        body {
+            min-width: 0px;
+        }
+
+        .VersionInfo li {
+            margin: 5px 10px 10px 10px;
+        }
+
+        .VersionInfo .title {
+            color: blue;
+        }
+
+        .VersionInfo .context {
+            margin-left: 30px;
+        }
+
+        .demo_line_01 {
+            padding: 0 20px 0;
+            margin: 20px 0;
+            line-height: 1px;
+            border-left: 200px solid #ddd;
+            border-right: 200px solid #ddd;
+            text-align: center;
+        }
+    </style>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="SysVersionController">
+    <div ng-hide="ListData.length>0">没有信息</div>
+    <ul class="VersionInfo">
+        <li ng-repeat="emp in ListData | orderBy:'UpdateTime':true">
+            <div class="title">
+                <span>版本号：{{emp.Version}}</span>
+                <span style="float:right">{{emp.UpdateTime}}</span>
+            </div>
+            <div class="context">
+                <span>{{emp.VerDsc}}</span>
+            </div>
+            <hr />
+        </li>
+    </ul>
+</div>

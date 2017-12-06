@@ -1,0 +1,268 @@
+﻿
+@{
+    ViewBag.Title = "假日定义";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script>
+
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+
+            var keys = '@ViewData["key"]';
+            $scope.Holidays = {
+               ID:'',
+                EndTime:'',
+                HolidayClass:'',
+                HolidayName:'',
+                HolidayYear:'', 
+                StartTime:''
+            };
+            $scope.dictHolidayClass = ['公休假日','法定假日'];
+            $scope.isTrue = false;
+            //获取当前数据
+            if (keys != null && keys.toString() != '00000000-0000-0000-0000-000000000000' && keys != "undefined") {
+                box.load("loading");
+                $scope.isTrue = true;
+                BusinessService.getDataByID(keys).success(function (response) {
+                    $scope.Holidays = response;
+                    //$scope.Holidays.Billcyc = $scope.Holidays.Billcyc.toString('HH:mm');
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.Holidays
+                    if ($scope.Holidays.StartTime > $scope.Holidays.EndTime) {
+                        box.alert("结束时间必须大于或等于开始时间！", { icon: 'error' });
+                        return;
+                    }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Attendance/HolidaysIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            $scope.getDeptName = function (v) {
+                if (v.length != 10)
+                    return;
+                box.load("loading");
+                BusinessService.getDeptName(v).success(function (response) {
+                    if (response.IsSuccess) {
+                        box.alert(response.Message, { icon: 'error' });
+                        return;
+                    }
+                    response.data.DeptId = $scope.Holidays.DeptId;
+                    response.data.DeptName = $scope.Holidays.DeptName;
+                    $scope.Holidays = response.data;
+                }).error(function (err) {
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+                box.ready("loading");
+            };
+            $scope.editDepts = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+
+                title = '部门';
+                iframeSrc = '../UsersGrounp/SelectDepts?selectedId=' + $scope.deptIds;
+
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $scope.Holidays.DeptId = getAttrByArr(result, 'id').join();
+                                    $scope.Holidays.DeptName = getAttrByArr(result, 'text').join();
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Attendance/SaveHolidays',
+                    data: postData
+                });
+            };
+            serive.getDeptName = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Attendance/GetDeptName?deptId=' + id
+                });
+            };
+
+            serive.getDataByID = function (key) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Attendance/GetHolidaysByID?key=' + key
+                });
+            };
+
+            return serive;
+        }]);
+
+
+
+    </script>
+
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+
+            <tr>
+                <th>假日名称：</th>
+                <td>
+
+                    <div class="ui-input" style="margin-right:0px;"> 
+                        <input type="text" name="HolidayName" ng-model="Holidays.HolidayName" class="cell-input cell-input-data" required placeholder="假日名称">
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.HolidayName.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.HolidayName.$error.required">请输入假日名称</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>假别：</th>
+                <td>
+
+                    <div class="ui-input" style="margin-right:0px;">
+                        <select class="cell-input" name="HolidayClass" required ng-model="Holidays.HolidayClass" style="width:152px;" placeholder="请选择假别">
+                            <option ng-repeat="x in dictHolidayClass" value="{{x}}">{{x}}</option>
+                        </select> 
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.HolidayClass.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.HolidayClass.$error.required">请选择假别</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>年度：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="HolidayYear" ng-model="Holidays.HolidayYear" date-Picker datefmt='yyyy年'    class="cell-input cell-input-data" required placeholder="年度">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.HolidayYear.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.HolidayYear.$error.required">请选择年度</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>开始日期：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="StartTime" ng-model="Holidays.StartTime" date-Picker datefmt='yyyy-MM-dd'   class="cell-input cell-input-data" required placeholder="开始日期">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.StartTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.StartTime.$error.required">请选择开始日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>结束日期：</th>
+                <td>
+                    <div class="ui-input" style="margin-right:0px;">
+                        <input type="text" name="EndTime" ng-model="Holidays.EndTime" date-Picker dateFmt='yyyy-MM-dd'  class="cell-input cell-input-data" required placeholder="结束日期">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.EndTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.EndTime.$error.required">请选择结束日期</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+
+
+                </td>
+            </tr>
+
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="JavaScript:history.back(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

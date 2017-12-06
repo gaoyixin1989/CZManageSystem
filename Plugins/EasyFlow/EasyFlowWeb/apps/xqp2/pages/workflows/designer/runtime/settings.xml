@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+requestUrl : 获取指定流程定义 XML 数据的处理页, 详细请见参考文档.
+serviceUrl : 提交保持流程定义数据的 WebService 的 WSDL 链接地址, 详细请见参考文档.
+-->
+<settings>
+	<requestUrl>GetWorkflowData.ashx?key=</requestUrl>
+	<serviceUrl>DesignerService.asmx?wsdl</serviceUrl>
+	<helpUrl>http://www.botwave.com</helpUrl>
+	<smsNotify>
+		<![CDATA[潮州综合管理平台 现有 #Creator# 发起的工单：#Title# #OperateType# #ActivityName# 步骤 请您处理！]]>
+	</smsNotify>
+	<emailNotify>
+		<![CDATA[潮州综合管理平台 现有 #Creator# 发起的工单：#Title# #OperateType# #ActivityName# 步骤 请您处理！]]>
+	</emailNotify>
+	<statSMSNotify>
+		<![CDATA[潮州综合管理平台 现有 #Creator# 发起的工单：#Title# #OperateType# #ActivityName# 步骤 请您处理！]]>
+	</statSMSNotify>
+	<statEmailNotify>
+		<![CDATA[潮州综合管理平台 现有 #Creator# 发起的工单：#Title# #OperateType# #ActivityName# 步骤 请您处理！]]>
+	</statEmailNotify>
+</settings>

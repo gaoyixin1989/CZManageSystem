@@ -1,0 +1,309 @@
+﻿
+@{
+    ViewBag.Title = "项目合同查询";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/ngDialog/ngDialog.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('ListPage', ['tm.pagination', 'ngDialog', 'datePicker', 'number']);
+        //控制器
+        app.controller('PageController', ['$scope', "$filter", 'ngDialog', 'BusinessService', function ($scope, $filter, ngDialog, BusinessService) {
+            $scope.queryBuilder = {
+                IsMIS:'1'
+            };
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                    $scope.total = response.total;
+                    $scope.IsMIS = response.IsMIS;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 10
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            /*实现全选，多选操作*/
+            var choseArr = new Array();
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+
+            $scope.query = function () {
+                GetListData();
+            }
+
+            // href="../Project/ProjectInfoShow?ProjectID={{emp.ProjectID}}"
+            $scope.showData = function (type, value) {
+                var iframeId = type + '_edit';
+                var title = "";
+                var strUrl = "";
+                var data = {};
+                var wWidth = 700;
+                var wHeight = 300;
+
+                switch (type) {
+                    case 'Project': {
+                        title = "项目内容";
+                        strUrl = '../Project/ProjectInfoShow';
+                        data = {
+                            ProjectID: value
+                        };
+                    } break;
+                    case 'Contract': {
+                        title = "合同内容";
+                        strUrl = '../InvestContract/ContractInfoShow';
+                        data = {
+                            ID: value
+                        };
+                    } break;
+                    default: {
+                        box.alert('没有对应的窗口类型！', { icon: 'error' });
+                    } break;
+                }
+
+                box.popup('',
+                                   {
+                                       url: strUrl,
+                                       iframeData: data,
+                                       iframeId: iframeId,
+                                       title: title,
+                                       width: wWidth,//窗口宽度，默认400
+                                       height: wHeight,//窗口高度，默认400
+                                       hasOk: true
+                                   });
+
+
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'InvestContract/GetListData_query', postData);
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="PageController">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    项目编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectID" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+                <td>
+                    项目名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ProjectName" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    合同编号：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ContractID" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+                <td>
+                    合同名称：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.ContractName" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+
+            </tr>
+            <tr>
+                <td>签订时间：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" date-Picker dateFmt="yyyy-MM-dd" ng-model="queryBuilder.SignTime_start" class="cell-input cell-input-data" readonly style="width:80px;">
+                        <i class="icon-data"></i>
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" date-Picker dateFmt="yyyy-MM-dd" ng-model="queryBuilder.SignTime_end" class="cell-input cell-input-data" readonly style="width:80px;">
+                        <i class="icon-data"></i>
+                    </div>
+                </td>
+                <td>备注：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Content" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>合同项目金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.SignTotal_start" required class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.SignTotal_end" required class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+                <td>实际合同金额(元)：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number precision="2" ng-model="queryBuilder.PayTotal_start" required class="cell-input" style="width:80px;" />
+                        <span style="margin:0px 5px;">至</span>
+                        <input type="text" number precision="2" ng-model="queryBuilder.PayTotal_end" required class="cell-input" style="width:80px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>合同主办部门：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.DpCode_Text" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+                <td>主办人：</td>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.User_Text" class="cell-input" style="width:205px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>是否MIS单类：</td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select ng-model="queryBuilder.IsMIS" class="cell-input" style="width:80px;">
+                                @*<option value="">请选择</option>*@
+                                <option value="1">是</option>
+                                <option value="0">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td colspan="2">
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;margin-right:10px;">查询</a>
+                        <a href="../InvestContract/Download_InvestProjectContractQuery?queryBuilder={{queryBuilder}}" class="cell-btn-blue" style="*margin-bottom:8px;">导出</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="display:none;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th>项目编号</th>
+                <th>项目名称</th>
+                <th>合同编号</th>
+                <th>合同名称</th>
+                <th>合同主办部门</th>
+                <th>主办人</th>
+                <th>合同项目金额(元)</th>
+                <th>合同实际金额(元)</th>
+                <th ng-hide="IsMIS=='0'">MIS接收金额(元)</th>
+                <th ng-hide="IsMIS=='1'">已付款金额(元)</th>
+                <th ng-hide="IsMIS=='1'">暂估金额(元)</th>
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td style="display:none;"><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                <td><a style="color:blue;" ng-click="showData('Project',emp.ProjectID)">{{emp.ProjectID}}</a></td>
+                <td>{{emp.ProjectName}}</td>
+                <td><a style="color:blue;" ng-click="showData('Contract',emp.ID)">{{emp.ContractID}}</a></td>
+                <td>{{emp.ContractName}}</td>
+                <td>{{emp.DpCode_Text}}</td>
+                <td>{{emp.User_Text}}</td>
+                <td>{{emp.SignTotal}}</td>
+                <td>{{emp.PayTotal}}</td>
+                <td ng-hide="IsMIS=='0'">{{emp.MISMoney}}</td>
+                <td ng-hide="IsMIS=='1'">{{emp.Pay}}</td>
+                <td ng-hide="IsMIS=='1'">{{emp.NotPay}}</td>
+            </tr>
+            <tr>
+                <th>合同</th>
+                <td colspan="5"></td>
+                <td ng-bind="total.SignTotal"></td>
+                <td ng-bind="total.PayTotal"></td>
+                <td ng-hide="IsMIS=='0'" ng-bind="total.MISMoney"></td>
+                <td ng-hide="IsMIS=='1'" ng-bind="total.Pay"></td>
+                <td ng-hide="IsMIS=='1'" ng-bind="total.NotPay"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+
+
+

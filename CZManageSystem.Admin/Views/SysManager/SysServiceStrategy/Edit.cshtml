@@ -1,0 +1,253 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/json3.min.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var id = '@ViewData["id"]';
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            //初始值
+            $scope.curObj = {
+                //ValidTime: (new Date().getFullYear() + 10) + '-12-31',//有效日期
+                //PeriodType: '天',//周期类型
+                EnableFlag: false,//是否启用
+                LogFlag: false//是否记录日志
+            }
+
+            var getComData1 = false;
+            var getComData2 = false;
+            //获取服务信息作为下拉框字典
+            BusinessService.getServiceNameAsDict().success(function (response) {
+                $scope.dictServices = response;
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData1 = true; });
+
+            //获取周期类型
+            BusinessService.getDictListByName('周期类型').success(function (response) {
+                $scope.dictPeriodType = response;
+                $timeout(function () {
+                    if (!$scope.curObj.PeriodType && !!response.defaultvalue) {
+                        $scope.curObj.PeriodType = response.defaultvalue;
+                    }
+                }, 1);
+            }).error(function (err) {
+                box.alert("网络出错！", { icon: 'error' });
+            }).then(function () { getComData2 = true; });
+
+            var loadCurData = function () {
+                $timeout(function () {
+                    if (getComData1 && getComData2) {
+                        BusinessService.getDataByID(id).success(function (response) {
+                            $scope.curObj = response;
+                            $scope.curObj.ServiceId = $scope.curObj.ServiceId.toString();
+                        }).error(function (response) {
+                            box.alert("网络出错！", { icon: 'error' });
+                        });
+                    }
+                    else {
+                        loadCurData();
+                    }
+                }, 100);
+            }
+
+            if (id != null && id.toString().length > 0) {
+                loadCurData();
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $("[name='editForm']").formtojsonObj();
+                    //var postData = $scope.curObj;
+                    //return;
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'SysServiceStrategy/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }) });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //保存数据
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysServiceStrategy/Save',
+                    data: postData
+                });
+            };
+            //根据id获取数据
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysServiceStrategy/GetDataByID/' + id
+                });
+            };
+            //根据字典名称获取字典信息
+            serive.getDictListByName = function (DDName) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'DataDictionary/GetDictListByName',
+                    data: { DDName: DDName }
+                });
+            };
+            //获取服务信息作为字典
+            serive.getServiceNameAsDict = function () {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysServices/GetServiceNameAsDict'
+                });
+            };
+            return serive;
+        }]);
+    </script>
+}
+<style>
+    /*input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }*/
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th>当前状态： </th>
+                <td>
+                    {{(curObj.Id!=null && curObj.Id.toString().length>0)?"编辑":"新增"}}
+                    <input type="hidden" name="Id" ng-value="curObj.Id"/>
+                </td>
+            </tr>
+            <tr>
+                <th>服务名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" name="ServiceId" required ng-model="curObj.ServiceId" style="width:222px;">
+                                <option ng-repeat="x in dictServices" value="{{x.ServiceId}}">{{x.ServiceName}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.ServiceId.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请选择服务名称</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>到期日期：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="ValidTime" required date-Picker readonly ng-model="curObj.ValidTime" class="cell-input cell-input-data" style="width:160px;">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.ValidTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入到期日期</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>下次运行时间：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" name="NextRunTime" required date-Picker readonly ng-model="curObj.NextRunTime" class="cell-input cell-input-data" dateFmt="yyyy-MM-dd HH:mm:ss" style="width:160px;">
+                        <i class="icon-data"></i>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.NextRunTime.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>请输入下次运行时间</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>周期：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <input type="text" number name="PeriodNum" required ng-model="curObj.PeriodNum" class="cell-input" style="width:50px;" />
+                            <select class="cell-input" name="PeriodType" required ng-model="curObj.PeriodType" style="width:80px; margin-left:5px;">
+                                <option ng-repeat="x in dictPeriodType.items" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="(editForm.PeriodNum.$invalid||editForm.PeriodType.$invalid)&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-hide="editForm.PeriodNum.$valid">请输入周期</span>
+                                    <span ng-hide="editForm.PeriodType.$valid">请选择周期类型</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>是否启用：</th>
+                <td>
+                    <label><input type="radio" name="EnableFlag" ng-value='true' ng-model="curObj.EnableFlag" />是</label>
+                    <label style="margin-left:20px;"><input type="radio" name="EnableFlag" ng-value='false' ng-model="curObj.EnableFlag" />否</label>
+                </td>
+            </tr>
+            <tr>
+                <th>是否记录日志：</th>
+                <td>
+                    <label><input type="radio" name="LogFlag" ng-value='true' ng-model="curObj.LogFlag" />是</label>
+                    <label style="margin-left:20px;"><input type="radio" name="LogFlag" ng-value='false' ng-model="curObj.LogFlag" />否</label>
+                </td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Remark" ng-model="curObj.Remark" ng-maxlength="300"></textarea>
+                        <div class="ui-tips" ng-show="editForm.Remark.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block"><i class="icon-error"></i>输入文本过长</div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a href="../SysServiceStrategy/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

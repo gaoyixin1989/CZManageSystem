@@ -1,0 +1,271 @@
+﻿
+@{
+    ViewBag.Title = "部门选择";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Css{
+    <link href="~/Content/css/tree-control.css" rel="stylesheet" />
+    <link href="~/Content/css/tree-control-attribute.css" rel="stylesheet" />
+    <link href="~/Content/css/Drop-Down.css" rel="stylesheet" />
+    <style>
+        body {
+            min-width: 530px;
+        }
+
+        .listSelect {
+            position: relative;
+            width: 220px;
+            height: 300px;
+            overflow: auto;
+            border: 1px solid #eaeaea;
+            background-color: #fff;
+            margin: 0px 10px 10px 0px;
+            float: left;
+            outline: none;
+        }
+
+        .btnDiv a {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/Content/Javascript/angular/angular-tree-control.js"></script>
+    <!--[if lte IE 8]>
+        <script>
+            document.createElement('treecontrol');
+        </script>
+    <![endif]-->
+
+    <script>
+
+        var selectedId = '@ViewData["selectedId"]';
+        var startId = '@ViewData["startId"]';
+        var selectedIds = [];
+        var startIds = [];
+        if (selectedId != null && selectedId != '') {
+            selectedIds = selectedId.split(',');
+        }
+        if (startId != null && startId != '') {
+            startIds = startId.split(',');
+        }
+
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=Controller]');
+            var $scope = angular.element(appElement).scope();
+            var result = [];
+            $.each($scope.selectedData, function (i, item) {
+                result.push({
+                    id: item.DpId,
+                    text: item.DpName,
+                    fullName: item.DpFullName
+                });
+            });
+            return result;
+        }
+
+        function GetData() {
+            box.load("GetAllSysDeptment");
+            var data = {
+                "pageIndex": 1,
+                "pageSize": 10,
+                ids: startIds
+            };
+            $.ajax({
+                url: CurPath + '/SysDeptment/GetDeptDataStartFromID',
+                data: JSON.stringify(data),
+                type: 'POST',
+                async: false,
+                contentType: 'application/json;charset=utf-8',
+                success: function (data) {
+                    box.ready("GetAllSysDeptment");
+                    list = data.items;
+                },
+                error: function () {
+                    box.ready("GetAllSysDeptment");
+                }
+            });
+        }
+
+        var app = angular.module('ListPage', ['tm.pagination', 'treeControl']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            $scope.selectedData = [];
+            $scope.treeOptions = {
+                nodeChildren: "children",
+                dirSelectable: true
+            }
+            var tree;
+
+            GetData();
+
+            //$scope.selectedData = $filter('filter')(list, function (obj) {
+            //    return selectedIds.indexOf(obj.DpId) > -1;
+            //});
+            $scope.selectedData = [];
+            if (selectedIds.length > 0) {
+                BusinessService.GetDataByIds(selectedIds).success(function (response) {
+                    $scope.selectedData = response;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+
+            var rawTreeData = list;
+            var myTreeData = getTree(rawTreeData, 'DpId', 'ParentDpId');
+            $scope.dataForTheTree = [];
+            //$scope.tree_data = myTreeData;
+            $scope.my_tree = tree = {};
+            $scope.dataForTheTree = myTreeData;
+            $scope.tree_data = function (sel, parent) {
+                $scope.selectedNode = sel;
+                if ($filter('filter')($scope.selectedData, { 'DpId': sel.DpId }).length <= 0) {
+                    $scope.selectedData.push(sel);
+                }
+
+            };
+            $scope.selected = $scope.dataForTheTree[2];
+            $scope.showTree = function (data) {
+                $("#menuTree").toggle();
+            }
+            $scope.my_tree_handler = function (branch) {
+            }
+            function getTree(data, primaryIdName, parentIdName) {
+                if (!data || data.length == 0 || !primaryIdName || !parentIdName)
+                    return [];
+
+                var tree = [],
+                    rootIds = [],
+                    item = data[0],
+                    primaryKey = item[primaryIdName],
+                    treeObjs = {},
+                    parentId,
+                    parent,
+                    len = data.length,
+                    i = 0;
+
+                angular.forEach(data, function (curObj) {
+                    treeObjs[curObj[primaryIdName]] = curObj;
+                });
+
+                while (i < len) {
+                    item = data[i++];
+                    primaryKey = item[primaryIdName];
+                    //treeObjs[primaryKey] = item;
+                    parentId = item[parentIdName];
+                    parent = treeObjs[parentId];
+                    if (!!parent) {
+                        if (parent.children) {
+                            if (parent.children.indexOf(item) < 0)
+                                parent.children.push(item);
+                        } else {
+                            parent.children = [item];
+                        }
+                    } else {
+                        rootIds.push(primaryKey);
+                    }
+                }
+
+                for (var i = 0; i < rootIds.length; i++) {
+                    tree.push(treeObjs[rootIds[i]]);
+                };
+                return tree;
+            }
+
+            $scope.cancelData = function ($event) {
+                var selectedIndex = (!isNaN($event.target.index)) ? $event.target.index : $event.target.selectedIndex;
+                if (selectedIndex < 1) return;
+                var obj = $scope.selectedData[selectedIndex - 1];
+                var i = $scope.selectedData.indexOf(obj);
+                if (i >= 0) {
+                    $scope.selectedData.splice(i, 1);
+                }
+            }
+
+            //删除选择
+            $scope.delData = function () {
+                var values = $('#selectedData').val();
+                $scope.selectedData = $filter('filter')($scope.selectedData, function (obj) {
+                    return values.indexOf(obj.DpId) < 0;
+                });
+            }
+            //清空选择
+            $scope.cleanData = function () {
+                $scope.selectedData = [];
+            }
+
+            $scope.query = function () {
+                var temp = list;
+                if ($scope.DpName != null && $scope.DpName != '') {
+                    temp = $filter('filter')(list, function (obj) {
+                        return obj.DpName.indexOf($scope.DpName) > -1;//DpFullName
+                    });
+                }
+                $scope.dataForTheTree = getTree(temp, 'DpId', 'ParentDpId');
+                $scope.my_tree = tree = {};
+
+            }
+
+        }]);
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetDataByIds = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SysDeptment/GetDataByIds',
+                    data: { ids: ids }
+                });
+            };
+            return serive;
+        }]);
+
+    </script>
+}
+
+<div xmlns:ng="http://angularjs.org" id="ng-app" ng-app="ListPage" ng-controller="Controller">
+
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    部门名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="DpName" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="public-table-main" style="position: relative; min-height:302px;">
+        <div class="listSelect">
+            <treecontrol id="menuTree" class="tree-light" style="position:relative;"
+                         tree-model="dataForTheTree"
+                         options="treeOptions"
+                         on-selection="tree_data(node,$parentNode)">
+                {{node.DpName}}
+            </treecontrol>
+        </div>
+        <div style="float:left; height:300px;margin-right:10px;">
+            <div class="btnDiv">
+                <a ng-click="delData()">删除</a>
+                <a ng-click="cleanData()">清空</a>
+            </div>
+        </div>
+        <select id="selectedData" class="listSelect" size="20" multiple ng-dblclick="cancelData($event)">
+            <option>--------------已选择--------------</option>
+            <option ng-repeat="x in selectedData" @*ng-dblclick="cancelData(x)"*@ value="{{x.DpId}}">{{x.DpFullName}}</option>
+        </select>
+    </div>
+</div>

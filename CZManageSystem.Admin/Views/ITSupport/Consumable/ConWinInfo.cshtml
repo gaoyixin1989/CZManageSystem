@@ -1,0 +1,229 @@
+﻿
+@{
+    ViewBag.Title = "ConWinInfo";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        var choseArr = new Array();
+        var app = angular.module('ListPage', ['tm.pagination', 'datePicker']);
+        //控制器
+        app.controller('Controller', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            var hasStock = '@ViewData["hasStock"]';
+            $scope.GroupName = null;
+            $scope.queryBuilder = {
+                Type: "",
+                Name: "",
+                Model: "",
+                IsValue: "",
+                hasStock: hasStock
+            };
+            $scope.type = [{ "text": "是", "value": "1" }, { "text": "否", "value": "0" }];
+
+            //获取列表
+            var GetListData = function () {
+                box.load("GetListData");
+                $scope.master = false;
+                choseArr = [];
+                var postData = {
+                    pageIndex: $scope.paginationConf.currentPage,
+                    pageSize: $scope.paginationConf.itemsPerPage,
+                    queryBuilder: $scope.queryBuilder
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $scope.paginationConf.totalItems = response.count;
+                    $scope.ListPageData = response.items;
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    //alert("网络出错！");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            //配置分页基本参数
+            $scope.paginationConf = {
+                currentPage: 1,
+                itemsPerPage: 8
+            };
+
+            /***************************************************************
+            当页码和页面记录数发生变化时监控后台查询
+            如果把currentPage和itemsPerPage分开监控的话则会触发两次后台事件。
+            ***************************************************************/
+            $scope.$watch('paginationConf.currentPage + paginationConf.itemsPerPage', GetListData);
+
+            var selectedId = '@ViewData["selected"]';
+            var str = "";
+            $scope.isCh = function (emp) {
+                if (selectedId.indexOf(emp.ID) >= 0) {
+                    if (str.indexOf(emp.ID) < 0) {
+                        choseArr.push(emp.ID);
+                        str += emp.ID + ",";
+                    }
+                }
+                return selectedId.indexOf(emp.ID) >= 0;
+
+            }
+
+            /*实现全选，多选操作*/
+
+            $scope.x = false;//默认未选中
+            $scope.all = function ($event) {//全选
+                var isChecked = $event.target.checked;
+                angular.element("[ng-model='x']").prop("checked", isChecked);
+                if (isChecked == true) {
+                    choseArr = [];
+                    angular.forEach($scope.ListPageData, function (obj) {
+                        choseArr.push(obj.ID);//此处ID名称不同的页面名称不同，需要修改
+                    });
+                }
+                else
+                    choseArr = [];
+            };
+            $scope.chk = function ($event, z) {//单选或者多选
+                var isChecked = $event.target.checked;
+                if (isChecked == true) {//选中
+                    if (choseArr.indexOf(z) < 0) {
+                        choseArr.push(z);
+                    }
+                    if (choseArr.length == $scope.ListPageData.length) {
+                        $scope.master = true;
+                    }
+                }
+                else {//取消选中
+                    var index = choseArr.indexOf(z);
+                    if (index > -1) {
+                        choseArr.splice(index, 1);
+                        $scope.master = false;
+                    }
+                }
+            };
+            $scope.query = function () {
+                GetListData();
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Consumable/ConsumableGetListData', postData);
+            };
+            return serive;
+        }]);
+        function getResult() {
+            var appElement = document.querySelector('[ng-controller=Controller]');
+            var $scope = angular.element(appElement).scope();
+            var ListPageData = $scope.ListPageData;
+            var result = [];
+            $.each(ListPageData, function (i, item) {
+                if (choseArr.indexOf(item.ID) > -1)
+                {
+                    result.push(item);
+                }
+            });
+            return result;
+        }
+    </script>
+}
+<div id="ng-app" ng-app="ListPage" ng-controller="Controller">
+    <!--content--->
+    <div class="search-mod">
+        <table>
+            <tr>
+                <td>
+                    耗材类别：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Type" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+                <td>
+                    耗材名称：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Name" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+                <td>
+                    耗材型号：
+                </td>
+
+                <td>
+                    <div class="ui-input">
+                        <input type="text" ng-model="queryBuilder.Model" class="cell-input" style="width:120px;" />
+                    </div>
+                </td>
+
+            </tr>
+        </table>
+
+        <table>
+            <tr>
+
+                <td>
+                    是否低值：
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select class="cell-input" ng-model="queryBuilder.IsValue" placeholder="请选择">
+                                <option ng-repeat="x in type" value="{{x.value}}">{{x.text}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="ui-input">
+                        <a ng-click="query()" class="cell-btn-blue" style="*margin-bottom:8px;">查询</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="public-table-main">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="width:30px;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                <th style="width:230px;">耗材类别</th>
+                <th style="width:100px;">耗材名称</th>
+                <th style="width:130px;">耗材品牌</th>
+                <th style="width:100px;">耗材型号</th>
+                <th style="width:130px;">适用设备</th>
+                <th style="width:110px;">单位</th>
+                <th style="width:100px;">是否低值</th>
+
+            </tr>
+            <tr ng-repeat="emp in ListPageData">
+                <td><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="isCh(emp)" ng-click="chk($event,emp.ID)" /></td>
+                <td ng-bind="emp.Type"></td>
+                <td ng-bind="emp.Name"></td>
+                <td ng-bind="emp.Trademark"></td>
+                <td ng-bind="emp.Model"></td>
+                <td ng-bind="emp.Equipment"></td>
+                <td ng-bind="emp.Unit"></td>
+                <td>{{emp.IsValue=='0'?'否':'是'}}</td>
+
+
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="main-flip">
+        <tm-pagination conf="paginationConf"></tm-pagination>
+    </div>
+    <!--content--->
+</div>
+

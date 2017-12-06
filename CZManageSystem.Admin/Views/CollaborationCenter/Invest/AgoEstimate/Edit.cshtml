@@ -1,0 +1,212 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var app = angular.module('CreateOrUpdate', ['number', 'datePicker']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', '$timeout', 'BusinessService', function ($scope, $timeout, BusinessService) {
+            var ID = '@ViewData["ID"]';
+            $scope.curObj = {};
+
+            var getData = function () {
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    //alert("错误！");
+                    box.alert("网络出错！", { icon: 'error' });
+                }).then(function () { getCurData = true; });
+            }
+
+            //获取当前数据
+            var getCurData = false;
+            if (ID != null && ID.toString().length > 0) {
+                getData();
+            }
+            else {
+                getCurData = true;
+            }
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+
+                if ($scope.curObj.NotPay != null && $scope.curObj.NotPay < 0) {
+                    $scope.editForm.failSubmited = true;
+                    return;
+                }
+
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.save([postData]).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'AgoEstimate/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' })
+                        }
+                    }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            $scope.SetNotPay = function () {
+                if (isNaN($scope.curObj.PayTotal) || isNaN($scope.curObj.Rate) || isNaN($scope.curObj.Pay))
+                    $scope.curObj.NotPay = null;
+                else {
+                    $scope.curObj.NotPay = ($scope.curObj.PayTotal * $scope.curObj.Rate / 100 - $scope.curObj.Pay).toFixed(2);
+                }
+            }
+
+            $scope.$watch('curObj.PayTotal', $scope.SetNotPay);
+            $scope.$watch('curObj.Rate', $scope.SetNotPay);
+            $scope.$watch('curObj.Pay', $scope.SetNotPay);
+
+
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //保存合同信息
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/Save',
+                    data: { dataList: postData, opType: '单个修改' }
+                });
+            };
+            //根据id获取合同信息
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'AgoEstimate/GetDataByID/' + id
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<style>
+</style>
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th style="width:15%!important;">年份：</th>
+                <td ng-bind="curObj.Year" style="width:30%!important;"></td>
+                <th style="width:15%!important;">月份：</th>
+                <td ng-bind="curObj.Month" style="width:40%!important;"></td>
+            </tr>
+            <tr>
+                <th>项目编号：</th>
+                <td ng-bind="curObj.ProjectID"></td>
+                <th style="vertical-align:top;">项目名称：</th>
+                <td ng-bind="curObj.ProjectName"></td>
+            </tr>
+            <tr>
+                <th>合同编号：</th>
+                <td ng-bind="curObj.ContractID"></td>
+                <th style="vertical-align:top;">合同名称：</th>
+                <td ng-bind="curObj.ContractName"></td>
+            </tr>
+            <tr>
+                <th style="vertical-align:top;">供应商：</th>
+                <td ng-bind="curObj.Supply"></td>
+                <th>合同总金额(元)：</th>
+                <td ng-bind="curObj.SignTotal"></td>
+            </tr>
+            <tr>
+                <th>合同实际金额(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="PayTotal" ng-model="curObj.PayTotal" required class="cell-input" style="width:75px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.PayTotal.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.PayTotal.$error.required">请输入合同实际金额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+                <th>项目形象进度(%)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="Rate" ng-model="curObj.Rate" required class="cell-input" style="width:75px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Rate.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Rate.$error.required">请输入项目形象进度</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>已付款金额(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="Pay" ng-model="curObj.Pay" required class="cell-input" style="width:75px;" />
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Pay.$invalid&&editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Pay.$error.required">请输入已付款金额</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+                <th>暂估金额(元)：</th>
+                <td>
+                    <div class="ui-input">
+                        <input type="text" number max="9999999999999999" min="0" precision="2" name="NotPay" ng-model="curObj.NotPay" class="cell-input" readonly style="width:75px;" />
+                        <div class="ui-tips" ng-show="editForm.failSubmited">
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="curObj.NotPay<0">暂估金额不能为负数</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>科目：</th>
+                <td colspan="3">
+                    <div class="ui-input">
+                        <input type="text" ng-maxlength="500" name="Course" ng-model="curObj.Course" class="cell-input" style="width:400px;" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="3"><span style="color:red;">温馨提示：</span> 暂估金额 = 合同实际金额 * 项目形象进度% - 已付款金额 </td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td colspan="3">
+                    <a ng-click="save()" class="cell-btn-blue" style="width:70px; margin-right:20px;">保存</a>
+                    <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

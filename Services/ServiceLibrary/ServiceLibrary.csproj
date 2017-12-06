@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{201D2EF4-ECE9-4A94-9DF4-5ADB45487DFB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ServiceLibrary</RootNamespace>
+    <AssemblyName>ServiceLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Base\CommonFun.cs" />
+    <Compile Include="Base\ConfigData.cs" />
+    <Compile Include="Base\FtpClient.cs" />
+    <Compile Include="Base\KaoQinDAO.cs" />
+    <Compile Include="Base\SmsDAO.cs" />
+    <Compile Include="Base\IServiceJob.cs" />
+    <Compile Include="Base\ServiceJob.cs" />
+    <Compile Include="Base\SystemResult.cs" />
+    <Compile Include="Base\WebServicesHelper.cs" />
+    <Compile Include="Base\XmlUtil.cs" />
+    <Compile Include="Domain\AppResult.cs" />
+    <Compile Include="Domain\UumCommonClass.cs" />
+    <Compile Include="Domain\UumOrgLog.cs" />
+    <Compile Include="Domain\UumUserLog.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Services\AutoOrderRecordSend.cs" />
+    <Compile Include="Services\AutoSendBookOrderMsg.cs" />
+    <Compile Include="Services\AutoSendOrderMsg.cs" />
+    <Compile Include="Services\AutoSendToManager.cs" />
+    <Compile Include="Services\AutoSMSRev.cs" />
+    <Compile Include="Services\BirthControlAutoPush.cs" />
+    <Compile Include="Services\BoardroomApplyAutoJudge.cs" />
+    <Compile Include="Services\ExecuteContent.cs" />
+    <Compile Include="Services\HrSyncManager.cs" />
+    <Compile Include="Services\InvestMonthEstimateApplyService.cs" />
+    <Compile Include="Services\MarktPlanSeverices.cs" />
+    <Compile Include="Services\NotifyServices.cs" />
+    <Compile Include="Services\PushPendingJob.cs" />
+    <Compile Include="Services\PushPendingMsg.cs" />
+    <Compile Include="Services\ScheduleSms.cs" />
+    <Compile Include="Services\SyncNeedIntegral.cs" />
+    <Compile Include="Services\SyncUseAndDeptment.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\CZManageSystem.Core\CZManageSystem.Core.csproj">
+      <Project>{65dbfd20-d51f-474c-a6ab-b00dd451b922}</Project>
+      <Name>CZManageSystem.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\CZManageSystem.Data\CZManageSystem.Data.csproj">
+      <Project>{139758a1-2efd-4150-a1f7-9503daed932c}</Project>
+      <Name>CZManageSystem.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\CZManageSystem.Service\CZManageSystem.Service.csproj">
+      <Project>{50d570f9-8adf-4a47-8242-57e5f97f6621}</Project>
+      <Name>CZManageSystem.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\EasyFlow\Botwave.XQP\Botwave.XQP.csproj">
+      <Project>{9b66f5e1-1c40-4d43-a6d3-72159a6c0d66}</Project>
+      <Name>Botwave.XQP</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

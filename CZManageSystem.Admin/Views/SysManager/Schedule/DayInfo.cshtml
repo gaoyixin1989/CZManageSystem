@@ -1,0 +1,210 @@
+﻿
+@{
+    ViewBag.Title = "日程计划";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+@section Scripts{
+    <script src="~/Content/app/datePicker.js"></script>
+    <script type="text/javascript">
+        //将num的长度补齐到n位，左侧加defaultValue，defaultValue默认0
+        function padLeft(num, n, defaultValue) {
+            if (defaultValue == null || defaultValue == '')
+                defaultValue = '0';
+            return Array(n > ('' + num).length ? (n - ('' + num).length + 1) : 0).join(defaultValue) + num;
+        }
+
+        var app = angular.module('ListPage', ['datePicker']);
+        app.controller('tableController', ['$scope', "$filter", 'BusinessService', function ($scope, $filter, BusinessService) {
+            var curDate = '@ViewData["date"]';
+            if (curDate == null || curDate == '') {
+                curDate = $filter('date')(new Date(), 'yyyy-MM-dd');
+            }
+            $scope.minTime = curDate + ' 00:00:00';
+            $scope.maxTime = curDate + ' 23:59:59';
+            $scope.ListPageData = [];
+            $scope.defaultNewObj = { hour: '08', minute: '00' };
+            $scope.newObj = $scope.defaultNewObj;
+
+            $scope.hours = [];
+            $scope.minutes = [];
+            for (var i = 0; i <= 23; i++) {
+                $scope.hours.push(padLeft(i, 2));
+            }
+            for (var i = 0; i <= 59; i++) {
+                $scope.minutes.push(padLeft(i, 2));
+            }
+            $scope.selectedSite = 12;
+
+            //获取列表
+            $scope.GetListData = function () {
+                box.load("GetListData");
+                var postData = {
+                    curDate: curDate
+                }
+                BusinessService.list(postData).success(function (response) {
+                    box.ready("GetListData");
+                    $filter('date')(new Date(), 'yyyy-MM-dd');
+                    $scope.ListPageData = response.items;
+                    angular.forEach($scope.ListPageData, function (data) {
+                        data.hour = $filter('date')(data.Time, 'HH');
+                        data.minute = $filter('date')(data.Time, 'mm');
+                        data.text = data.Content;
+                    });
+
+                }).error(function (err) {
+                    box.ready("GetListData");
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+
+            }
+            $scope.GetListData();
+            //判断是否值内容是否变化过
+            $scope.hasChange = function (obj) {
+                if (obj.hour != $filter('date')(obj.Time, 'HH'))
+                    return true;
+                if (obj.minute != $filter('date')(obj.Time, 'mm'))
+                    return true;
+                if (obj.text != obj.Content)
+                    return true;
+                return false;
+            }
+
+            $scope.save = function (obj) {
+                if ((!obj.hour) || (!obj.minute) || (!obj.text)) {
+                    box.alert("时间和内容均不能为空", { icon: 'info' });
+                    return;
+                }
+                //obj.Time = curDate + ' ' + obj.hour + ':' + obj.minute + ':00';
+                obj.Time = new Date(curDate.replace(/-/g, '/') + ' ' + obj.hour + ':' + obj.minute + ':00');
+                obj.Content = obj.text;
+                BusinessService.save(obj).success(function (response) {
+                    if (response.IsSuccess) {
+                        //box.alert("保存成功", { icon: 'success' });
+                        if (!obj.ScheduleId) {
+                            $scope.newObj = $scope.defaultNewObj;
+                            $scope.GetListData();
+                        }                        
+                    }
+                    else {
+                        box.alert(response.Message, { icon: 'error' });
+                    }
+                }).error(function (response) { box.alert('网络出错！', { icon: 'error' }); });
+
+            };
+
+            $scope.deleteDate = function (id) {
+                box.confirm("确定要删除该数据吗？", { icon: 'question' }, function (result) {
+                    if (result) {
+                        //调用删除服务
+                        BusinessService.deleteData([id]).success(function (response) {
+                            if (response.isSuccess) {
+                                //box.alert("删除成功", { icon: 'success' });
+                                $scope.GetListData();
+                            }
+                            else {
+                                box.alert("删除失败", { icon: 'error' });
+                            }
+                        }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                    }
+                });
+            };
+
+            $scope.resetTableSize = function () {
+                //$(document).height()
+                var h = $(document).height() - 60;
+                $('.public-table-main').height(h);
+            }
+            $scope.resetTableSize();
+        }]);
+
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            //获取列表请求
+            serive.list = function (postData) {
+                return $http.post(CurPath + 'Schedule/GetListDayData', postData);
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Schedule/GetDataByID/' + id
+                });
+            };
+            serive.save = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Schedule/Save',
+                    data: postData
+                });
+            };
+            serive.deleteData = function (ids) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Schedule/Delete',
+                    data: ids
+                });
+            };
+
+            return serive;
+        }]);
+    </script>
+    <style>
+        body {
+            min-width: 0px;
+            overflow: hidden;
+        }
+        select{width:40px;}
+        .cell-input{position:static;}
+    </style>
+}
+<div xmlns:ng="http://angularjs.org">
+    <div id="ng-app" ng-app="ListPage" ng-controller="tableController">
+        <div class="public-table-main" style="max-height:333px;overflow-y:auto;">
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <th style="width:100px;">时间</th>
+                    <th>内容</th>
+                    <th style="width:90px;">操作</th>
+                </tr>
+                <tr>
+                    <td>
+                        <select ng-model="newObj.hour">
+                            <option ng-repeat="x in hours">{{x}}</option>
+                        </select>
+                        <select ng-model="newObj.minute">
+                            <option ng-repeat="x in minutes">{{x}}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" style="width:95%;" ng-model="newObj.text" class="cell-input" />
+                    </td>
+                    <td>
+                        <div class="operation-btn">
+                            <a href="javascript:void(0);" ng-click="save(newObj)">添加</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-repeat="emp in ListPageData">
+                    <td>
+                        <select ng-model="emp.hour">
+                            <option ng-repeat="x in hours">{{x}}</option>
+                        </select>
+                        <select ng-model="emp.minute">
+                            <option ng-repeat="x in minutes">{{x}}</option>
+                        </select>
+                    </td>@*date:'yyyy-MM-dd HH:mm'*@
+                    <td>
+                        <input type="text" style="width:95%;" ng-model="emp.text" class="cell-input" />
+                    </td>
+                    <td>
+                        <div class="operation-btn">
+                            <a href="javascript:void(0);" ng-show="hasChange(emp)" ng-click="save(emp)">保存</a>
+                            <a href="javascript:void(0);" ng-click="deleteDate(emp.ScheduleId)">删除</a>
+                        </div>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</div>

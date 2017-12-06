@@ -1,0 +1,40 @@
+﻿using System;
+using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using Botwave.Commons;
+
+public partial class contrib_report_pages_bwreport : System.Web.UI.Page
+{
+    /// <summary>
+    /// 报表ID
+    /// </summary>
+    protected int ReportID
+    {
+        get
+        {
+            int id;
+            int.TryParse(Request.QueryString["id"], out id);
+            return id;
+        }
+    }
+    protected string SqlWhere
+    {
+        get
+        {
+            string wt = DbUtils.ToString(Request.QueryString["where"]);
+            wt.Replace(":", "=");
+            return wt;
+        }
+    }
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+    }
+}

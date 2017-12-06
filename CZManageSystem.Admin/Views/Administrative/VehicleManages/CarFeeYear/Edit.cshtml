@@ -1,0 +1,332 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script src="~/Content/app/datePicker.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+        var app = angular.module('CreateOrUpdate', ['datePicker', 'number']);
+        app.controller('CreateController', ['$scope', '$filter', '$timeout', 'BusinessService', function ($scope, $filter, $timeout, BusinessService) {
+            BusinessService.GetDictListByName("所属单位").success(function (response) {
+                $scope.Corp = response;
+            }).error(function (response) {
+                box.alert("错误!!！", { icon: 'error' });
+            });
+            //获取当前数据
+            var CarFeeYearId = '@ViewData["CarFeeYearId"]';
+            $scope.CarFeeYear = {};
+            $scope.CarTemp = [];
+            $scope.Corp = [];
+
+            //-----------------------------
+            if (CarFeeYearId != null && CarFeeYearId.toString().length > 0) {
+                BusinessService.getDataByID(CarFeeYearId).success(function (response) {
+                    $scope.CarChange(response.CorpId);
+                    $scope.CarFeeYear = response;
+                    //$scope.CarFeeYear.CarId = $scope.CarFeeYear.CarTemp.CarId;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+            }
+           
+            //所属单位选择事件
+            $scope.CarChange = function (CorpId) {
+                BusinessService.GetCarTemp(CorpId).success(function (response) {
+                    if (response.length <= 0) {
+                        box.alert("请先为该所属单位分配对应车辆", { icon: 'warning' });
+                        return;
+                    } 
+                    $scope.CarTemp=response;
+                }).error(function (response) {
+                    box.alert("错误!!！", { icon: 'error' });
+                });
+           };
+
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    $scope.CarFeeYear.CarFeeYearId = CarFeeYearId;
+                    var postData = { CarFeeYear: $scope.CarFeeYear }
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'CarFeeYear/Index';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message, { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+            //-------------------------
+            $scope.editMember = function (type) {//dept、role、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 730;
+                switch (type) {
+                    case 'user': {
+                        title = '经手人';
+                        iframeSrc = '../UsersGrounp/SelectUsers?selectedId=' + $scope.CarFeeYear.DptId;
+                    } break;
+                    default: title = type;
+                }
+                title += "选择";
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    switch (type) {
+                                        case 'user': {
+                                            $scope.CarFeeYear.UserId = getAttrByArr(result, 'id').join(',');
+                                            $scope.CarFeeYear.Person = getAttrByArr(result, 'text').join(',');
+                                        } break;
+                                        default: break;
+                                    }
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+            //------------------------------
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+            serive.GetDictListByName = function (DDName) {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarFeeYear/GetDictListByName?DDName=' + DDName
+                });
+            };
+            serive.GetCarTemp = function (CorpId) {//
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarFeeYear/GetCarTemp?CorpId=' + CorpId
+                });
+            };
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarFeeYear/Save_CarFeeYear',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (CarFeeYearId) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'CarFeeYear/GetByID?CarFeeYearId=' + CarFeeYearId
+
+                });
+            };
+
+            return serive;
+        }]);
+
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>所属单位：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" ng-change="CarChange(CarFeeYear.CorpId)" name="CorpId" required ng-model="CarFeeYear.CorpId" style="width:222px;">
+                                    <option ng-repeat="x in Corp" value="{{x.id}}">{{x.text}}</option>
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.CorpId.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择所属单位</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>对应车辆：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <div class="selectdrapdown">
+                                <select class="cell-input" name="CarId" required ng-model="CarFeeYear.CarId" style="width:222px;" 
+                                    ng-options="x.CarId as  (x.LicensePlateNum+'  '+x.DriverName+'  '+x.StatusText)   for x in CarTemp">
+                                </select>
+                                <strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.CarId.$invalid&&editForm.failSubmited">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block"><i class="icon-error"></i>请选择所属单位</div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <th>缴费日期：</th>
+                    <td>
+                        <div class="ui-input">
+                            <input type="text" id="PayTime" name="PayTime" required date-Picker dateFmt="yyyy-MM-dd" ng-model="CarFeeYear.PayTime" class="cell-input cell-input-data" readonly>
+                            <i class="icon-data"></i>
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.PayTime.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block"><i class="icon-error"></i>请输缴费日期</div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>收费单位：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="CorpName" ng-model="CarFeeYear.CorpName" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.CorpName.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.CorpName.$error.required">请输入收费单位</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>收费小计：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" name="TotalFee" ng-model="CarFeeYear.TotalFee" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.TotalFee.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.TotalFee.$error.required">请输入收费小计</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>经手人：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="display:none;" name="UserId" ng-model="CarFeeYear.UserId" ng-maxlength="200" class="cell-input" />
+                            <input type="text" name="Person" ng-model="CarFeeYear.Person" required class="cell-input" ng-click="editMember('user')" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Person.$invalid&&editForm.failSubmited">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Person.$error.required">请选择经手人</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>备注：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:400px;" name="Remark" ng-model="CarFeeYear.Remark" required ng-maxlength="200" class="cell-input" />
+                            @*<strong class="must-options">*</strong>
+                                <div class="ui-tips" ng-show="editForm.Remark.$invalid&&editForm.failSubmited ">
+                                    <div class="note"><i class="icon-note"></i>输入提示</div>
+                                    <div class="error" style="display:block">
+                                        <i class="icon-error"></i>
+                                        <span ng-show="editForm.Remark.$error.required">请输入备注</span>
+                                        <span ng-show="editForm.Remark.$error.maxlength">输入文本过长</span>
+                                    </div>
+                                    <div class="correct"><i class="icon-correct"></i></div>
+                                </div>*@
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td>
+                        <a ng-click="save()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">保存</a>
+                        <a onclick="javascript:history.go(-1)" class="cell-btn-orange" style="width:70px;">返回</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->

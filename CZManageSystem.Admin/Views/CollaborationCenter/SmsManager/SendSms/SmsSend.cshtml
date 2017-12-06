@@ -1,0 +1,241 @@
+﻿
+@{
+    ViewBag.Title = "短信群发";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+    <script>
+        var type = '@ViewData["type"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+
+        var app = angular.module('CreateOrUpdate', []);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('SysLinkController', ['$scope', 'BusinessService', function ($scope, BusinessService) {
+
+            var ID = '@ViewData["ID"]';
+            $scope.curObj = {
+                Mobile: '',
+                Context: '',
+                ShowName: '是'
+            };
+            if (ID != null && ID.toString().length > 0) {
+
+                BusinessService.getDataByID(ID).success(function (response) {
+                    $scope.curObj = response;
+                }).error(function (response) {
+                    box.alert("错误！", { icon: 'error' });
+                });
+            }
+            $scope.send = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = $scope.curObj;
+                    BusinessService.send(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("发送成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'SendSms/Index';
+                            });
+                        }
+                        else {
+                            box.alert((response.Message == null || response.Message == '') ? '发送失败' : response.Message, { icon: 'error' })
+                        }
+                    }
+                    ).error(function (response) { box.alert("错误！", { icon: 'error' }) });
+                }
+                else { $scope.editForm.failSubmited = true; }
+            };
+
+
+
+            $scope.editMember = function (type) {//dept、group、user
+                var iframeId = type + '_edit';
+                var title = "";
+                var iframeSrc = "";
+                var wWidth = 530;
+                var strUrl = "";
+                var data = {};
+                switch (type) {
+                    case 'dept': {
+                        title = '部门选择';
+                        strUrl = '../UsersGrounp/SelectDepts';
+                    } break;
+                    case 'group': {
+                        title = '群组选择';
+                        strUrl = '../UsersGrounp/SelectGroupToUsers';
+                    } break;
+                    case 'user': {
+                        title = '用户选择';
+                        strUrl = '../UsersGrounp/SelectUsers';
+                        wWidth = 760;
+                    } break;
+                    default: title = type;
+                }
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+                box.popup('',//iframeStr,
+                    {
+                        url: strUrl,
+                        iframeId: iframeId,
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 390,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    if (!$scope.curObj.Mobile) $scope.curObj.Mobile = '';
+                                    if (result.length > 0) {
+                                        switch (type) {
+                                            case 'dept': {
+                                                BusinessService.getUserMobileByDeptID(getAttrByArr(result, 'id')).success(function (response) {
+                                                    if (response.items.length > 0)
+                                                        $scope.curObj.Mobile += ($scope.curObj.Mobile.length > 0 ? ',' : '') + response.items.join(',');
+                                                }).error(function (response) {
+                                                    box.alert("错误！", { icon: 'error' });
+                                                });
+                                            } break;
+                                            case 'group': {
+                                                $scope.curObj.Mobile += ($scope.curObj.Mobile.length > 0 ? ',' : '') + getAttrByArr(result, 'Mobile').join(',');
+                                            } break;
+                                            case 'user': {
+                                                $scope.curObj.Mobile += ($scope.curObj.Mobile.length > 0 ? ',' : '') + getAttrByArr(result, 'Mobile').join(',');
+                                            } break;
+                                            default: break;
+                                        }
+                                    }
+
+                                    $scope.$apply();
+                                }
+                            }
+                        }
+                    });
+            }
+
+
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.send = function (postData) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SendSms/Send',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'SendSms/GetDataByID/' + id
+                });
+            };
+
+            serive.getUserMobileByDeptID = function (listDpId) {
+                return $http.post(CurPath + '/SysUser/GetUserMobileByDeptID', listDpId);
+            };
+
+            return serive;
+        }]);
+    </script>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org" class="public-form">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="SysLinkController" name="editForm" novalidate>
+        <table>
+            <tr>
+                <th style="vertical-align:top;">手机号码：</th>
+                <td>
+                    <div style="margin-bottom:5px;">
+                        <a ng-click="editMember('user')" class="cell-btn-blue forEdit" style="width:70px; margin-right:10px;">用户</a>
+                        <a ng-click="editMember('dept')" class="cell-btn-blue forEdit" style="width:70px; margin-right:10px;">部门</a>
+                        <a ng-click="editMember('group')" class="cell-btn-blue forEdit" style="width:70px; margin-right:10px;">群组</a>
+                    </div>
+                    <div class="the-text-area">
+                        <textarea name="Mobile" ng-model="curObj.Mobile" style="width:500px; height:100px;" required></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Mobile.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Mobile.$error.required">请输入手机号码</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th style="vertical-align:top;">短信内容：</th>
+                <td>
+                    <div class="the-text-area">
+                        <textarea name="Context" ng-model="curObj.Context" ng-maxlength="800" style="width:500px; height:100px;" required></textarea>
+                        <strong class="must-options">*</strong>
+                        <div class="ui-tips" ng-show="editForm.Context.$invalid&&editForm.failSubmited">
+                            <div class="note"><i class="icon-note"></i>输入提示</div>
+                            <div class="error" style="display:block">
+                                <i class="icon-error"></i>
+                                <span ng-show="editForm.Context.$error.required">请输入短信内容</span>
+                                <span ng-show="editForm.Context.$error.maxlength">输入文本过长</span>
+                            </div>
+                            <div class="correct"><i class="icon-correct"></i></div>
+                        </div>
+                    </div>
+                    <div style="clear:both;">
+                        <span ng-hide="editForm.Context.$error.maxlength">您还可以输入<span style="color:blue;">{{800-curObj.Context.length}}</span>个字</span>
+                        <span ng-show="editForm.Context.$error.maxlength">您输入的短信内容已经超出800字</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>显示账号名称：</th>
+                <td>
+                    <div class="ui-input">
+                        <div class="selectdrapdown">
+                            <select name="ShowName" ng-model="curObj.ShowName" class="cell-input" style="width:50px;">
+                                <option value="是">是</option>
+                                <option value="否">否</option>
+                            </select>
+                        </div><span>(是，则短信内容的开头插入发送人的帐号名称；否，则短信内容的开头不插入发送人的帐号名称。)</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th style="vertical-align:top;">使用说明：</th>
+                <td><div>可在手机号码列表中填写一个或多个移动手机号码，多个号码的中间要用半角逗号隔开。<br />(正确的格式如："138XXXXXXXX,139XXXXXXXX,139XXXXXXXX") </div></td>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <td>
+                    <a ng-click="send()" class="cell-btn-blue forEdit" style="width:70px; margin-right:20px;">发送</a>
+                    <a href="../SendSms/Index" class="cell-btn-orange" style="width:70px;">返回</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<!--公告编辑 end--->

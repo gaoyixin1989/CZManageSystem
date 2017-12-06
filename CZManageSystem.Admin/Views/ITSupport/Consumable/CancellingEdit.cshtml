@@ -1,0 +1,464 @@
+﻿
+@{
+    ViewBag.Title = "耗材退库单的明细页面";
+    Layout = "~/Views/Shared/_Content.cshtml";
+}
+
+@section Scripts{
+<script src="~/Content/app/executor.aftersubmit.js"></script>
+    <script src="~/Content/Javascript/jscroll.js"></script>
+    <script src="~/Content/app/number.js"></script>
+    <script>
+        var type = '@ViewData["type"]';
+        var workflowName = '@ViewData["workflowName"]';
+        $(function () {
+            setByType();
+        });
+
+        function setByType() {
+            if (type != 'edit') {
+                $('.forEdit').remove();
+            }
+            else {
+                $('.editWithout').remove();
+            }
+        }
+
+        function addJsCroll(elememt) {
+            if ($(elememt).length > 0) {
+                $(elememt).jscroll({
+                    W: "8px",
+                    BgUrl: "",
+                    Bg: "#f4f4f4",
+                    Bar: {
+                        //Pos: "bottom",
+                        Bd: { Out: "#f4f4f4", Hover: "#f4f4f4" },
+                        Bg: { Out: "#0085d1", Hover: "#03a3fe", Focus: "#03a3fe" }
+                    },
+                    Btn: { btn: false }
+                });
+            }
+        }
+
+
+        var app = angular.module('CreateOrUpdate', ['executor.aftersubmit', 'number']);
+        app.config(['$locationProvider', function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        }]);
+        app.controller('CreateController', ['$scope', 'BusinessService', '$filter', function ($scope, BusinessService, $filter) {
+            $scope.aftersubmitConf = {
+                workflowName: workflowName
+            };
+            var CancellingID = '@ViewData["CancellingID"]';
+            var RealName = '@ViewData["RealName"]';
+            var DeptName = '@ViewData["DeptName"]';
+            var Mobile = '@ViewData["Mobile"]';
+            var NewTitle = '@ViewData["NewTitle"]';
+            $scope.curObj = {
+                cancellingData: { Title: NewTitle },
+                detailDatas: {},
+                sumbitUser: { RealName: RealName, Mobile: Mobile }
+            }
+            $scope.ActivitiesCompleted = [];
+
+            //获取当前数据
+            if (CancellingID != null && CancellingID.toString().length > 0) {
+
+                BusinessService.getDataByID(CancellingID).success(function (response) {
+                    $scope.curObj = response;
+                    if ($scope.curObj.cancellingData.Title == null || $scope.curObj.cancellingData.Title == '') {
+                        $scope.curObj.cancellingData.Title = NewTitle;
+                    }
+                    if ($scope.curObj.sumbitUser == null) {
+                        $scope.curObj.sumbitUser = { RealName: RealName, Mobile: Mobile, DeptName: DeptName };
+                    }
+
+                    //获取流程步骤执行情况信息
+                    if ($scope.curObj.cancellingData.WorkflowInstanceId != null && $scope.curObj.cancellingData.WorkflowInstanceId != '')
+                        BusinessService.getActivitiesCompletedByID($scope.curObj.cancellingData.WorkflowInstanceId).success(function (response2) {
+                            $scope.ActivitiesCompleted = response2.items;
+                        })
+
+                }).error(function (response) {
+                    box.alert("网络出错！", { icon: 'error' });
+                });
+            }
+            
+            //获取耗材退库明细信息
+            box.load("GetListData_CancellingDetail");
+            BusinessService.GetListData_CancellingDetail({ CancellingID: CancellingID }).success(function (response) {
+                box.ready("GetListData_CancellingDetail");
+                $scope.ConsumableData = response.items;
+            }).error(function (err) {
+                box.ready("GetListData_CancellingDetail");
+                //alert("网络出错！");
+                box.alert("网络出错！", { icon: 'error' });
+            });
+
+            //保存数据
+            $scope.save = function () {
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = {
+                        dataObj: $scope.curObj.cancellingData,
+                        details: []
+                    }
+                    $.each($scope.ConsumableData, function (i, item) {
+                        if (item.Count != null && (!isNaN(item.Count)) && item.Count > 0) {
+                            postData.details.push({ ConsumableID: item.ID, Amount: item.Count });
+                        }
+                    })
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            box.alert("保存成功", { icon: 'success' }, function () {
+                                window.location.href = CurPath + 'Consumable/CancellingIndex';
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //提交数据，提交数据时先执行保存数据
+            $scope.submit = function () {
+                var nextInfo = $scope.aftersubmitConf.getValue();
+                if (!nextInfo.isSuccess) {
+                    box.alert(nextInfo.errorMessage, { icon: 'warning' });
+                    return;
+                }
+                if (nextInfo == null || nextInfo.nextActivity == '' || nextInfo.nextActors.length < 1) {
+                    box.alert("请选择下一步骤以及执行人！", { icon: 'warning' });
+                    return;
+                }
+
+                $scope.editForm.failSubmited = false;
+                if ($scope.editForm.$valid) {
+                    var postData = {
+                        dataObj: $scope.curObj.cancellingData,
+                        details: []
+                    }
+                    $.each($scope.ConsumableData, function (i, item) {
+                        if (item.Count != null && (!isNaN(item.Count)) && item.Count > 0) {
+                            postData.details.push({ ConsumableID: item.ID, Amount: item.Count });
+                        }
+                    })
+
+
+                    BusinessService.save(postData).success(function (response) {
+                        if (response.IsSuccess) {
+                            var sumbitData = {
+                                cancellingID: response.Message,
+                                nextActivity: nextInfo.nextActivity,
+                                nextActors: getAttrByArr(nextInfo.nextActors, 'UserName').join(','),
+                                nextCC: getAttrByArr(nextInfo.nextCC, 'UserName').join(',')
+                            };
+                            box.load("submit");
+                            BusinessService.submit(sumbitData).success(function (response2) {
+                                box.ready("submit");
+                                if (response2.IsSuccess) {
+                                    box.alert("提交成功", { icon: 'success' }, function () {
+                                        window.location.href = CurPath + 'Consumable/CancellingIndex';
+                                    });
+                                }
+                                else {
+                                    box.alert(response2.Message.length > 0 ? response2.Message : "提交失败", { icon: 'error' });
+                                }
+                            }).error(function (response2) {
+                                box.ready("submit");
+                                box.alert("网络出错！", { icon: 'error' });
+                            });
+                        }
+                        else {
+                            box.alert(response.Message.length > 0 ? response.Message : "保存失败", { icon: 'error' });
+                        }
+                    }).error(function (response) { box.alert("网络出错！", { icon: 'error' }); });
+                }
+                else {
+                    $scope.editForm.failSubmited = true;
+                }
+            };
+
+            //添加耗材信息
+            $scope.addConsumableData = function () {
+                //window.location.href = CurPath + 'Consumable/ConsumableEdit';
+                var iframeId = 'addConsumableData_Win';
+                var title = "添加耗材信息";
+                var iframeSrc = "../Consumable/ConWinInfo";
+                var wWidth = 800;
+                var iframeStr = "<iframe id='" + iframeId + "' name='" + iframeId + "' frameborder='0' marginwidth='0' style='width:100%;height:100%;overflow:hidden;' src='" + iframeSrc + "'></iframe>";
+
+                box.popup(iframeStr,
+                    {
+                        title: title,
+                        width: wWidth,//窗口宽度，默认400
+                        height: 380,//窗口高度，默认400
+                        hasOk: true,
+                        hasCancel: true,
+                        onBeforeClose: function (data) {
+                            if (data == true) {
+                                var theWindow = window;
+                                while ((!theWindow.frames[iframeId]) && (!!theWindow.parent)) {
+                                    theWindow = theWindow.parent;
+                                }
+                                if (!theWindow.frames[iframeId]) {
+                                    box.alert('出错！', { icon: 'error' });
+                                }
+                                else {
+                                    var result = theWindow.frames[iframeId].getResult();
+                                    $.each(result, function (i, item) {
+                                        if ($filter('filter')($scope.ConsumableData, { 'ID': item.ID }).length < 1) {
+                                            item.Count = 0;
+                                            $scope.ConsumableData.push(item);
+                                        }
+                                    });
+                                    $scope.$apply();
+                                    //addJsCroll($('.jscroll'));
+                                }
+                            }
+                        }
+                    });
+
+            }
+
+            $scope.deleteConsumable = function (obj) {
+                var index = $scope.ConsumableData.indexOf(obj);
+                $scope.ConsumableData.splice(index, 1);
+                $scope.$apply();
+                addJsCroll($('.jscroll'));
+            }
+
+            $scope.print = function () {
+                if ($scope.curObj.cancellingData.WorkflowInstanceId == null || $scope.curObj.cancellingData.WorkflowInstanceId.length <= 0)
+                    box.alert("没有流程实例ID，请先提交数据！", { icon: 'error' });
+                else
+                    window.open(CurPath + 'plugins/easyflow/contrib/workflow/pages/print.aspx?wiid=' + $scope.curObj.cancellingData.WorkflowInstanceId);
+            }
+
+        }]);
+        //业务类
+        app.factory('BusinessService', ['$http', function ($http) {
+            var serive = {};
+
+            serive.save = function (postData) {//保存
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/Save_Cancelling',
+                    data: postData
+                });
+            };
+            serive.submit = function (postData) {//提交
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/Sumbit_Cancelling',
+                    data: postData
+                });
+            };
+            serive.getDataByID = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/GetDataByID_Cancelling?id=' + id
+                });
+            };
+
+            serive.GetListData_CancellingDetail = function (postData) {//获取耗材退库明细信息
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Consumable/GetListData_CancellingDetail',
+                    data: postData
+                });
+            };
+
+            serive.getActivitiesCompletedByID = function (id) {//根据入库单ID获取数据
+                return $http({
+                    method: 'POST',
+                    url: CurPath + 'Workflow/GetActivitiesCompletedByID?WorkflowInstanceId=' + id
+                });
+            };
+
+            return serive;
+        }]);
+
+        app.directive('onFinishRenderFilters', function ($timeout) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attr) {
+                    if (scope.$last === true) {
+                        $timeout(function () {
+                            setByType();
+                            //scope.$emit('ngRepeatFinished');
+                            addJsCroll(element.parents('.jscroll'));
+                        });
+                    }
+                }
+            };
+        });
+
+    </script>
+    <style>
+        .the-operation1 ul li a {
+            padding: 0px;
+        }
+
+        .public-form {
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+        .public-table-main {
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .main-flip {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+    </style>
+}
+<!--公告编辑--->
+
+<div xmlns:ng="http://angularjs.org">
+    <form action="" method="post" id="ng-app" ng-app="CreateOrUpdate" ng-controller="CreateController" name="editForm" novalidate>
+        <div class="public-form">
+            <table>
+                <tr>
+                    <th>标题：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:300px;" name="Title" ng-model="curObj.cancellingData.Title" ng-maxlength="200" required class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Title.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Title.$error.required">请输入标题</span>
+                                    <span ng-show="editForm.Title.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="width:20%">退库单号：</th>
+                    <td>{{(curObj.levellingData.State==null||curObj.levellingData.State==0)?'(提交时自动生成)':curObj.cancellingData.Series}}</td>
+                    <th class="editWithout" style="width:20%">所在部门：</th>
+                    <td class="editWithout" ng-bind="curObj.sumbitUser.DeptName"></td>
+                </tr>
+                <tr class="editWithout">
+                    <th>申请人：</th>
+                    <td ng-bind="curObj.sumbitUser.RealName"></td>
+                    <th>手机号码：</th>
+                    <td ng-bind="curObj.sumbitUser.Mobile"></td>
+                </tr>
+                <tr>
+                    <th>退库原因：</th>
+                    <td colspan="3">
+                        <div class="ui-input">
+                            <input type="text" style="width:550px;" name="Content" ng-model="curObj.cancellingData.Content" required ng-maxlength="200" class="cell-input" />
+                            <strong class="must-options">*</strong>
+                            <div class="ui-tips" ng-show="editForm.Content.$invalid&&editForm.failSubmited ">
+                                <div class="note"><i class="icon-note"></i>输入提示</div>
+                                <div class="error" style="display:block">
+                                    <i class="icon-error"></i>
+                                    <span ng-show="editForm.Content.$error.required">请输入退库原因</span>
+                                    <span ng-show="editForm.Content.$error.maxlength">输入文本过长</span>
+                                </div>
+                                <div class="correct"><i class="icon-correct"></i></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="forEdit">
+                    <td colspan="2">
+                        <executor-aftersubmit conf="aftersubmitConf"></executor-aftersubmit>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="public-table-main">
+            <div class="jscroll" style="height:200px;">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th style="display:none;"><input type="checkbox" ng-checked="ischecked" ng-model="master" ng-click="all($event)" /> </th>
+                        <th>耗材类别</th>
+                        <th>耗材名称</th>
+                        <th>耗材品牌</th>
+                        <th>耗材型号</th>
+                        <th>适用设备</th>
+                        <th>单位</th>
+                        <th>是否低值</th>
+                        <th>数量</th>
+                        <th class="forEdit">删除</th>
+                    </tr>
+                    <tr ng-repeat="emp in ConsumableData" on-finish-render-filters>
+                        <td style="display:none;"><input type="checkbox" id="{{emp.ID}}" ng-model="x" ng-checked="x" ng-click="chk($event,emp.ID)" /></td>
+                        <td ng-bind="emp.Type"></td>
+                        <td ng-bind="emp.Name"></td>
+                        <td ng-bind="emp.Trademark"></td>
+                        <td ng-bind="emp.Model"></td>
+                        <td ng-bind="emp.Equipment"></td>
+                        <td ng-bind="emp.Unit"></td>
+                        <td>{{emp.IsValue=='0'?'否':'是'}}</td>
+                        <td><input type="text" style="width:50px;" ng-model="emp.Count" number min="0" class="cell-input" /></td>
+                        <td class="forEdit">
+                            <div class="operation-btn">
+                                <a href="javascript:void(0);" ng-click="deleteConsumable(emp)">删除</a>
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+            </div>
+
+            <div @*ng-show="curObj.cancellingData.State!=0"*@ style="display:none;">
+                <div style="color:blue; margin-top:5px;">处理信息</div>
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th>步骤</th>
+                        <th>处理人</th>
+                        <th>执行时间</th>
+                        <th>处理意见</th>
+                    </tr>
+                    <tr ng-repeat="emp in ActivitiesCompleted">
+                        <td><span style="color:red;">{{emp.Command=='reject'?'【退还】':''}}</span><span>{{emp.ActivityName}}</span></td>
+                        <td ng-bind="emp.ActorDescription"></td>
+                        <td ng-bind="emp.FinishedTime|date:'yyyy-MM-dd HH:mm:ss'"></td>
+                        <td>{{emp.ActivityName=='提单'?'提交工单':emp.Reason}}</td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+
+        <div class="main-flip">
+
+            <div class="the-operation1" style="float:left">
+                <ul>
+                    <li>
+                        <a id="btnAdd" ng-click="addConsumableData()" class="cell-btn-blue forEdit" style="width:70px;">添加</a>
+                    </li>
+                    <li>
+                        <a id="btnSave" ng-click="save()" class="cell-btn-blue forEdit" style="width:70px;">保存</a>
+                    </li>
+                    <li>
+                        <a id="btnSumbit" ng-click="submit()" class="cell-btn-blue forEdit" style="width:70px;">提交</a>
+                    </li>
+                    <li><a href="../Consumable/CancellingIndex" class="cell-btn-orange" style="width:70px;">返回</a></li>
+                    <li>
+                        <a ng-click="print()" class="cell-btn-blue editWithout" style="width:70px;">打印</a>
+                    </li>
+                </ul>
+
+            </div>
+            <tm-pagination conf="paginationConf"></tm-pagination>
+        </div>
+    </form>
+</div>
+<!--公告编辑 end--->
